@@ -48,6 +48,7 @@ export function LeadsScreen() {
   const [emailOpen, setEmailOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [enrichOpen, setEnrichOpen] = useState(false);
+  const [enrichIds, setEnrichIds] = useState<string[]>([]);
 
   const [q, setQ] = useState("");
   const [fStatus, setFStatus] = useState<LeadStatus | "all">("all");
@@ -61,6 +62,8 @@ export function LeadsScreen() {
   useEffect(() => { setPage(1); }, [q, fStatus, fIndustry, fTemp]);
 
   const industries = useMemo(() => Array.from(new Set(leads.map((l) => l.industry).filter(Boolean))) as string[], [leads]);
+  // leads que dá pra enriquecer: têm site mas ainda sem e-mail
+  const enrichable = useMemo(() => leads.filter((l) => hasVal(l.website) && !hasVal(l.email)).map((l) => l.id), [leads]);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -123,6 +126,9 @@ export function LeadsScreen() {
           <OutlineBtn onClick={() => setFiltersOpen((v) => !v)} icon="filter" active={activeFilters > 0}>
             {L.filters}{activeFilters ? ` (${activeFilters})` : ""}
           </OutlineBtn>
+          {enrichable.length > 0 && (
+            <OutlineBtn onClick={() => { setEnrichIds(enrichable); setEnrichOpen(true); }} icon="mail">{X.findEmail} ({enrichable.length})</OutlineBtn>
+          )}
           <OutlineBtn onClick={() => setImportOpen(true)} icon="upload">{X.import}</OutlineBtn>
           <button onClick={() => exportLeads(filtered, getExportFormat())} style={primaryBtn}>
             <Icon name="download" size={15} /> {L.exportCsv}
@@ -144,7 +150,7 @@ export function LeadsScreen() {
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 20px", borderBottom: "1px solid var(--ml-border)", background: "rgba(109,92,245,.07)", flexWrap: "wrap" }}>
             <span style={{ fontSize: 13.5, fontWeight: 700, color: "#6d5cf5" }}>{selCount} {selCount === 1 ? L.selectedOne : L.selected}</span>
             <span style={{ flex: 1 }} />
-            <button onClick={() => setEnrichOpen(true)} style={{ ...bulkPrimary }}><Icon name="search" size={15} /> {X.findEmail}</button>
+            <button onClick={() => { setEnrichIds([...selected]); setEnrichOpen(true); }} style={{ ...bulkPrimary }}><Icon name="search" size={15} /> {X.findEmail}</button>
             <button onClick={() => setEmailOpen(true)} style={bulkOutline}><Icon name="mail" size={15} /> {X.massEmail}</button>
             <button style={bulkOutline}><Icon name="tag" size={14} /> {X.addTag}</button>
             <button onClick={() => exportLeads(leads.filter((l) => selected.has(l.id)), getExportFormat())} style={bulkOutline}><Icon name="download" size={14} /> {L.exportCsv}</button>
@@ -233,7 +239,7 @@ export function LeadsScreen() {
 
       <LeadDrawer lead={openLead} onClose={() => setOpenLead(null)} onChanged={refetch} />
       {emailOpen && <MassEmailModal leadIds={[...selected]} onClose={() => setEmailOpen(false)} />}
-      {enrichOpen && <EnrichEmailsModal leadIds={[...selected]} onDone={refetch} onClose={() => setEnrichOpen(false)} />}
+      {enrichOpen && <EnrichEmailsModal leadIds={enrichIds} onDone={refetch} onClose={() => setEnrichOpen(false)} />}
       {importOpen && <ImportCsvModal accountId={account?.id} userId={session?.user?.id} existing={leads.map((l) => ({ phone: l.phone, website: l.website }))} onDone={refetch} onClose={() => setImportOpen(false)} />}
     </div>
   );
