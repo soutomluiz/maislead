@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: rgba(120,110,180,.28); border-radius: 20px; border: 3px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  input, select, textarea, button { font-family: inherit; }
+  input::placeholder, textarea::placeholder { color: var(--muted, #9a97b5); }
+  @keyframes floatIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes drawLine { from { stroke-dashoffset: 1400; } to { stroke-dashoffset: 0; } }
+  @keyframes ringGrow { from { stroke-dashoffset: 440; } to { stroke-dashoffset: 0; } }
+</style>
+</helmet>
+
+<div style="position:relative;display:flex;height:100vh;width:100%;overflow:hidden;background:var(--bg,#f4f5fb);color:var(--text,#211d3b);transition:background .3s,color .3s;{{ themeVars }}">
+
+  <!-- SIDEBAR -->
+  <aside style="width:264px;flex-shrink:0;height:100%;display:flex;flex-direction:column;background:var(--sidebar,#ffffff);border-right:1px solid var(--border,#ecebf5);padding:22px 16px 18px;overflow-y:auto;">
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 8px 22px;">
+      <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#6d5cf5,#9d7bff);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(109,92,245,.35);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg>
+      </div>
+      <div style="line-height:1;">
+        <div style="font-size:17px;font-weight:800;letter-spacing:-.02em;">mais<span style="color:#6d5cf5;">LEAD</span></div>
+        <div style="font-size:10px;font-weight:600;color:var(--muted,#9a97b5);letter-spacing:.14em;margin-top:3px;">{{ t.brand }}</div>
+      </div>
+    </div>
+
+    <nav style="display:flex;flex-direction:column;gap:3px;flex:1;">
+      <div onClick="{{ navDashboard }}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:500;transition:.15s;{{ act.dashboard }}" style-hover="background:var(--hover,#f4f3fb);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span>{{ t.nav.dashboard }}</span>
+      </div>
+
+      <div style="margin-top:8px;padding:0 12px 6px;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted,#a6a3c0);text-transform:uppercase;">{{ t.nav.secPros }}</div>
+      <div onClick="{{ navManual }}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:500;transition:.15s;{{ act.add }}" style-hover="background:var(--hover,#f4f3fb);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+        <span style="flex:1;">{{ t.nav.add }}</span>
+      </div>
+      <div onClick="{{ navManual }}" style="display:flex;align-items:center;gap:11px;padding:9px 12px 9px 30px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:500;transition:.15s;{{ act.manual }}" style-hover="background:var(--hover,#f4f3fb);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        <span>{{ t.nav.manual }}</span>
+      </div>
+      <div onClick="{{ navGplaces }}" style="display:flex;align-items:center;gap:11px;padding:9px 12px 9px 30px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:500;transition:.15s;{{ act.gplaces }}" style-hover="background:var(--hover,#f4f3fb);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>{{ t.nav.gplaces }}</span>
+      </div>
+      <div onClick="{{ navWebsites }}" style="display:flex;align-items:center;gap:11px;padding:9px 12px 9px 30px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:500;transition:.15s;{{ act.websites }}" style-hover="background:var(--hover,#f4f3fb);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.9 3.8 9S14.5 18.3 12 21c-2.5-2.7-3.8-5.9-3.8-9S9.5 5.7 12 3z"/></svg>
+        <span>{{ t.nav.websites }}</span>
+      </div>
+
+      <div style="margin-top:12px;padding:0 12px 6px;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted,#a6a3c0);text-transform:uppercase;">{{ t.nav.secMgmt }}</div>
+      <div onClick="{{ navLeads }}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:500;transition:.15s;{{ act.leads }}" style-hover="background:var(--hover,#f4f3fb);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        <span>{{ t.nav.leads }}</span>
+      </div>
+      <div onClick="{{ navScore }}" style="display:flex;align-items:center;gap:11px;padding:9px 12px 9px 30px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:500;transition:.15s;{{ act.score }}" style-hover="background:var(--hover,#f4f3fb);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.9L7 22l5-3 5 3-1.2-8.1"/></svg>
+        <span>{{ t.nav.score }}</span>
+      </div>
+      <div onClick="{{ navTimeline }}" style="display:flex;align-items:center;gap:11px;padding:9px 12px 9px 30px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:500;transition:.15s;{{ act.timeline }}" style-hover="background:var(--hover,#f4f3fb);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span>{{ t.nav.timeline }}</span>
+      </div>
+      <div onClick="{{ navReports }}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:500;transition:.15s;{{ act.reports }}" style-hover="background:var(--hover,#f4f3fb);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="12" y="7" width="3" height="10" rx="1"/><rect x="17" y="13" width="3" height="4" rx="1"/></svg>
+        <span>{{ t.nav.reports }}</span>
+      </div>
+      <div onClick="{{ navIntegrations }}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:500;transition:.15s;{{ act.integrations }}" style-hover="background:var(--hover,#f4f3fb);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="9" height="10" rx="2"/><rect x="13" y="4" width="9" height="7" rx="2"/><path d="M11 12h2M17 11v3a2 2 0 01-2 2h-2"/></svg>
+        <span>{{ t.nav.integrations }}</span>
+      </div>
+      <div onClick="{{ navSub }}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:500;transition:.15s;{{ act.sub }}" style-hover="background:var(--hover,#f4f3fb);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4 4 5-7 5 7 4-4v10a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></svg>
+        <span>{{ t.nav.sub }}</span>
+      </div>
+      <div onClick="{{ navSettings }}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:500;transition:.15s;{{ act.settings }}" style-hover="background:var(--hover,#f4f3fb);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-2.9.66 1.65 1.65 0 01-3.14 0 1.65 1.65 0 00-2.9-.66l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.24.58.78.98 1.4 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span>{{ t.nav.settings }}</span>
+      </div>
+    </nav>
+
+    <div style="margin-top:14px;padding:14px 12px 4px;border-top:1px solid var(--border,#ecebf5);display:flex;flex-direction:column;gap:9px;font-size:12px;color:var(--muted,#8f8caa);">
+      <div style="display:flex;align-items:center;gap:9px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span>(11) 4002-8922</span></div>
+      <div style="display:flex;align-items:center;gap:9px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg><span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="15767a7b6174617a5578747c66797074713b767a783b7767">[email&#160;protected]</a></span></div>
+      <div style="display:flex;align-items:center;gap:9px;opacity:.75;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/></svg><span>{{ t.version }}</span></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div style="flex:1;display:flex;flex-direction:column;height:100%;overflow:hidden;">
+    <header style="height:72px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--border,#ecebf5);background:var(--sidebar,#fff);">
+      <div>
+        <h1 style="margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em;">{{ pageTitle }}</h1>
+        <div style="font-size:12.5px;color:var(--muted,#8f8caa);margin-top:2px;">{{ pageSub }}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="display:flex;border:1px solid var(--border,#ecebf5);border-radius:11px;overflow:hidden;height:40px;">
+          <button onClick="{{ setPt }}" style="width:42px;border:none;background:transparent;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted,#8f8caa);{{ lang.pt }}">PT</button>
+          <button onClick="{{ setEn }}" style="width:42px;border:none;border-left:1px solid var(--border,#ecebf5);border-right:1px solid var(--border,#ecebf5);background:transparent;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted,#8f8caa);{{ lang.en }}">EN</button>
+          <button onClick="{{ setEs }}" style="width:42px;border:none;background:transparent;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted,#8f8caa);{{ lang.es }}">ES</button>
+        </div>
+        <button onClick="{{ toggleTheme }}" style="width:40px;height:40px;border-radius:11px;border:1px solid var(--border,#ecebf5);background:var(--card,#fff);color:var(--muted,#8f8caa);display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="color:#6d5cf5;">{{ themeIcon }}</button>
+        <div onClick="{{ openProfile }}" style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:4px 10px 4px 4px;border-radius:30px;transition:.15s;" style-hover="background:var(--hover,#f4f3fb);">
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6d5cf5,#9d7bff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">WL</div>
+          <div style="line-height:1.2;"><div style="font-size:13.5px;font-weight:700;">Washington Luiz</div><div style="font-size:11px;color:var(--muted,#8f8caa);">Admin</div></div>
+        </div>
+        <button style="width:40px;height:40px;border-radius:11px;border:1px solid var(--border,#ecebf5);background:var(--card,#fff);color:var(--muted,#8f8caa);display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="color:#ef4444;border-color:#fecaca;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main style="flex:1;overflow-y:auto;padding:28px 32px 48px;">
+
+      <!-- DASHBOARD -->
+      <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:22px 24px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="display:flex;align-items:center;justify-content:space-between;"><div style="font-size:13px;color:var(--muted,#8f8caa);font-weight:600;">{{ t.dash.total }}</div><div style="width:42px;height:42px;border-radius:12px;background:rgba(109,92,245,.12);color:#6d5cf5;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg></div></div>
+            <div style="font-size:34px;font-weight:800;margin-top:12px;letter-spacing:-.02em;">160</div>
+            <div style="font-size:12.5px;color:var(--muted,#8f8caa);margin-top:2px;"><span style="color:#10b981;font-weight:700;">↑ 12%</span> {{ t.dash.registered }}</div>
+          </div>
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:22px 24px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="display:flex;align-items:center;justify-content:space-between;"><div style="font-size:13px;color:var(--muted,#8f8caa);font-weight:600;">{{ t.dash.recent }}</div><div style="width:42px;height:42px;border-radius:12px;background:rgba(245,158,11,.14);color:#f59e0b;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div></div>
+            <div style="font-size:34px;font-weight:800;margin-top:12px;letter-spacing:-.02em;">18</div>
+            <div style="font-size:12.5px;color:var(--muted,#8f8caa);margin-top:2px;">{{ t.dash.last30 }}</div>
+          </div>
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:22px 24px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="display:flex;align-items:center;justify-content:space-between;"><div style="font-size:13px;color:var(--muted,#8f8caa);font-weight:600;">{{ t.dash.convRate }}</div><div style="width:42px;height:42px;border-radius:12px;background:rgba(236,72,153,.13);color:#ec4899;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div></div>
+            <div style="font-size:34px;font-weight:800;margin-top:12px;letter-spacing:-.02em;">13,8%</div>
+            <div style="font-size:12.5px;color:var(--muted,#8f8caa);margin-top:2px;">{{ t.dash.convRateSub }}</div>
+          </div>
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:22px 24px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="display:flex;align-items:center;justify-content:space-between;"><div style="font-size:13px;color:var(--muted,#8f8caa);font-weight:600;">{{ t.dash.email }}</div><div style="width:42px;height:42px;border-radius:12px;background:rgba(59,130,246,.13);color:#3b82f6;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg></div></div>
+            <div style="font-size:34px;font-weight:800;margin-top:12px;letter-spacing:-.02em;">61</div>
+            <div style="font-size:12.5px;color:var(--muted,#8f8caa);margin-top:2px;"><span style="color:#3b82f6;font-weight:700;">38%</span> {{ t.dash.ofContacts }}</div>
+          </div>
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:22px 24px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="display:flex;align-items:center;justify-content:space-between;"><div style="font-size:13px;color:var(--muted,#8f8caa);font-weight:600;">{{ t.dash.phone }}</div><div style="width:42px;height:42px;border-radius:12px;background:rgba(16,185,129,.14);color:#10b981;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.94.36 1.86.7 2.73a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.35-1.27a2 2 0 012.11-.45c.87.34 1.79.57 2.73.7A2 2 0 0122 16.92z"/></svg></div></div>
+            <div style="font-size:34px;font-weight:800;margin-top:12px;letter-spacing:-.02em;">147</div>
+            <div style="font-size:12.5px;color:var(--muted,#8f8caa);margin-top:2px;"><span style="color:#10b981;font-weight:700;">92%</span> {{ t.dash.ofContacts }}</div>
+          </div>
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:22px 24px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="display:flex;align-items:center;justify-content:space-between;"><div style="font-size:13px;color:var(--muted,#8f8caa);font-weight:600;">{{ t.dash.website }}</div><div style="width:42px;height:42px;border-radius:12px;background:rgba(109,92,245,.12);color:#6d5cf5;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.9 3.8 9S14.5 18.3 12 21"/></svg></div></div>
+            <div style="font-size:34px;font-weight:800;margin-top:12px;letter-spacing:-.02em;">138</div>
+            <div style="font-size:12.5px;color:var(--muted,#8f8caa);margin-top:2px;"><span style="color:#6d5cf5;font-weight:700;">86%</span> {{ t.dash.ofContacts }}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:18px;margin-top:18px;">
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:24px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="font-size:16px;font-weight:700;margin-bottom:6px;">{{ t.dash.overTime }}</div>
+            <svg viewBox="0 0 860 280" style="width:100%;height:250px;overflow:visible;">
+              <defs><linearGradient id="areaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6d5cf5" stop-opacity=".28"/><stop offset="100%" stop-color="#6d5cf5" stop-opacity="0"/></linearGradient></defs>
+              <g stroke="var(--grid,#eef0f6)" stroke-width="1"><line x1="0" y1="20" x2="860" y2="20"/><line x1="0" y1="85" x2="860" y2="85"/><line x1="0" y1="150" x2="860" y2="150"/><line x1="0" y1="215" x2="860" y2="215"/></g>
+              <path d="M40,180 L155,150 L270,162 L385,95 L500,120 L615,60 L730,78 L845,30 L845,240 L40,240 Z" fill="url(#areaG)"/>
+              <path d="M40,180 L155,150 L270,162 L385,95 L500,120 L615,60 L730,78 L845,30" fill="none" stroke="#6d5cf5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1400" style="animation:drawLine 1.4s ease forwards;"/>
+              <circle cx="845" cy="30" r="5" fill="#6d5cf5" stroke="var(--card,#fff)" stroke-width="2.5"/>
+              <g fill="var(--muted,#a6a3c0)" font-size="11" text-anchor="middle"><text x="40" y="262">01/07</text><text x="270" y="262">10/07</text><text x="500" y="262">20/07</text><text x="845" y="262">31/07</text></g>
+            </svg>
+          </div>
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:24px;box-shadow:0 1px 3px rgba(30,25,60,.04);display:flex;flex-direction:column;">
+            <div style="font-size:16px;font-weight:700;margin-bottom:8px;">{{ t.dash.status }}</div>
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;position:relative;min-height:170px;">
+              <svg viewBox="0 0 160 160" style="width:170px;height:170px;transform:rotate(-90deg);">
+                <circle cx="80" cy="80" r="62" fill="none" stroke="var(--grid,#eef0f6)" stroke-width="18"/>
+                <circle cx="80" cy="80" r="62" fill="none" stroke="#6d5cf5" stroke-width="18" stroke-linecap="round" stroke-dasharray="205 440" style="animation:ringGrow 1.1s ease forwards;"/>
+                <circle cx="80" cy="80" r="62" fill="none" stroke="#f59e0b" stroke-width="18" stroke-linecap="round" stroke-dasharray="110 440" stroke-dashoffset="-215"/>
+                <circle cx="80" cy="80" r="62" fill="none" stroke="#10b981" stroke-width="18" stroke-linecap="round" stroke-dasharray="70 440" stroke-dashoffset="-330"/>
+              </svg>
+              <div style="position:absolute;text-align:center;"><div style="font-size:28px;font-weight:800;">160</div><div style="font-size:11px;color:var(--muted,#8f8caa);">Leads</div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><div style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:3px;background:#6d5cf5;"></span>{{ t.dash.new }}</div><span style="font-weight:700;">96</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><div style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:3px;background:#f59e0b;"></span>{{ t.dash.qualified }}</div><span style="font-weight:700;">42</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><div style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:3px;background:#10b981;"></span>{{ t.dash.converted }}</div><span style="font-weight:700;">22</span></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;">
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:24px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="font-size:16px;font-weight:700;margin-bottom:18px;">{{ t.dash.sources }}</div>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span>Google Maps</span><span style="font-weight:700;">86</span></div><div style="height:9px;border-radius:6px;background:var(--grid,#eef0f6);overflow:hidden;"><div style="width:54%;height:100%;border-radius:6px;background:linear-gradient(90deg,#6d5cf5,#9d7bff);"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span>Websites</span><span style="font-weight:700;">52</span></div><div style="height:9px;border-radius:6px;background:var(--grid,#eef0f6);overflow:hidden;"><div style="width:33%;height:100%;border-radius:6px;background:linear-gradient(90deg,#3b82f6,#60a5fa);"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span>{{ t.dash.manualEntry }}</span><span style="font-weight:700;">22</span></div><div style="height:9px;border-radius:6px;background:var(--grid,#eef0f6);overflow:hidden;"><div style="width:14%;height:100%;border-radius:6px;background:linear-gradient(90deg,#10b981,#34d399);"></div></div></div>
+            </div>
+          </div>
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:24px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="font-size:16px;font-weight:700;margin-bottom:18px;">{{ t.dash.industries }}</div>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span>Madeireiras</span><span style="font-weight:700;">41</span></div><div style="height:9px;border-radius:6px;background:var(--grid,#eef0f6);overflow:hidden;"><div style="width:70%;height:100%;border-radius:6px;background:linear-gradient(90deg,#6d5cf5,#9d7bff);"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span>Reformas</span><span style="font-weight:700;">28</span></div><div style="height:9px;border-radius:6px;background:var(--grid,#eef0f6);overflow:hidden;"><div style="width:48%;height:100%;border-radius:6px;background:linear-gradient(90deg,#6d5cf5,#9d7bff);"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span>Pisos</span><span style="font-weight:700;">19</span></div><div style="height:9px;border-radius:6px;background:var(--grid,#eef0f6);overflow:hidden;"><div style="width:32%;height:100%;border-radius:6px;background:linear-gradient(90deg,#6d5cf5,#9d7bff);"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- LEADS LIST -->
+      <sc-if value="{{ isLeadsList }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:16px;padding:16px 18px;"><div style="font-size:12px;color:var(--muted,#8f8caa);">{{ t.dash.total }}</div><div style="font-size:24px;font-weight:800;margin-top:2px;">160</div></div>
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:16px;padding:16px 18px;"><div style="font-size:12px;color:var(--muted,#8f8caa);">{{ t.status.new }}</div><div style="font-size:24px;font-weight:800;margin-top:2px;color:#6d5cf5;">96</div></div>
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:16px;padding:16px 18px;"><div style="font-size:12px;color:var(--muted,#8f8caa);">{{ t.status.qualified }}</div><div style="font-size:24px;font-weight:800;margin-top:2px;color:#f59e0b;">42</div></div>
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:16px;padding:16px 18px;"><div style="font-size:12px;color:var(--muted,#8f8caa);">{{ t.status.converted }}</div><div style="font-size:24px;font-weight:800;margin-top:2px;color:#10b981;">22</div></div>
+        </div>
+        <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;box-shadow:0 1px 3px rgba(30,25,60,.04);overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border,#ecebf5);flex-wrap:wrap;">
+            <div style="position:relative;flex:1;min-width:220px;">
+              <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a6a3c0" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input placeholder="{{ t.leads.search }}" style="width:100%;height:42px;border-radius:11px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px 0 38px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);">
+            </div>
+            <button onClick="{{ toggleFilters }}" style="height:42px;padding:0 16px;border-radius:11px;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;{{ filtersBtnStyle }}" style-hover="border-color:#6d5cf5;color:#6d5cf5;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"/></svg>{{ t.leads.filters }}{{ filterCountLabel }}</button>
+            <button onClick="{{ openImport }}" style="height:42px;padding:0 16px;border:1px solid var(--border,#e4e2f0);border-radius:11px;background:var(--card,#fff);color:var(--text,#211d3b);font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;" style-hover="border-color:#6d5cf5;color:#6d5cf5;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 8l5-5 5 5M12 3v12"/></svg>{{ t.leads.import }}</button>
+            <button style="height:42px;padding:0 16px;border:none;border-radius:11px;background:linear-gradient(135deg,#6d5cf5,#8b6bff);color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 6px 14px rgba(109,92,245,.25);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>{{ t.leads.export }}</button>
+          </div>
+
+          <!-- FILTER PANEL -->
+          <sc-if value="{{ filtersOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:flex-end;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border,#ecebf5);background:var(--hover,#faf9fe);flex-wrap:wrap;">
+              <div style="flex:1;min-width:150px;"><label style="font-size:12px;font-weight:700;color:var(--muted,#8f8caa);display:block;margin-bottom:6px;">{{ t.leads.status }}</label><select onChange="{{ setFilterStatus }}" style="width:100%;height:40px;border-radius:10px;border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--text,#211d3b);padding:0 12px;font-size:13.5px;outline:none;cursor:pointer;"><option value="all">{{ t.leads.allStatus }}</option><option value="new">{{ t.status.new }}</option><option value="qualified">{{ t.status.qualified }}</option><option value="converted">{{ t.status.converted }}</option></select></div>
+              <div style="flex:1;min-width:150px;"><label style="font-size:12px;font-weight:700;color:var(--muted,#8f8caa);display:block;margin-bottom:6px;">{{ t.leads.industry }}</label><select onChange="{{ setFilterIndustry }}" style="width:100%;height:40px;border-radius:10px;border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--text,#211d3b);padding:0 12px;font-size:13.5px;outline:none;cursor:pointer;"><option value="all">{{ t.leads.allIndustries }}</option><option value="Madeireira">Madeireira</option><option value="Pisos">Pisos</option><option value="Reformas">Reformas</option></select></div>
+              <div style="flex:1;min-width:150px;"><label style="font-size:12px;font-weight:700;color:var(--muted,#8f8caa);display:block;margin-bottom:6px;">{{ t.leads.temp }}</label><select onChange="{{ setFilterTemp }}" style="width:100%;height:40px;border-radius:10px;border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--text,#211d3b);padding:0 12px;font-size:13.5px;outline:none;cursor:pointer;"><option value="all">{{ t.leads.allTemps }}</option><option value="hot">{{ t.score.hotL }}</option><option value="warm">{{ t.score.warmL }}</option><option value="cool">{{ t.score.coolL }}</option></select></div>
+              <button onClick="{{ clearFilters }}" style="height:40px;padding:0 16px;border:1px solid var(--border,#e4e2f0);border-radius:10px;background:var(--card,#fff);color:var(--muted,#8f8caa);font-size:13px;font-weight:600;cursor:pointer;">{{ t.leads.clear }}</button>
+            </div>
+          </sc-if>
+
+          <!-- BULK BAR -->
+          <sc-if value="{{ hasSelection }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border,#ecebf5);background:rgba(109,92,245,.07);flex-wrap:wrap;">
+              <div style="font-size:13.5px;font-weight:700;color:#6d5cf5;">{{ selectionLabel }}</div>
+              <div style="flex:1;"></div>
+              <button onClick="{{ openMassEmail }}" style="height:38px;padding:0 15px;border:none;border-radius:10px;background:linear-gradient(135deg,#6d5cf5,#8b6bff);color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 5px 12px rgba(109,92,245,.25);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>{{ t.leads.sendEmail }}</button>
+              <button style="height:38px;padding:0 15px;border:1px solid var(--border,#e4e2f0);border-radius:10px;background:var(--card,#fff);color:var(--text,#211d3b);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px;" style-hover="border-color:#6d5cf5;color:#6d5cf5;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5"/></svg>{{ t.leads.addTag }}</button>
+              <button style="height:38px;padding:0 15px;border:1px solid var(--border,#e4e2f0);border-radius:10px;background:var(--card,#fff);color:var(--text,#211d3b);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px;" style-hover="border-color:#6d5cf5;color:#6d5cf5;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>{{ t.leads.export }}</button>
+              <button onClick="{{ clearSelection }}" style="height:38px;width:38px;border:1px solid var(--border,#e4e2f0);border-radius:10px;background:var(--card,#fff);color:var(--muted,#8f8caa);cursor:pointer;display:flex;align-items:center;justify-content:center;" style-hover="color:#ef4444;border-color:#fecaca;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+          </sc-if>
+
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;min-width:940px;">
+              <thead><tr style="text-align:left;">
+                <th style="padding:14px 12px 14px 20px;width:20px;"><span onClick="{{ toggleSelectAll }}" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;cursor:pointer;{{ selectAllStyle }}">{{ selectAllCheck }}</span></th>
+                <th style="padding:14px 12px;font-size:11.5px;font-weight:700;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.04em;">{{ t.leads.company }}</th>
+                <th style="padding:14px 12px;font-size:11.5px;font-weight:700;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.04em;">{{ t.leads.status }}</th>
+                <th style="padding:14px 12px;font-size:11.5px;font-weight:700;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.04em;">{{ t.leads.industry }}</th>
+                <th style="padding:14px 12px;font-size:11.5px;font-weight:700;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.04em;">{{ t.leads.location }}</th>
+                <th style="padding:14px 12px;font-size:11.5px;font-weight:700;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.04em;">{{ t.leads.phone }}</th>
+                <th style="padding:14px 12px;font-size:11.5px;font-weight:700;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.04em;">{{ t.leads.tags }}</th>
+                <th style="padding:14px 20px;"></th>
+              </tr></thead>
+              <tbody>
+                <sc-for list="{{ leads }}" as="row" hint-placeholder-count="8">
+                  <tr style="border-top:1px solid var(--border,#f0eff7);transition:background .1s;{{ row.rowStyle }}" style-hover="background:var(--hover,#faf9fe);">
+                    <td style="padding:15px 12px 15px 20px;"><span onClick="{{ row.onToggle }}" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;cursor:pointer;{{ row.checkStyle }}">{{ row.check }}</span></td>
+                    <td onClick="{{ row.onOpen }}" style="padding:15px 12px;cursor:pointer;"><div style="font-size:14px;font-weight:600;">{{ row.company }}</div><div style="font-size:12px;color:var(--muted,#8f8caa);margin-top:2px;">{{ row.industry }}</div></td>
+                    <td onClick="{{ row.onOpen }}" style="padding:15px 12px;cursor:pointer;"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:20px;{{ row.statusStyle }}"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;"></span>{{ row.statusLabel }}</span></td>
+                    <td onClick="{{ row.onOpen }}" style="padding:15px 12px;font-size:13.5px;color:var(--muted,#6f6c88);cursor:pointer;">{{ row.industry }}</td>
+                    <td onClick="{{ row.onOpen }}" style="padding:15px 12px;font-size:13.5px;color:var(--muted,#6f6c88);cursor:pointer;">{{ row.location }}</td>
+                    <td onClick="{{ row.onOpen }}" style="padding:15px 12px;font-size:13.5px;font-weight:500;cursor:pointer;">{{ row.phone }}</td>
+                    <td onClick="{{ row.onOpen }}" style="padding:15px 12px;cursor:pointer;"><span style="font-size:11.5px;font-weight:600;color:#6d5cf5;background:rgba(109,92,245,.1);padding:4px 10px;border-radius:20px;">{{ row.tag }}</span></td>
+                    <td style="padding:15px 20px;text-align:right;"><button onClick="{{ row.onOpen }}" style="width:32px;height:32px;border-radius:9px;border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--muted,#8f8caa);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;" style-hover="color:#6d5cf5;border-color:#6d5cf5;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-top:1px solid var(--border,#ecebf5);">
+            <div style="font-size:13px;color:var(--muted,#8f8caa);">{{ showingText }}</div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <button style="height:34px;padding:0 12px;border:1px solid var(--border,#e4e2f0);border-radius:9px;background:var(--card,#fff);color:var(--muted,#8f8caa);font-size:13px;font-weight:600;cursor:pointer;">{{ t.leads.prev }}</button>
+              <button style="width:34px;height:34px;border:none;border-radius:9px;background:#6d5cf5;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">1</button>
+              <button style="width:34px;height:34px;border:1px solid var(--border,#e4e2f0);border-radius:9px;background:var(--card,#fff);color:var(--text,#211d3b);font-size:13px;font-weight:600;cursor:pointer;">2</button>
+              <button style="width:34px;height:34px;border:1px solid var(--border,#e4e2f0);border-radius:9px;background:var(--card,#fff);color:var(--text,#211d3b);font-size:13px;font-weight:600;cursor:pointer;">3</button>
+              <button style="height:34px;padding:0 12px;border:1px solid var(--border,#e4e2f0);border-radius:9px;background:var(--card,#fff);color:var(--text,#211d3b);font-size:13px;font-weight:600;cursor:pointer;">{{ t.leads.next }}</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- SCORE -->
+      <sc-if value="{{ isScore }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:10px;margin-bottom:18px;">
+          <button onClick="{{ filterAll }}" style="height:38px;padding:0 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border,#e4e2f0);{{ scf.all }}">{{ t.score.all }}</button>
+          <button onClick="{{ filterHot }}" style="height:38px;padding:0 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border,#e4e2f0);display:flex;align-items:center;gap:7px;{{ scf.hot }}"><span style="width:8px;height:8px;border-radius:50%;background:#ef4444;"></span>{{ t.score.hot }}</button>
+          <button onClick="{{ filterWarm }}" style="height:38px;padding:0 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border,#e4e2f0);display:flex;align-items:center;gap:7px;{{ scf.warm }}"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;"></span>{{ t.score.warm }}</button>
+          <button onClick="{{ filterCool }}" style="height:38px;padding:0 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border,#e4e2f0);display:flex;align-items:center;gap:7px;{{ scf.cool }}"><span style="width:8px;height:8px;border-radius:50%;background:#6d5cf5;"></span>{{ t.score.cool }}</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+          <sc-for list="{{ scoreList }}" as="c" hint-placeholder-count="9">
+            <div onClick="{{ c.onOpen }}" style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:18px;padding:20px;box-shadow:0 1px 3px rgba(30,25,60,.04);cursor:pointer;transition:.15s;" style-hover="transform:translateY(-3px);box-shadow:0 12px 26px rgba(109,92,245,.14);border-color:#c9bffb;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                <div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:700;line-height:1.25;">{{ c.company }}</div><div style="font-size:12px;color:var(--muted,#8f8caa);margin-top:3px;">{{ c.industry }}</div></div>
+                <div style="text-align:center;flex-shrink:0;"><div style="font-size:26px;font-weight:800;line-height:1;color:{{ c.tempColor }};">{{ c.score }}</div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:{{ c.tempColor }};margin-top:3px;">{{ c.tempLabel }}</div></div>
+              </div>
+              <div style="height:7px;border-radius:5px;background:var(--grid,#eef0f6);overflow:hidden;margin:14px 0;"><div style="height:100%;border-radius:5px;width:{{ c.pct }};background:{{ c.tempColor }};"></div></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:8px;display:inline-flex;align-items:center;gap:5px;{{ c.phoneChip }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.94.36 1.86.7 2.73a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.35-1.27a2 2 0 012.11-.45c.87.34 1.79.57 2.73.7A2 2 0 0122 16.92z"/></svg>{{ t.leads.phone }}</span>
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:8px;display:inline-flex;align-items:center;gap:5px;{{ c.emailChip }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>Email</span>
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:8px;display:inline-flex;align-items:center;gap:5px;{{ c.siteChip }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>Site</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- TIMELINE -->
+      <sc-if value="{{ isTimeline }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:820px;">
+          <sc-for list="{{ timeline }}" as="ev" hint-placeholder-count="6">
+            <div style="display:flex;gap:16px;">
+              <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+                <div style="width:40px;height:40px;border-radius:12px;background:{{ ev.iconBg }};color:{{ ev.iconColor }};display:flex;align-items:center;justify-content:center;">{{ ev.icon }}</div>
+                <div style="flex:1;width:2px;background:var(--border,#ecebf5);margin:4px 0;min-height:22px;"></div>
+              </div>
+              <div style="flex:1;background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:16px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(30,25,60,.03);">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                  <div style="font-size:14.5px;font-weight:700;">{{ ev.company }}</div>
+                  <div style="font-size:12px;color:var(--muted,#8f8caa);">{{ ev.date }}</div>
+                </div>
+                <div style="font-size:13px;color:var(--muted,#6f6c88);margin-top:4px;">{{ ev.action }}</div>
+                <div style="display:flex;gap:16px;margin-top:10px;font-size:12.5px;color:var(--muted,#8f8caa);flex-wrap:wrap;">
+                  <span style="display:inline-flex;align-items:center;gap:6px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.94.36 1.86.7 2.73a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.35-1.27a2 2 0 012.11-.45c.87.34 1.79.57 2.73.7A2 2 0 0122 16.92z"/></svg>{{ ev.phone }}</span>
+                  <span style="display:inline-flex;align-items:center;gap:6px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>{{ ev.website }}</span>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- INTEGRATIONS -->
+      <sc-if value="{{ isIntegrations }}" hint-placeholder-val="{{ false }}">
+        <div style="background:linear-gradient(120deg,#6d5cf5,#9d7bff);border-radius:20px;padding:26px 28px;color:#fff;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;box-shadow:0 12px 30px rgba(109,92,245,.25);">
+          <div><div style="font-size:20px;font-weight:800;">{{ t.int.title }}</div><div style="font-size:13.5px;opacity:.92;margin-top:4px;max-width:520px;">{{ t.int.sub }}</div></div>
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.2);padding:9px 16px;border-radius:12px;font-size:13px;font-weight:700;"><span style="width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.3);"></span>{{ connectedCount }}</div>
+        </div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--muted,#6f6c88);text-transform:uppercase;letter-spacing:.05em;">{{ t.int.popular }}</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:26px;">
+          <sc-for list="{{ intPopular }}" as="i" hint-placeholder-count="6">
+            <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:18px;padding:20px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:46px;height:46px;border-radius:13px;background:{{ i.color }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0;">{{ i.initials }}</div>
+                <div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:700;">{{ i.name }}</div><div style="font-size:12px;color:var(--muted,#8f8caa);margin-top:1px;">{{ i.desc }}</div></div>
+              </div>
+              <button onClick="{{ i.onClick }}" style="width:100%;height:40px;margin-top:16px;border-radius:11px;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;{{ i.btnStyle }}">{{ i.btnLabel }}</button>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--muted,#6f6c88);text-transform:uppercase;letter-spacing:.05em;">{{ t.int.brazil }}</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:26px;">
+          <sc-for list="{{ intBrazil }}" as="i" hint-placeholder-count="4">
+            <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:18px;padding:20px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:46px;height:46px;border-radius:13px;background:{{ i.color }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0;">{{ i.initials }}</div>
+                <div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:700;">{{ i.name }}</div><div style="font-size:12px;color:var(--muted,#8f8caa);margin-top:1px;">{{ i.desc }}</div></div>
+              </div>
+              <button onClick="{{ i.onClick }}" style="width:100%;height:40px;margin-top:16px;border-radius:11px;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;{{ i.btnStyle }}">{{ i.btnLabel }}</button>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--muted,#6f6c88);text-transform:uppercase;letter-spacing:.05em;">{{ t.int.automation }}</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+          <sc-for list="{{ intAuto }}" as="i" hint-placeholder-count="4">
+            <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:18px;padding:20px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:46px;height:46px;border-radius:13px;background:{{ i.color }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0;">{{ i.initials }}</div>
+                <div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:700;">{{ i.name }}</div><div style="font-size:12px;color:var(--muted,#8f8caa);margin-top:1px;">{{ i.desc }}</div></div>
+              </div>
+              <button onClick="{{ i.onClick }}" style="width:100%;height:40px;margin-top:16px;border-radius:11px;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;{{ i.btnStyle }}">{{ i.btnLabel }}</button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- MANUAL FORM -->
+      <sc-if value="{{ isManual }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:640px;margin:8px auto 0;">
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:22px;padding:32px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="font-size:19px;font-weight:800;">{{ t.form.newLead }}</div>
+            <div style="font-size:13px;color:var(--muted,#8f8caa);margin-top:3px;margin-bottom:24px;">{{ t.form.fillData }}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+              <div style="grid-column:span 2;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.form.companyName }}</label><input style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+              <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.form.industry }}</label><input style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+              <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.form.location }}</label><input style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+              <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.form.contact }}</label><input style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+              <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.form.email }}</label><input style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+              <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.form.phone }}</label><input style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+              <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.form.website }}</label><input style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+              <div style="grid-column:span 2;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.form.address }}</label><input style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+            </div>
+            <button style="width:100%;height:50px;margin-top:26px;border:none;border-radius:13px;background:linear-gradient(135deg,#6d5cf5,#8b6bff);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 10px 24px rgba(109,92,245,.32);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>{{ t.form.addLead }}</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- SEARCH -->
+      <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:900px;margin:8px auto 0;">
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:22px;padding:32px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">
+              <div style="width:52px;height:52px;border-radius:15px;background:{{ searchIconBg }};color:{{ searchIconColor }};display:flex;align-items:center;justify-content:center;">{{ searchIcon }}</div>
+              <div><div style="font-size:19px;font-weight:800;">{{ searchTitle }}</div><div style="font-size:13px;color:var(--muted,#8f8caa);margin-top:2px;">{{ searchSub }}</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+              <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.search.niche }}</label><input placeholder="{{ t.search.nichePh }}" style="width:100%;height:48px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+              <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.form.location }}</label><input placeholder="{{ t.search.locPh }}" style="width:100%;height:48px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+            </div>
+            <button style="width:100%;height:50px;margin-top:22px;border:none;border-radius:13px;background:linear-gradient(135deg,#6d5cf5,#8b6bff);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 10px 24px rgba(109,92,245,.32);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>{{ t.search.searchBtn }}</button>
+            <div style="margin-top:20px;padding:14px 16px;border-radius:13px;background:var(--hover,#f6f5fc);display:flex;align-items:center;gap:11px;font-size:13px;color:var(--muted,#8f8caa);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6d5cf5" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>{{ t.search.hint }}</div>
+          </div>
+
+          <!-- POPULAR NICHES -->
+          <div style="margin-top:22px;">
+            <div style="font-size:13px;font-weight:700;color:var(--muted,#8f8caa);margin-bottom:11px;">{{ t.search.popular }}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:9px;">
+              <sc-for list="{{ searchNiches }}" as="n" hint-placeholder-count="8">
+                <span style="display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--text,#211d3b);background:var(--card,#fff);border:1px solid var(--border,#e4e2f0);padding:8px 13px;border-radius:20px;cursor:pointer;transition:.15s;" style-hover="border-color:#6d5cf5;color:#6d5cf5;background:rgba(109,92,245,.06);">{{ n.icon }}{{ n.label }}</span>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:18px;margin-top:22px;">
+            <!-- RECENT SEARCHES -->
+            <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:18px;padding:20px 22px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+              <div style="font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6d5cf5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>{{ t.search.recent }}</div>
+              <div style="display:flex;flex-direction:column;">
+                <sc-for list="{{ searchRecent }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--border,#f0eff7);cursor:pointer;" style-hover="opacity:.7;">
+                    <div style="flex:1;min-width:0;"><div style="font-size:13.5px;font-weight:600;">{{ r.query }}</div><div style="font-size:12px;color:var(--muted,#8f8caa);margin-top:1px;">{{ r.loc }} · {{ r.when }}</div></div>
+                    <span style="font-size:12px;font-weight:700;color:#6d5cf5;background:rgba(109,92,245,.1);padding:4px 10px;border-radius:20px;white-space:nowrap;">{{ r.count }} leads</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted,#a6a3c0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <!-- WHAT YOU GET -->
+            <div style="background:linear-gradient(135deg,rgba(109,92,245,.06),rgba(157,123,255,.03));border:1px solid var(--border,#ecebf5);border-radius:18px;padding:20px 22px;">
+              <div style="font-size:14px;font-weight:700;margin-bottom:6px;">{{ t.search.previewTitle }}</div>
+              <div style="font-size:12.5px;color:var(--muted,#8f8caa);margin-bottom:16px;">{{ t.search.previewSub }}</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <sc-for list="{{ searchFields }}" as="f" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;"><span style="width:28px;height:28px;border-radius:8px;background:var(--card,#fff);border:1px solid var(--border,#ecebf5);display:flex;align-items:center;justify-content:center;color:#6d5cf5;flex-shrink:0;">{{ f.icon }}</span>{{ f.label }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- REPORTS -->
+      <sc-if value="{{ isReports }}" hint-placeholder-val="{{ false }}">
+        <!-- report type tabs + period -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;">
+            <sc-for list="{{ reportTabs }}" as="rt" hint-placeholder-count="5">
+              <button onClick="{{ rt.onClick }}" style="height:40px;padding:0 16px;border-radius:11px;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border:1px solid var(--border,#e4e2f0);{{ rt.style }}">{{ rt.icon }}{{ rt.label }}</button>
+            </sc-for>
+          </div>
+          <select onChange="{{ setPeriod }}" style="height:40px;border-radius:11px;border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--text,#211d3b);padding:0 14px;font-size:13.5px;font-weight:600;outline:none;cursor:pointer;"><option value="30">{{ t.rep.p30 }}</option><option value="7">{{ t.rep.p7 }}</option><option value="90">{{ t.rep.p90 }}</option><option value="365">{{ t.rep.p365 }}</option></select>
+          <button style="height:40px;padding:0 16px;border:1px solid var(--border,#e4e2f0);border-radius:11px;background:var(--card,#fff);color:var(--text,#211d3b);font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;" style-hover="border-color:#6d5cf5;color:#6d5cf5;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>{{ t.leads.export }}</button>
+        </div>
+
+        <!-- KPI strip -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
+          <sc-for list="{{ reportKpis }}" as="k" hint-placeholder-count="4">
+            <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:16px;padding:16px 18px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+              <div style="font-size:12px;color:var(--muted,#8f8caa);">{{ k.label }}</div>
+              <div style="font-size:24px;font-weight:800;margin-top:3px;color:{{ k.color }};">{{ k.value }}</div>
+              <div style="font-size:11.5px;color:var(--muted,#8f8caa);margin-top:2px;">{{ k.sub }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <!-- report title -->
+        <div style="margin-bottom:14px;"><div style="font-size:18px;font-weight:800;">{{ reportTitle }}</div><div style="font-size:13px;color:var(--muted,#8f8caa);margin-top:2px;">{{ reportDesc }}</div></div>
+
+        <!-- FUNNEL -->
+        <sc-if value="{{ rIsFunnel }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:30px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="display:flex;flex-direction:column;gap:18px;max-width:760px;margin:0 auto;">
+              <sc-for list="{{ funnel }}" as="fn" hint-placeholder-count="3">
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;"><span style="font-size:14px;font-weight:700;">{{ fn.label }}</span><span style="font-size:13px;color:var(--muted,#8f8caa);">{{ fn.count }} · {{ fn.rate }}</span></div>
+                  <div style="height:44px;border-radius:12px;background:var(--grid,#eef0f6);overflow:hidden;"><div style="height:100%;border-radius:12px;width:{{ fn.width }};background:{{ fn.color }};display:flex;align-items:center;padding-left:16px;color:#fff;font-weight:800;font-size:16px;">{{ fn.count }}</div></div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- BARS (source / industry / score) -->
+        <sc-if value="{{ rIsBars }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:28px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="display:flex;flex-direction:column;gap:18px;">
+              <sc-for list="{{ reportBars }}" as="b" hint-placeholder-count="4">
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:7px;"><span style="font-weight:600;">{{ b.label }}</span><span style="color:var(--muted,#8f8caa);">{{ b.detail }}</span></div>
+                  <div style="height:12px;border-radius:8px;background:var(--grid,#eef0f6);overflow:hidden;"><div style="height:100%;border-radius:8px;width:{{ b.pct }};background:{{ b.color }};"></div></div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- TIME -->
+        <sc-if value="{{ rIsTime }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:28px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <svg viewBox="0 0 900 260" style="width:100%;height:260px;overflow:visible;">
+              <defs><linearGradient id="areaRp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6d5cf5" stop-opacity=".26"/><stop offset="100%" stop-color="#6d5cf5" stop-opacity="0"/></linearGradient></defs>
+              <g stroke="var(--grid,#eef0f6)" stroke-width="1"><line x1="0" y1="30" x2="900" y2="30"/><line x1="0" y1="100" x2="900" y2="100"/><line x1="0" y1="170" x2="900" y2="170"/></g>
+              <path d="M20,170 L140,130 L260,150 L380,85 L500,110 L620,58 L740,80 L880,42 L880,210 L20,210 Z" fill="url(#areaRp)"/>
+              <path d="M20,170 L140,130 L260,150 L380,85 L500,110 L620,58 L740,80 L880,42" fill="none" stroke="#6d5cf5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="880" cy="42" r="5" fill="#6d5cf5" stroke="var(--card,#fff)" stroke-width="2.5"/>
+              <g fill="var(--muted,#a6a3c0)" font-size="11" text-anchor="middle"><text x="20" y="234">01/07</text><text x="260" y="234">10/07</text><text x="500" y="234">20/07</text><text x="880" y="234">31/07</text></g>
+            </svg>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <!-- SUBSCRIPTION -->
+      <sc-if value="{{ isSub }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:760px;margin:8px auto 0;">
+          <div style="border-radius:22px;padding:32px;background:linear-gradient(135deg,#6d5cf5,#9d7bff);color:#fff;box-shadow:0 16px 40px rgba(109,92,245,.3);position:relative;overflow:hidden;">
+            <div style="position:absolute;right:-30px;top:-30px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.12);"></div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.9;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l4 4 5-7 5 7 4-4v10a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></svg>{{ t.sub.plan }}</div>
+            <div style="font-size:28px;font-weight:800;margin-top:14px;">{{ t.sub.active }}</div>
+            <div style="font-size:14px;opacity:.92;margin-top:6px;">{{ t.sub.activeDesc }}</div>
+            <div style="display:inline-flex;align-items:center;gap:8px;margin-top:20px;background:rgba(255,255,255,.2);padding:8px 16px;border-radius:30px;font-size:13px;font-weight:600;"><span style="width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.3);"></span>{{ t.sub.statusBadge }}</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;">
+            <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:24px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+              <div style="font-size:16px;font-weight:700;margin-bottom:14px;">{{ t.sub.features }}</div>
+              <div style="display:flex;flex-direction:column;gap:11px;font-size:14px;">
+                <div style="display:flex;align-items:center;gap:10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>{{ t.sub.f1 }}</div>
+                <div style="display:flex;align-items:center;gap:10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>{{ t.sub.f2 }}</div>
+                <div style="display:flex;align-items:center;gap:10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>{{ t.sub.f3 }}</div>
+                <div style="display:flex;align-items:center;gap:10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>{{ t.sub.f4 }}</div>
+              </div>
+            </div>
+            <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:24px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+              <div style="font-size:16px;font-weight:700;margin-bottom:6px;">{{ t.sub.history }}</div>
+              <div style="font-size:13px;color:var(--muted,#8f8caa);margin-bottom:16px;">{{ t.sub.historyDesc }}</div>
+              <div style="display:flex;align-items:center;justify-content:center;height:120px;border:1.5px dashed var(--border,#e4e2f0);border-radius:14px;color:var(--muted,#a6a3c0);font-size:13px;">{{ t.sub.noCharges }}</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- SETTINGS -->
+      <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:820px;margin:8px auto 0;display:flex;flex-direction:column;gap:18px;">
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:26px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="font-size:16px;font-weight:700;margin-bottom:18px;">{{ t.set.prefs }}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+              <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.set.exportFormat }}</label><select style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;cursor:pointer;"><option>CSV</option><option>XLSX</option><option>JSON</option></select></div>
+              <div><label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.set.itemsPerPage }}</label><select style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;cursor:pointer;"><option>20</option><option>50</option><option>100</option></select></div>
+              <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.set.theme }}</label>
+                <div style="display:flex;gap:8px;">
+                  <button onClick="{{ setLight }}" style="flex:1;height:46px;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;{{ themeBtn.light }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>{{ t.set.light }}</button>
+                  <button onClick="{{ setDark }}" style="flex:1;height:46px;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;{{ themeBtn.dark }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>{{ t.set.dark }}</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.set.lang }}</label>
+                <div style="display:flex;gap:8px;">
+                  <button onClick="{{ setPt }}" style="flex:1;height:46px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;{{ langBtn.pt }}">Português</button>
+                  <button onClick="{{ setEn }}" style="flex:1;height:46px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;{{ langBtn.en }}">English</button>
+                  <button onClick="{{ setEs }}" style="flex:1;height:46px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;{{ langBtn.es }}">Español</button>
+                </div>
+              </div>
+            </div>
+            <button style="width:100%;height:48px;margin-top:22px;border:none;border-radius:12px;background:linear-gradient(135deg,#6d5cf5,#8b6bff);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(109,92,245,.3);">{{ t.set.apply }}</button>
+          </div>
+          <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:20px;padding:26px;box-shadow:0 1px 3px rgba(30,25,60,.04);">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div><div style="font-size:16px;font-weight:700;">{{ t.int.title }}</div><div style="font-size:13px;color:var(--muted,#8f8caa);margin-top:2px;">{{ t.int.sub }}</div></div>
+              <button onClick="{{ navIntegrations }}" style="height:42px;padding:0 18px;border:1px solid var(--border,#e4e2f0);border-radius:11px;background:var(--card,#fff);color:#6d5cf5;font-size:13.5px;font-weight:700;cursor:pointer;" style-hover="border-color:#6d5cf5;">{{ t.set.manageInt }} →</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </main>
+  </div>
+
+  <!-- PROFILE DRAWER -->
+  <div onClick="{{ closeProfile }}" style="position:absolute;inset:0;z-index:60;background:rgba(20,17,40,.5);backdrop-filter:blur(3px);transition:opacity .28s;{{ overlayStyle }}"></div>
+  <aside style="position:absolute;top:0;right:0;height:100%;width:420px;max-width:92vw;z-index:70;background:var(--card,#fff);border-left:1px solid var(--border,#ecebf5);box-shadow:-18px 0 50px rgba(20,17,40,.16);display:flex;flex-direction:column;transition:transform .32s cubic-bezier(.4,0,.2,1);{{ drawerStyle }}">
+    <div style="position:relative;padding:26px 28px 0;">
+      <div style="height:96px;border-radius:20px;background:linear-gradient(120deg,#6d5cf5,#9d7bff);position:relative;overflow:hidden;"><div style="position:absolute;right:-24px;top:-24px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.14);"></div></div>
+      <button onClick="{{ closeProfile }}" style="position:absolute;top:34px;right:38px;width:34px;height:34px;border-radius:10px;border:none;background:rgba(255,255,255,.22);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="background:rgba(255,255,255,.35);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <div style="margin-top:-40px;padding:0 4px;">
+        <div style="position:relative;display:inline-block;">
+          <div style="width:78px;height:78px;border-radius:22px;background:linear-gradient(135deg,#6d5cf5,#9d7bff);border:4px solid var(--card,#fff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:28px;box-shadow:0 8px 20px rgba(109,92,245,.3);">WL</div>
+          <button style="position:absolute;bottom:-4px;right:-4px;width:30px;height:30px;border-radius:10px;border:3px solid var(--card,#fff);background:#6d5cf5;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 10px rgba(109,92,245,.4);" style-hover="background:#5b4be0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+        </div>
+        <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="font-size:20px;font-weight:800;letter-spacing:-.01em;">Washington Luiz</div>
+          <div style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:#6d5cf5;background:rgba(109,92,245,.1);padding:5px 11px;border-radius:20px;white-space:nowrap;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 8l4 4 5-7 5 7 4-4v10a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></svg>{{ t.sub.plan }}</div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:24px 28px 28px;display:flex;flex-direction:column;gap:16px;">
+      <div><label style="font-size:12.5px;font-weight:700;display:block;margin-bottom:7px;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.05em;">{{ t.profile.fullName }}</label><input value="Washington Luiz" style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+      <div><label style="font-size:12.5px;font-weight:700;display:block;margin-bottom:7px;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.05em;">{{ t.profile.email }}</label><input value="washington@maislead.com.br" style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div><label style="font-size:12.5px;font-weight:700;display:block;margin-bottom:7px;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.05em;">{{ t.profile.phone }}</label><input value="(11) 98877-1234" style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+        <div><label style="font-size:12.5px;font-weight:700;display:block;margin-bottom:7px;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.05em;">{{ t.profile.location }}</label><input value="São Paulo, SP" style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></div>
+      </div>
+      <div><label style="font-size:12.5px;font-weight:700;display:block;margin-bottom:7px;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.05em;">{{ t.profile.bio }}</label><textarea placeholder="{{ t.profile.bioPh }}" style="width:100%;height:88px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:12px 14px;font-size:14px;outline:none;resize:none;line-height:1.5;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></textarea></div>
+      <div style="display:flex;gap:10px;padding:14px 0 2px;border-top:1px solid var(--border,#ecebf5);">
+        <div style="flex:1;text-align:center;"><div style="font-size:20px;font-weight:800;">160</div><div style="font-size:11px;color:var(--muted,#8f8caa);">Leads</div></div>
+        <div style="width:1px;background:var(--border,#ecebf5);"></div>
+        <div style="flex:1;text-align:center;"><div style="font-size:20px;font-weight:800;">92%</div><div style="font-size:11px;color:var(--muted,#8f8caa);">{{ t.profile.withPhone }}</div></div>
+        <div style="width:1px;background:var(--border,#ecebf5);"></div>
+        <div style="flex:1;text-align:center;"><div style="font-size:16px;font-weight:800;color:#10b981;">{{ t.profile.lifetime }}</div><div style="font-size:11px;color:var(--muted,#8f8caa);">{{ t.profile.planStat }}</div></div>
+      </div>
+    </div>
+    <div style="padding:18px 28px;border-top:1px solid var(--border,#ecebf5);display:flex;gap:12px;">
+      <button onClick="{{ closeProfile }}" style="height:48px;padding:0 20px;border:1px solid var(--border,#e4e2f0);border-radius:13px;background:var(--card,#fff);color:var(--muted,#8f8caa);font-size:14px;font-weight:600;cursor:pointer;" style-hover="background:var(--hover,#f4f3fb);">{{ t.profile.cancel }}</button>
+      <button style="flex:1;height:48px;border:none;border-radius:13px;background:linear-gradient(135deg,#6d5cf5,#8b6bff);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 10px 24px rgba(109,92,245,.32);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>{{ t.profile.save }}</button>
+    </div>
+  </aside>
+
+  <!-- CONNECT MODAL -->
+  <sc-if value="{{ connectOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeConnect }}" style="position:absolute;inset:0;z-index:80;background:rgba(20,17,40,.55);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ stop }}" style="width:440px;max-width:100%;background:var(--card,#fff);border-radius:22px;padding:28px;box-shadow:0 30px 70px rgba(20,17,40,.35);animation:floatIn .25s ease;">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+          <div style="width:50px;height:50px;border-radius:14px;background:{{ connectColor }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;">{{ connectInitials }}</div>
+          <div><div style="font-size:18px;font-weight:800;">{{ connectName }}</div><div style="font-size:12.5px;color:var(--muted,#8f8caa);">{{ t.int.connectTitle }}</div></div>
+        </div>
+        <div style="margin-top:18px;">
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.int.apiKey }}</label>
+          <input placeholder="sk_live_••••••••••••••••" style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;font-family:monospace;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);">
+          <label style="font-size:13px;font-weight:600;display:block;margin:16px 0 7px;">{{ t.set.webhookUrl }}</label>
+          <input placeholder="https://api.maislead.com/webhook" style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:22px;">
+          <button onClick="{{ closeConnect }}" style="height:46px;padding:0 20px;border:1px solid var(--border,#e4e2f0);border-radius:12px;background:var(--card,#fff);color:var(--muted,#8f8caa);font-size:14px;font-weight:600;cursor:pointer;">{{ t.int.cancel }}</button>
+          <button onClick="{{ confirmConnect }}" style="flex:1;height:46px;border:none;border-radius:12px;background:linear-gradient(135deg,#6d5cf5,#8b6bff);color:#fff;font-size:14.5px;font-weight:700;cursor:pointer;box-shadow:0 8px 20px rgba(109,92,245,.3);">{{ t.int.connectBtn }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- LEAD DETAIL DRAWER -->
+  <div onClick="{{ closeLead }}" style="position:absolute;inset:0;z-index:75;background:rgba(20,17,40,.5);backdrop-filter:blur(3px);transition:opacity .28s;{{ leadOverlayStyle }}"></div>
+  <aside style="position:absolute;top:0;right:0;height:100%;width:480px;max-width:94vw;z-index:76;background:var(--bg,#f4f5fb);border-left:1px solid var(--border,#ecebf5);box-shadow:-18px 0 50px rgba(20,17,40,.16);display:flex;flex-direction:column;transition:transform .32s cubic-bezier(.4,0,.2,1);{{ leadDrawerStyle }}">
+    <sc-if value="{{ hasLead }}" hint-placeholder-val="{{ false }}">
+      <div style="flex-shrink:0;background:var(--card,#fff);border-bottom:1px solid var(--border,#ecebf5);padding:22px 26px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;">
+          <div style="display:flex;align-items:center;gap:14px;min-width:0;">
+            <div style="width:54px;height:54px;border-radius:15px;background:linear-gradient(135deg,#6d5cf5,#9d7bff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;flex-shrink:0;">{{ ld.initials }}</div>
+            <div style="min-width:0;"><div style="font-size:18px;font-weight:800;line-height:1.2;">{{ ld.company }}</div><div style="font-size:13px;color:var(--muted,#8f8caa);margin-top:3px;">{{ ld.industry }} · {{ ld.location }}</div></div>
+          </div>
+          <button onClick="{{ closeLead }}" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--muted,#8f8caa);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;" style-hover="color:#ef4444;border-color:#fecaca;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:16px;flex-wrap:wrap;">
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;{{ ld.statusStyle }}"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;"></span>{{ ld.statusLabel }}</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;color:{{ ld.tempColor }};background:{{ ld.tempBg }};">{{ ld.score }} · {{ ld.tempLabel }}</span>
+        </div>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:22px 26px 28px;display:flex;flex-direction:column;gap:18px;">
+        <!-- QUICK ACTIONS -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+          <button style="border:none;border-radius:14px;background:#25d366;color:#fff;padding:14px 0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:11.5px;font-weight:700;box-shadow:0 6px 14px rgba(37,211,102,.28);" style-hover="filter:brightness(1.05);"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.6.2-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-1.5-.8-2.5-1.4-3.6-3.2-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.8-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 4.9 4.3 1.8.8 2.5.9 3.4.7.5-.1 1.7-.7 1.9-1.4.2-.6.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3M12 2a10 10 0 00-8.6 15l-1.4 5 5.2-1.3A10 10 0 1012 2z"/></svg>WhatsApp</button>
+          <button style="border:1px solid var(--border,#e4e2f0);border-radius:14px;background:var(--card,#fff);color:#3b82f6;padding:14px 0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:11.5px;font-weight:700;" style-hover="border-color:#3b82f6;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>E-mail</button>
+          <button style="border:1px solid var(--border,#e4e2f0);border-radius:14px;background:var(--card,#fff);color:#10b981;padding:14px 0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:11.5px;font-weight:700;" style-hover="border-color:#10b981;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.94.36 1.86.7 2.73a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.35-1.27a2 2 0 012.11-.45c.87.34 1.79.57 2.73.7A2 2 0 0122 16.92z"/></svg>{{ t.lead.call }}</button>
+          <button style="border:1px solid var(--border,#e4e2f0);border-radius:14px;background:var(--card,#fff);color:#6d5cf5;padding:14px 0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:11.5px;font-weight:700;" style-hover="border-color:#6d5cf5;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.9 3.8 9S14.5 18.3 12 21"/></svg>Site</button>
+        </div>
+
+        <!-- STATUS CHANGER -->
+        <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:16px;padding:16px 18px;">
+          <div style="font-size:12px;font-weight:700;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">{{ t.lead.changeStatus }}</div>
+          <div style="display:flex;gap:8px;">
+            <button onClick="{{ ld.setNew }}" style="flex:1;height:38px;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer;{{ ld.btnNew }}">{{ t.status.new }}</button>
+            <button onClick="{{ ld.setQualified }}" style="flex:1;height:38px;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer;{{ ld.btnQualified }}">{{ t.status.qualified }}</button>
+            <button onClick="{{ ld.setConverted }}" style="flex:1;height:38px;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer;{{ ld.btnConverted }}">{{ t.status.converted }}</button>
+          </div>
+        </div>
+
+        <!-- EXTRACTED INFO -->
+        <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:16px;padding:6px 18px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border,#f0eff7);">
+            <div style="display:flex;align-items:center;gap:11px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.94.36 1.86.7 2.73a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.35-1.27a2 2 0 012.11-.45c.87.34 1.79.57 2.73.7A2 2 0 0122 16.92z"/></svg><div><div style="font-size:11px;color:var(--muted,#8f8caa);">{{ t.leads.phone }}</div><div style="font-size:14px;font-weight:600;">{{ ld.phone }}</div></div></div>
+            {{ ld.phoneVerify }}
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border,#f0eff7);">
+            <div style="display:flex;align-items:center;gap:11px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg><div><div style="font-size:11px;color:var(--muted,#8f8caa);">E-mail</div><div style="font-size:14px;font-weight:600;">{{ ld.email }}</div></div></div>
+            {{ ld.emailVerify }}
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border,#f0eff7);">
+            <div style="display:flex;align-items:center;gap:11px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6d5cf5" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg><div><div style="font-size:11px;color:var(--muted,#8f8caa);">Website</div><div style="font-size:14px;font-weight:600;">{{ ld.website }}</div></div></div>
+            {{ ld.siteVerify }}
+          </div>
+          <div style="display:flex;align-items:center;gap:11px;padding:14px 0;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div><div style="font-size:11px;color:var(--muted,#8f8caa);">{{ t.form.address }}</div><div style="font-size:14px;font-weight:600;">{{ ld.address }}</div></div>
+          </div>
+        </div>
+
+        <!-- SCORE BREAKDOWN -->
+        <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:16px;padding:18px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div style="font-size:12px;font-weight:700;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.05em;">{{ t.lead.whyScore }}</div>
+            <div style="font-size:22px;font-weight:800;color:{{ ld.tempColor }};">{{ ld.score }}<span style="font-size:12px;color:var(--muted,#a6a3c0);font-weight:600;">/100</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:11px;">
+            <sc-for list="{{ ld.breakdown }}" as="b" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="{{ b.dot }}"></span>
+                <span style="flex:1;font-size:13px;color:var(--text,#211d3b);">{{ b.label }}</span>
+                <span style="font-size:13px;font-weight:700;color:{{ b.color }};">{{ b.points }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- NOTES -->
+        <div style="background:var(--card,#fff);border:1px solid var(--border,#ecebf5);border-radius:16px;padding:18px;">
+          <div style="font-size:12px;font-weight:700;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">{{ t.lead.notes }}</div>
+          <textarea placeholder="{{ t.lead.notesPh }}" style="width:100%;height:76px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:11px 13px;font-size:13.5px;outline:none;resize:none;line-height:1.5;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></textarea>
+        </div>
+      </div>
+    </sc-if>
+  </aside>
+
+  <!-- WELCOME (first use) -->
+  <sc-if value="{{ showWelcome }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:90;background:rgba(20,17,40,.6);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div style="width:560px;max-width:100%;background:var(--card,#fff);border-radius:24px;overflow:hidden;box-shadow:0 30px 80px rgba(20,17,40,.4);animation:floatIn .3s ease;">
+        <div style="background:linear-gradient(135deg,#6d5cf5,#9d7bff);padding:34px 34px 30px;color:#fff;position:relative;overflow:hidden;">
+          <div style="position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.12);"></div>
+          <div style="width:52px;height:52px;border-radius:15px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;margin-bottom:16px;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg></div>
+          <div style="font-size:24px;font-weight:800;">{{ t.welcome.title }}</div>
+          <div style="font-size:14px;opacity:.92;margin-top:6px;max-width:420px;">{{ t.welcome.sub }}</div>
+        </div>
+        <div style="padding:28px 34px 30px;">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;gap:14px;align-items:flex-start;"><div style="width:36px;height:36px;border-radius:11px;background:rgba(109,92,245,.12);color:#6d5cf5;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">1</div><div><div style="font-size:14.5px;font-weight:700;">{{ t.welcome.s1t }}</div><div style="font-size:13px;color:var(--muted,#8f8caa);margin-top:2px;">{{ t.welcome.s1d }}</div></div></div>
+            <div style="display:flex;gap:14px;align-items:flex-start;"><div style="width:36px;height:36px;border-radius:11px;background:rgba(59,130,246,.13);color:#3b82f6;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">2</div><div><div style="font-size:14.5px;font-weight:700;">{{ t.welcome.s2t }}</div><div style="font-size:13px;color:var(--muted,#8f8caa);margin-top:2px;">{{ t.welcome.s2d }}</div></div></div>
+            <div style="display:flex;gap:14px;align-items:flex-start;"><div style="width:36px;height:36px;border-radius:11px;background:rgba(16,185,129,.14);color:#10b981;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">3</div><div><div style="font-size:14.5px;font-weight:700;">{{ t.welcome.s3t }}</div><div style="font-size:13px;color:var(--muted,#8f8caa);margin-top:2px;">{{ t.welcome.s3d }}</div></div></div>
+          </div>
+          <button onClick="{{ dismissWelcome }}" style="width:100%;height:50px;margin-top:26px;border:none;border-radius:13px;background:linear-gradient(135deg,#6d5cf5,#8b6bff);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(109,92,245,.32);">{{ t.welcome.cta }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- MASS EMAIL MODAL -->
+  <sc-if value="{{ massEmailOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeMassEmail }}" style="position:absolute;inset:0;z-index:85;background:rgba(20,17,40,.55);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ stop }}" style="width:680px;max-width:100%;max-height:88vh;overflow-y:auto;background:var(--card,#fff);border-radius:22px;box-shadow:0 30px 70px rgba(20,17,40,.35);animation:floatIn .25s ease;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 28px;border-bottom:1px solid var(--border,#ecebf5);position:sticky;top:0;background:var(--card,#fff);border-radius:22px 22px 0 0;">
+          <div style="display:flex;align-items:center;gap:13px;"><div style="width:46px;height:46px;border-radius:13px;background:rgba(109,92,245,.12);color:#6d5cf5;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg></div><div><div style="font-size:18px;font-weight:800;">{{ t.email.title }}</div><div style="font-size:12.5px;color:var(--muted,#8f8caa);">{{ massEmailRecipients }}</div></div></div>
+          <button onClick="{{ closeMassEmail }}" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--muted,#8f8caa);display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="color:#ef4444;border-color:#fecaca;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+        <div style="padding:24px 28px 28px;">
+          <label style="font-size:12.5px;font-weight:700;color:var(--muted,#8f8caa);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:9px;">{{ t.email.template }}</label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
+            <sc-for list="{{ templates }}" as="tp" hint-placeholder-count="3">
+              <div onClick="{{ tp.onSelect }}" style="border-radius:13px;padding:14px;cursor:pointer;transition:.15s;{{ tp.style }}"><div style="font-size:13.5px;font-weight:700;">{{ tp.name }}</div><div style="font-size:11.5px;color:var(--muted,#8f8caa);margin-top:3px;line-height:1.35;">{{ tp.desc }}</div></div>
+            </sc-for>
+          </div>
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.email.subject }}</label>
+          <input value="{{ emailSubject }}" onChange="{{ onSubjectChange }}" style="width:100%;height:46px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:0 14px;font-size:14px;outline:none;margin-bottom:16px;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);">
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:7px;">{{ t.email.body }}</label>
+          <textarea value="{{ emailBody }}" onChange="{{ onBodyChange }}" style="width:100%;height:180px;border-radius:12px;border:1px solid var(--border,#e4e2f0);background:var(--input,#fbfbfe);color:var(--text,#211d3b);padding:13px 15px;font-size:14px;outline:none;resize:none;line-height:1.6;" style-focus="border-color:#6d5cf5;box-shadow:0 0 0 3px rgba(109,92,245,.14);"></textarea>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;">
+            <span style="font-size:12px;color:var(--muted,#8f8caa);">{{ t.email.variables }}:</span>
+            <span style="font-size:12px;font-weight:600;color:#6d5cf5;background:rgba(109,92,245,.1);padding:4px 9px;border-radius:7px;font-family:monospace;">{{empresa}}</span>
+            <span style="font-size:12px;font-weight:600;color:#6d5cf5;background:rgba(109,92,245,.1);padding:4px 9px;border-radius:7px;font-family:monospace;">{{cidade}}</span>
+            <span style="font-size:12px;font-weight:600;color:#6d5cf5;background:rgba(109,92,245,.1);padding:4px 9px;border-radius:7px;font-family:monospace;">{{setor}}</span>
+          </div>
+          <div style="margin-top:16px;padding:13px 16px;border-radius:12px;background:var(--hover,#f6f5fc);display:flex;align-items:center;gap:11px;font-size:12.5px;color:var(--muted,#8f8caa);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6d5cf5" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>{{ t.email.tip }}</div>
+          <div style="display:flex;gap:10px;margin-top:22px;">
+            <button onClick="{{ closeMassEmail }}" style="height:48px;padding:0 20px;border:1px solid var(--border,#e4e2f0);border-radius:12px;background:var(--card,#fff);color:var(--muted,#8f8caa);font-size:14px;font-weight:600;cursor:pointer;">{{ t.email.cancel }}</button>
+            <button style="height:48px;padding:0 18px;border:1px solid var(--border,#e4e2f0);border-radius:12px;background:var(--card,#fff);color:var(--text,#211d3b);font-size:14px;font-weight:600;cursor:pointer;">{{ t.email.schedule }}</button>
+            <button onClick="{{ closeMassEmail }}" style="flex:1;height:48px;border:none;border-radius:12px;background:linear-gradient(135deg,#6d5cf5,#8b6bff);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 10px 24px rgba(109,92,245,.3);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>{{ sendLabel }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- IMPORT MODAL -->
+  <sc-if value="{{ importOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeImport }}" style="position:absolute;inset:0;z-index:85;background:rgba(20,17,40,.55);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ stop }}" style="width:520px;max-width:100%;background:var(--card,#fff);border-radius:22px;box-shadow:0 30px 70px rgba(20,17,40,.35);animation:floatIn .25s ease;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 28px;border-bottom:1px solid var(--border,#ecebf5);">
+          <div style="font-size:18px;font-weight:800;">{{ t.import.title }}</div>
+          <button onClick="{{ closeImport }}" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--muted,#8f8caa);display:flex;align-items:center;justify-content:center;cursor:pointer;" style-hover="color:#ef4444;border-color:#fecaca;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+        <div style="padding:26px 28px 28px;">
+          <div style="border:2px dashed var(--border,#d8d5e8);border-radius:16px;padding:38px 20px;text-align:center;background:var(--hover,#faf9fe);">
+            <div style="width:56px;height:56px;border-radius:15px;background:rgba(109,92,245,.12);color:#6d5cf5;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 8l5-5 5 5M12 3v12"/></svg></div>
+            <div style="font-size:15px;font-weight:700;">{{ t.import.drop }}</div>
+            <div style="font-size:12.5px;color:var(--muted,#8f8caa);margin-top:5px;">{{ t.import.formats }}</div>
+            <button style="height:42px;padding:0 20px;margin-top:16px;border:none;border-radius:11px;background:linear-gradient(135deg,#6d5cf5,#8b6bff);color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 6px 14px rgba(109,92,245,.25);">{{ t.import.choose }}</button>
+          </div>
+          <div style="margin-top:18px;padding:14px 16px;border-radius:12px;background:var(--hover,#f6f5fc);font-size:12.5px;color:var(--muted,#8f8caa);line-height:1.5;"><b style="color:var(--text,#211d3b);">{{ t.import.needCols }}</b><br>empresa, telefone, email, website, cidade, setor, endereço</div>
+          <a href="#" style="display:inline-flex;align-items:center;gap:7px;margin-top:14px;font-size:13px;font-weight:600;color:#6d5cf5;text-decoration:none;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>{{ t.import.template }}</a>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/x-dc" data-dc-script>
+const DICT = {
+  pt: {
+    brand:'PROSPECÇÃO', version:'Versão 2.0.0',
+    nav:{dashboard:'Dashboard',secPros:'Prospecção',add:'Adicionar Leads',manual:'Entrada Manual',gplaces:'Google Places',websites:'Busca em Websites',secMgmt:'Gestão',leads:'Leads',score:'Pontuação',timeline:'Linha do tempo',reports:'Relatórios',integrations:'Integrações',sub:'Assinatura',settings:'Configurações'},
+    dash:{total:'Total de Leads',registered:'leads registrados',recent:'Leads Recentes',last30:'Últimos 30 dias',tags:'Com Tags',tagsLeads:'Leads com tags',email:'Com Email',phone:'Com Telefone',website:'Com Website',ofContacts:'dos contatos',overTime:'Leads ao Longo do Tempo',status:'Status dos Leads',new:'Novos',qualified:'Qualificados',converted:'Convertidos',sources:'Origem dos Leads',industries:'Principais Indústrias',manualEntry:'Entrada Manual',convRate:'Taxa de Conversão',convRateSub:'22 de 160 leads'},
+    lead:{call:'Ligar',changeStatus:'Mudar status',whyScore:'Por que esta pontuação?',notes:'Anotações',notesPh:'Escreva observações sobre este lead...',verified:'Verificado',invalid:'Não encontrado',online:'Online',pPhone:'Telefone verificado',pEmail:'E-mail válido',pSite:'Website ativo',pAddress:'Endereço completo',pNiche:'Relevância do nicho'},
+    welcome:{title:'Bem-vindo ao maisLEAD!',sub:'Sua plataforma para encontrar, qualificar e converter leads B2B em 3 passos.',s1t:'Encontre empresas',s1d:'Extraia leads do Google Maps, de websites ou cadastre manualmente.',s2t:'Qualifique com pontuação',s2d:'Veja quais leads são mais quentes e priorize seu contato.',s3t:'Converta e integre',s3d:'Fale por WhatsApp/e-mail e envie tudo para o seu CRM.',cta:'Começar agora'},
+    leads:{search:'Buscar leads...',filters:'Filtros',export:'Exportar CSV',import:'Importar',sendEmail:'Enviar E-mail',addTag:'Adicionar Tag',company:'Empresa',status:'Status',industry:'Indústria',location:'Localização',phone:'Telefone',tags:'Tags',prev:'Anterior',next:'Próximo',showing:'Mostrando',allStatus:'Todos os status',allIndustries:'Todas indústrias',temp:'Temperatura',allTemps:'Todas',clear:'Limpar',selected:'selecionados',selectedOne:'selecionado'},
+    email:{title:'Disparo de E-mail em Massa',template:'Escolha um modelo',subject:'Assunto',body:'Mensagem',variables:'Variáveis',tip:'As variáveis são substituídas automaticamente pelos dados de cada lead no envio.',cancel:'Cancelar',schedule:'Agendar',send:'Enviar para'},
+    import:{title:'Importar Leads',drop:'Arraste seu arquivo aqui',formats:'CSV, XLSX até 10MB',choose:'Escolher arquivo',needCols:'Colunas necessárias:',template:'Baixar modelo de planilha'},
+    rep:{funnel:'Funil',source:'Origem',score:'Pontuação',industry:'Indústria',time:'No tempo',p7:'Últimos 7 dias',p30:'Últimos 30 dias',p90:'Últimos 90 dias',p365:'Último ano',funnelT:'Funil de conversão',funnelD:'Do lead novo até o cliente convertido.',sourceT:'Conversão por origem',sourceD:'Volume e taxa de conversão de cada canal.',scoreT:'Distribuição de pontuação',scoreD:'Quantos leads quentes, mornos e frios você tem.',industryT:'Leads por indústria',industryD:'Volume e conversão por setor.',timeT:'Leads ao longo do tempo',timeD:'Evolução de captura no período.',kTotal:'Total no período',kConv:'Taxa de conversão',kAvg:'Dias até conversão',kBest:'Melhor origem',kHot:'Leads quentes',kActionable:'Base acionável',ofTotal:'do total',conv:'conv.',leadsW:'leads'},
+    tpls:[{name:'Apresentação',desc:'Primeiro contato com a empresa'},{name:'Follow-up',desc:'Retomar conversa iniciada'},{name:'Proposta',desc:'Enviar proposta comercial'}],
+    status:{new:'Novo',contacted:'Contatado',qualified:'Qualificado',converted:'Convertido'},
+    score:{all:'Todos',hot:'Quentes',warm:'Mornos',cool:'Frios',hotL:'Quente',warmL:'Morno',coolL:'Frio'},
+    form:{newLead:'Novo Lead',fillData:'Preencha os dados da empresa que deseja prospectar',companyName:'Nome da Empresa',industry:'Indústria',location:'Localização',contact:'Nome do Contato',email:'Email',phone:'Telefone',website:'Website',address:'Endereço',addLead:'Adicionar Lead'},
+    search:{gTitle:'Buscar em Google Places',gSub:'Encontre empresas por nicho e localização no Google Maps',wTitle:'Buscar em Websites',wSub:'Rastreie websites por nicho e localização',niche:'Nicho de Atuação',nichePh:'Ex: Restaurantes, Academias...',locPh:'Ex: São Paulo, SP',searchBtn:'Buscar',hint:'A busca retorna nome, telefone, endereço e website públicos das empresas encontradas.',popular:'Nichos populares',recent:'Buscas recentes',previewTitle:'O que você recebe',previewSub:'Cada resultado traz os dados públicos da empresa.',ago:'atrás',hnow:'há {n}h',dnow:'há {n}d'},
+    int:{title:'Integrações',sub:'Conecte o maisLEAD ao seu CRM e envie leads automaticamente.',popular:'CRMs Populares',brazil:'CRMs Brasileiros',automation:'Automação & Webhooks',connect:'Conectar',connected:'Conectado',configure:'Configurar',connectTitle:'Insira suas credenciais de API',apiKey:'Chave de API',connectBtn:'Conectar',cancel:'Cancelar'},
+    sub:{plan:'Plano Admin',active:'Assinatura Vitalícia Ativa',activeDesc:'Acesso vitalício a todas as funcionalidades da plataforma maisLEAD.',statusBadge:'Ativo',features:'Recursos Inclusos',f1:'Extração ilimitada de leads',f2:'Integração com CRMs via webhook',f3:'Relatórios e pontuação de leads',f4:'Suporte prioritário',history:'Histórico de Pagamentos',historyDesc:'Você possui uma assinatura vitalícia como administrador.',noCharges:'Nenhuma cobrança recorrente'},
+    set:{prefs:'Preferências',exportFormat:'Formato de exportação',itemsPerPage:'Itens por página',theme:'Tema',light:'Claro',dark:'Escuro',lang:'Idioma',apply:'Aplicar Configurações',webhookUrl:'URL do Webhook',manageInt:'Gerenciar'},
+    profile:{fullName:'Nome Completo',email:'Email',phone:'Telefone',location:'Localização',bio:'Biografia',bioPh:'Conte um pouco sobre você...',save:'Salvar Alterações',cancel:'Cancelar',withPhone:'Com telefone',planStat:'Plano',lifetime:'Vitalício'},
+    titles:{dashboard:['Dashboard','Visão geral da sua prospecção'],add:['Entrada Manual','Cadastre um lead manualmente'],manual:['Entrada Manual','Cadastre um lead manualmente'],gplaces:['Google Places','Extraia leads do Google Maps'],websites:['Busca em Websites','Extraia leads de websites'],leadslist:['Lista de Leads','Gerencie e organize seus leads'],score:['Pontuação de Leads','Priorize os leads mais quentes'],timeline:['Linha do tempo','Histórico de atividades dos leads'],reports:['Relatórios','Métricas e desempenho da prospecção'],integrations:['Integrações','Conecte seus CRMs e ferramentas'],sub:['Assinatura','Gerencie seu plano'],settings:['Configurações','Preferências e integrações']}
+  },
+  en: {
+    brand:'PROSPECTING', version:'Version 2.0.0',
+    nav:{dashboard:'Dashboard',secPros:'Prospecting',add:'Add Leads',manual:'Manual Entry',gplaces:'Google Places',websites:'Website Search',secMgmt:'Management',leads:'Leads',score:'Scoring',timeline:'Timeline',reports:'Reports',integrations:'Integrations',sub:'Subscription',settings:'Settings'},
+    dash:{total:'Total Leads',registered:'registered leads',recent:'Recent Leads',last30:'Last 30 days',tags:'With Tags',tagsLeads:'Leads with tags',email:'With Email',phone:'With Phone',website:'With Website',ofContacts:'of contacts',overTime:'Leads Over Time',status:'Lead Status',new:'New',qualified:'Qualified',converted:'Converted',sources:'Lead Sources',industries:'Top Industries',manualEntry:'Manual Entry',convRate:'Conversion Rate',convRateSub:'22 of 160 leads'},
+    lead:{call:'Call',changeStatus:'Change status',whyScore:'Why this score?',notes:'Notes',notesPh:'Write notes about this lead...',verified:'Verified',invalid:'Not found',online:'Online',pPhone:'Verified phone',pEmail:'Valid email',pSite:'Active website',pAddress:'Complete address',pNiche:'Niche relevance'},
+    welcome:{title:'Welcome to maisLEAD!',sub:'Your platform to find, qualify and convert B2B leads in 3 steps.',s1t:'Find companies',s1d:'Extract leads from Google Maps, websites or add them manually.',s2t:'Qualify with scoring',s2d:'See which leads are hottest and prioritize your outreach.',s3t:'Convert and integrate',s3d:'Reach out via WhatsApp/email and push everything to your CRM.',cta:'Get started'},
+    leads:{search:'Search leads...',filters:'Filters',export:'Export CSV',import:'Import',sendEmail:'Send Email',addTag:'Add Tag',company:'Company',status:'Status',industry:'Industry',location:'Location',phone:'Phone',tags:'Tags',prev:'Previous',next:'Next',showing:'Showing',allStatus:'All statuses',allIndustries:'All industries',temp:'Temperature',allTemps:'All',clear:'Clear',selected:'selected',selectedOne:'selected'},
+    email:{title:'Bulk Email Campaign',template:'Choose a template',subject:'Subject',body:'Message',variables:'Variables',tip:'Variables are automatically replaced with each lead\'s data when sent.',cancel:'Cancel',schedule:'Schedule',send:'Send to'},
+    import:{title:'Import Leads',drop:'Drag your file here',formats:'CSV, XLSX up to 10MB',choose:'Choose file',needCols:'Required columns:',template:'Download spreadsheet template'},
+    rep:{funnel:'Funnel',source:'Source',score:'Scoring',industry:'Industry',time:'Over time',p7:'Last 7 days',p30:'Last 30 days',p90:'Last 90 days',p365:'Last year',funnelT:'Conversion funnel',funnelD:'From new lead to converted customer.',sourceT:'Conversion by source',sourceD:'Volume and conversion rate of each channel.',scoreT:'Score distribution',scoreD:'How many hot, warm and cool leads you have.',industryT:'Leads by industry',industryD:'Volume and conversion by segment.',timeT:'Leads over time',timeD:'Capture trend for the period.',kTotal:'Total in period',kConv:'Conversion rate',kAvg:'Days to convert',kBest:'Best source',kHot:'Hot leads',kActionable:'Actionable base',ofTotal:'of total',conv:'conv.',leadsW:'leads'},
+    tpls:[{name:'Introduction',desc:'First contact with the company'},{name:'Follow-up',desc:'Resume a started conversation'},{name:'Proposal',desc:'Send a commercial proposal'}],
+    status:{new:'New',contacted:'Contacted',qualified:'Qualified',converted:'Converted'},
+    score:{all:'All',hot:'Hot',warm:'Warm',cool:'Cool',hotL:'Hot',warmL:'Warm',coolL:'Cool'},
+    form:{newLead:'New Lead',fillData:'Fill in the details of the company you want to prospect',companyName:'Company Name',industry:'Industry',location:'Location',contact:'Contact Name',email:'Email',phone:'Phone',website:'Website',address:'Address',addLead:'Add Lead'},
+    search:{gTitle:'Search Google Places',gSub:'Find businesses by niche and location on Google Maps',wTitle:'Search Websites',wSub:'Crawl websites by niche and location',niche:'Industry / Niche',nichePh:'e.g. Restaurants, Gyms...',locPh:'e.g. New York, NY',searchBtn:'Search',hint:'The search returns the public name, phone, address and website of the businesses found.',popular:'Popular niches',recent:'Recent searches',previewTitle:'What you get',previewSub:'Each result includes the company\'s public data.',ago:'ago',hnow:'{n}h ago',dnow:'{n}d ago'},
+    int:{title:'Integrations',sub:'Connect maisLEAD to your CRM and push leads automatically.',popular:'Popular CRMs',brazil:'Brazilian CRMs',automation:'Automation & Webhooks',connect:'Connect',connected:'Connected',configure:'Configure',connectTitle:'Enter your API credentials',apiKey:'API Key',connectBtn:'Connect',cancel:'Cancel'},
+    sub:{plan:'Admin Plan',active:'Lifetime Subscription Active',activeDesc:'Lifetime access to all maisLEAD platform features.',statusBadge:'Active',features:'Included Features',f1:'Unlimited lead extraction',f2:'CRM integration via webhook',f3:'Reports and lead scoring',f4:'Priority support',history:'Payment History',historyDesc:'You have a lifetime subscription as an administrator.',noCharges:'No recurring charges'},
+    set:{prefs:'Preferences',exportFormat:'Export format',itemsPerPage:'Items per page',theme:'Theme',light:'Light',dark:'Dark',lang:'Language',apply:'Apply Settings',webhookUrl:'Webhook URL',manageInt:'Manage'},
+    profile:{fullName:'Full Name',email:'Email',phone:'Phone',location:'Location',bio:'Biography',bioPh:'Tell us a bit about yourself...',save:'Save Changes',cancel:'Cancel',withPhone:'With phone',planStat:'Plan',lifetime:'Lifetime'},
+    titles:{dashboard:['Dashboard','Overview of your prospecting'],add:['Manual Entry','Add a lead manually'],manual:['Manual Entry','Add a lead manually'],gplaces:['Google Places','Extract leads from Google Maps'],websites:['Website Search','Extract leads from websites'],leadslist:['Leads List','Manage and organize your leads'],score:['Lead Scoring','Prioritize your hottest leads'],timeline:['Timeline','Lead activity history'],reports:['Reports','Prospecting metrics and performance'],integrations:['Integrations','Connect your CRMs and tools'],sub:['Subscription','Manage your plan'],settings:['Settings','Preferences and integrations']}
+  },
+  es: {
+    brand:'PROSPECCIÓN', version:'Versión 2.0.0',
+    nav:{dashboard:'Panel',secPros:'Prospección',add:'Añadir Leads',manual:'Entrada Manual',gplaces:'Google Places',websites:'Búsqueda Web',secMgmt:'Gestión',leads:'Leads',score:'Puntuación',timeline:'Cronología',reports:'Informes',integrations:'Integraciones',sub:'Suscripción',settings:'Configuración'},
+    dash:{total:'Total de Leads',registered:'leads registrados',recent:'Leads Recientes',last30:'Últimos 30 días',tags:'Con Etiquetas',tagsLeads:'Leads con etiquetas',email:'Con Email',phone:'Con Teléfono',website:'Con Sitio Web',ofContacts:'de los contactos',overTime:'Leads a lo Largo del Tiempo',status:'Estado de Leads',new:'Nuevos',qualified:'Calificados',converted:'Convertidos',sources:'Origen de Leads',industries:'Principales Industrias',manualEntry:'Entrada Manual',convRate:'Tasa de Conversión',convRateSub:'22 de 160 leads'},
+    lead:{call:'Llamar',changeStatus:'Cambiar estado',whyScore:'¿Por qué esta puntuación?',notes:'Notas',notesPh:'Escribe notas sobre este lead...',verified:'Verificado',invalid:'No encontrado',online:'En línea',pPhone:'Teléfono verificado',pEmail:'Email válido',pSite:'Sitio web activo',pAddress:'Dirección completa',pNiche:'Relevancia del nicho'},
+    welcome:{title:'¡Bienvenido a maisLEAD!',sub:'Tu plataforma para encontrar, calificar y convertir leads B2B en 3 pasos.',s1t:'Encuentra empresas',s1d:'Extrae leads de Google Maps, sitios web o añádelos manualmente.',s2t:'Califica con puntuación',s2d:'Ve qué leads están más calientes y prioriza tu contacto.',s3t:'Convierte e integra',s3d:'Contacta por WhatsApp/email y envía todo a tu CRM.',cta:'Comenzar ahora'},
+    leads:{search:'Buscar leads...',filters:'Filtros',export:'Exportar CSV',import:'Importar',sendEmail:'Enviar Email',addTag:'Añadir Etiqueta',company:'Empresa',status:'Estado',industry:'Industria',location:'Ubicación',phone:'Teléfono',tags:'Etiquetas',prev:'Anterior',next:'Siguiente',showing:'Mostrando',allStatus:'Todos los estados',allIndustries:'Todas industrias',temp:'Temperatura',allTemps:'Todas',clear:'Limpiar',selected:'seleccionados',selectedOne:'seleccionado'},
+    email:{title:'Envío de Email Masivo',template:'Elige una plantilla',subject:'Asunto',body:'Mensaje',variables:'Variables',tip:'Las variables se reemplazan automáticamente con los datos de cada lead al enviar.',cancel:'Cancelar',schedule:'Programar',send:'Enviar a'},
+    import:{title:'Importar Leads',drop:'Arrastra tu archivo aquí',formats:'CSV, XLSX hasta 10MB',choose:'Elegir archivo',needCols:'Columnas requeridas:',template:'Descargar plantilla de planilla'},
+    rep:{funnel:'Embudo',source:'Origen',score:'Puntuación',industry:'Industria',time:'En el tiempo',p7:'Últimos 7 días',p30:'Últimos 30 días',p90:'Últimos 90 días',p365:'Último año',funnelT:'Embudo de conversión',funnelD:'Del lead nuevo al cliente convertido.',sourceT:'Conversión por origen',sourceD:'Volumen y tasa de conversión de cada canal.',scoreT:'Distribución de puntuación',scoreD:'Cuántos leads calientes, tibios y fríos tienes.',industryT:'Leads por industria',industryD:'Volumen y conversión por segmento.',timeT:'Leads a lo largo del tiempo',timeD:'Evolución de captura en el período.',kTotal:'Total en el período',kConv:'Tasa de conversión',kAvg:'Días para convertir',kBest:'Mejor origen',kHot:'Leads calientes',kActionable:'Base accionable',ofTotal:'del total',conv:'conv.',leadsW:'leads'},
+    tpls:[{name:'Presentación',desc:'Primer contacto con la empresa'},{name:'Seguimiento',desc:'Retomar conversación iniciada'},{name:'Propuesta',desc:'Enviar propuesta comercial'}],
+    status:{new:'Nuevo',contacted:'Contactado',qualified:'Calificado',converted:'Convertido'},
+    score:{all:'Todos',hot:'Calientes',warm:'Tibios',cool:'Fríos',hotL:'Caliente',warmL:'Tibio',coolL:'Frío'},
+    form:{newLead:'Nuevo Lead',fillData:'Completa los datos de la empresa que deseas prospectar',companyName:'Nombre de la Empresa',industry:'Industria',location:'Ubicación',contact:'Nombre de Contacto',email:'Email',phone:'Teléfono',website:'Sitio Web',address:'Dirección',addLead:'Añadir Lead'},
+    search:{gTitle:'Buscar en Google Places',gSub:'Encuentra empresas por nicho y ubicación en Google Maps',wTitle:'Buscar en Sitios Web',wSub:'Rastrea sitios web por nicho y ubicación',niche:'Nicho / Sector',nichePh:'Ej: Restaurantes, Gimnasios...',locPh:'Ej: Madrid, España',searchBtn:'Buscar',hint:'La búsqueda devuelve nombre, teléfono, dirección y sitio web públicos de las empresas encontradas.',popular:'Nichos populares',recent:'Búsquedas recientes',previewTitle:'Lo que recibes',previewSub:'Cada resultado trae los datos públicos de la empresa.',ago:'atrás',hnow:'hace {n}h',dnow:'hace {n}d'},
+    int:{title:'Integraciones',sub:'Conecta maisLEAD a tu CRM y envía leads automáticamente.',popular:'CRMs Populares',brazil:'CRMs de LATAM',automation:'Automatización & Webhooks',connect:'Conectar',connected:'Conectado',configure:'Configurar',connectTitle:'Ingresa tus credenciales de API',apiKey:'Clave de API',connectBtn:'Conectar',cancel:'Cancelar'},
+    sub:{plan:'Plan Admin',active:'Suscripción Vitalicia Activa',activeDesc:'Acceso vitalicio a todas las funciones de la plataforma maisLEAD.',statusBadge:'Activo',features:'Funciones Incluidas',f1:'Extracción ilimitada de leads',f2:'Integración con CRMs vía webhook',f3:'Informes y puntuación de leads',f4:'Soporte prioritario',history:'Historial de Pagos',historyDesc:'Tienes una suscripción vitalicia como administrador.',noCharges:'Sin cargos recurrentes'},
+    set:{prefs:'Preferencias',exportFormat:'Formato de exportación',itemsPerPage:'Elementos por página',theme:'Tema',light:'Claro',dark:'Oscuro',lang:'Idioma',apply:'Aplicar Configuración',webhookUrl:'URL del Webhook',manageInt:'Gestionar'},
+    profile:{fullName:'Nombre Completo',email:'Email',phone:'Teléfono',location:'Ubicación',bio:'Biografía',bioPh:'Cuéntanos algo sobre ti...',save:'Guardar Cambios',cancel:'Cancelar',withPhone:'Con teléfono',planStat:'Plan',lifetime:'Vitalicio'},
+    titles:{dashboard:['Panel','Resumen de tu prospección'],add:['Entrada Manual','Añade un lead manualmente'],manual:['Entrada Manual','Añade un lead manualmente'],gplaces:['Google Places','Extrae leads de Google Maps'],websites:['Búsqueda Web','Extrae leads de sitios web'],leadslist:['Lista de Leads','Gestiona y organiza tus leads'],score:['Puntuación de Leads','Prioriza tus leads más calientes'],timeline:['Cronología','Historial de actividad de leads'],reports:['Informes','Métricas y rendimiento de prospección'],integrations:['Integraciones','Conecta tus CRMs y herramientas'],sub:['Suscripción','Gestiona tu plan'],settings:['Configuración','Preferencias e integraciones']}
+  }
+};
+
+// score = 30 (telefone) + 15 (endereço) + email(25) + site(20) + nq(relevância do nicho, 0-10), cap 100
+const LEADS = [
+  {company:'Peach State Lumber Products',contact:'—',ind:'Madeireira',loc:'Kennesaw, SP',phone:'(11) 4428-3622',nq:8,email:false,site:true,tag:'Novo',emailAddr:'—',web:'peachstatelumber.com.br',addr:'Av. Industrial, 1250 - Kennesaw'},
+  {company:'Aleman Top Hardwood',contact:'—',ind:'Madeireira',loc:'Kennesaw, SP',phone:'(11) 4728-1140',nq:5,email:true,site:true,tag:'Novo',emailAddr:'contato@alemanhardwood.com.br',web:'alemanhardwood.com.br',addr:'Rua das Toras, 88 - Kennesaw'},
+  {company:'TimberTown Atlanta',contact:'—',ind:'Madeireira',loc:'Atlanta, SP',phone:'(11) 4404-3747',nq:6,email:false,site:true,tag:'Prioridade',emailAddr:'—',web:'timbertown.com.br',addr:'Av. Central, 400 - Atlanta'},
+  {company:'Flooring Atlanta',contact:'—',ind:'Pisos',loc:'Atlanta, SP',phone:'(11) 4678-6978',nq:3,email:false,site:false,tag:'Novo',emailAddr:'—',web:'—',addr:'Rua dos Pisos, 12 - Atlanta'},
+  {company:'Mr Hardwood Inc.',contact:'—',ind:'Madeireira',loc:'Acworth, SP',phone:'(11) 4318-8880',nq:5,email:false,site:true,tag:'Novo',emailAddr:'—',web:'mrhardwood.com.br',addr:'Av. da Madeira, 700 - Acworth'},
+  {company:'Rockler Woodworking',contact:'—',ind:'Madeireira',loc:'Kennesaw, SP',phone:'(11) 4383-0087',nq:10,email:true,site:true,tag:'Quente',emailAddr:'vendas@rockler.com.br',web:'rockler.com.br',addr:'Rua Marceneiros, 55 - Kennesaw'},
+  {company:'Floor & Decor',contact:'—',ind:'Pisos',loc:'Atlanta, SP',phone:'(11) 4626-1167',nq:7,email:true,site:true,tag:'Novo',emailAddr:'contato@floordecor.com.br',web:'floordecor.com.br',addr:'Av. Decoração, 2000 - Atlanta'},
+  {company:'Southern Wholesale Flooring',contact:'—',ind:'Pisos',loc:'Atlanta, SP',phone:'(11) 4514-7110',nq:5,email:false,site:false,tag:'Novo',emailAddr:'—',web:'—',addr:'Rua Atacado, 33 - Atlanta'},
+  {company:'Lumber Liquidators',contact:'—',ind:'Madeireira',loc:'Atlanta, SP',phone:'(11) 4850-0606',nq:5,email:false,site:true,tag:'Novo',emailAddr:'—',web:'lumberliq.com.br',addr:'Av. Liquida, 900 - Atlanta'},
+  {company:'Atlanta Specialty Woods',contact:'—',ind:'Madeireira',loc:'Atlanta, SP',phone:'(11) 4710-8966',nq:6,email:true,site:true,tag:'Prioridade',emailAddr:'comercial@specialtywoods.com.br',web:'specialtywoods.com.br',addr:'Rua Especial, 145 - Atlanta'},
+  {company:'Castle Construction',contact:'—',ind:'Reformas',loc:'Marietta, SP',phone:'(11) 4504-6010',nq:8,email:true,site:true,tag:'Quente',emailAddr:'contato@castle.com.br',web:'castleconstrucao.com.br',addr:'Av. Reforma, 320 - Marietta'},
+  {company:'New Leaf Renovation',contact:'—',ind:'Reformas',loc:'Marietta, SP',phone:'(11) 4408-4315',nq:9,email:false,site:false,tag:'Novo',emailAddr:'—',web:'—',addr:'Rua Nova, 78 - Marietta'},
+];
+// component points; total is the displayed score (always reconciles with the breakdown)
+function scoreParts(l){ return { phone:30, address:15, email: l.email?25:0, site: l.site?20:0, niche: l.nq||0 }; }
+function scoreOf(l){ const p=scoreParts(l); return Math.min(100, p.phone+p.address+p.email+p.site+p.niche); }
+
+class Component extends DCLogic {
+  state = { screen:'dashboard', dark:false, profile:false, lang:'pt', scoreFilter:'all', connect:null, openLead:null, statusOverride:{}, showWelcome:false, filtersOpen:false, fStatus:'all', fIndustry:'all', fTemp:'all', selected:{}, massEmailOpen:false, importOpen:false, emailTpl:0, emailSubjEdit:null, emailBodyEdit:null, reportType:'funnel', reportPeriod:'30' };
+
+  componentDidMount(){ try{ if(!localStorage.getItem('maislead_seen_v2')) this.setState({showWelcome:true}); }catch(e){} }
+  dismissWelcome(){ try{ localStorage.setItem('maislead_seen_v2','1'); }catch(e){} this.setState({showWelcome:false}); }
+
+  go(s){ this.setState({screen:s}); }
+  toggleTheme(){ this.setState(st=>({dark:!st.dark})); }
+  setLang(l){ this.setState({lang:l}); }
+
+  temp(score, T){
+    if(score>=75) return {label:T.score.hotL, color:'#ef4444', key:'hot'};
+    if(score>=55) return {label:T.score.warmL, color:'#f59e0b', key:'warm'};
+    return {label:T.score.coolL, color:'#6d5cf5', key:'cool'};
+  }
+
+  renderVals(){
+    const s=this.state.screen, T=DICT[this.state.lang], self=this;
+    const A=(k)=> s===k ? 'background:rgba(109,92,245,.12);color:#6d5cf5;font-weight:700;' : 'color:var(--navtext,#514e6b);';
+    const svg=(p,sz)=>React.createElement('svg',{width:sz||18,height:sz||18,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round',dangerouslySetInnerHTML:{__html:p}});
+    const isG = s==='gplaces';
+
+    const statusMap = {
+      'Novo':{style:'color:#6d5cf5;background:rgba(109,92,245,.1);',label:T.status.new},
+      'Prioridade':{style:'color:#f59e0b;background:rgba(245,158,11,.12);',label:T.status.qualified},
+      'Quente':{style:'color:#10b981;background:rgba(16,185,129,.12);',label:T.status.converted},
+    };
+    const keyMap = { 'Novo':'new', 'Prioridade':'qualified', 'Quente':'converted' };
+    const statusByKey = {
+      'new':{style:'color:#6d5cf5;background:rgba(109,92,245,.1);',label:T.status.new,color:'#6d5cf5'},
+      'qualified':{style:'color:#f59e0b;background:rgba(245,158,11,.12);',label:T.status.qualified,color:'#f59e0b'},
+      'converted':{style:'color:#10b981;background:rgba(16,185,129,.12);',label:T.status.converted,color:'#10b981'},
+    };
+    const ov = this.state.statusOverride;
+    const effKey = (l)=> ov[l.company] || keyMap[l.tag] || 'new';
+    const openLeadFn = (l)=> this.setState({openLead:l.company});
+    const sel = this.state.selected;
+    const checkSvg = svg('<path d="M20 6 9 17l-5-5"/>',13);
+    const boxOn = 'background:#6d5cf5;color:#fff;border:1px solid #6d5cf5;';
+    const boxOff = 'background:var(--card,#fff);border:1px solid var(--border,#d8d5e8);';
+
+    // filtering
+    const fS=this.state.fStatus, fI=this.state.fIndustry, fT=this.state.fTemp;
+    const passFilter = (l)=> (fS==='all'||effKey(l)===fS) && (fI==='all'||l.ind===fI) && (fT==='all'||self.temp(scoreOf(l),T).key===fT);
+    const filtered = LEADS.filter(passFilter);
+
+    const leads = filtered.map(l=>{
+      const sm = statusByKey[effKey(l)];
+      const on = !!sel[l.company];
+      return {company:l.company, contact:l.contact, industry:l.ind, location:l.loc, phone:l.phone, tag:l.tag, statusStyle:sm.style, statusLabel:sm.label, onOpen:()=>openLeadFn(l),
+        check: on?checkSvg:'', checkStyle: on?boxOn:boxOff, rowStyle: on?'background:rgba(109,92,245,.05);':'',
+        onToggle:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); const ns=Object.assign({},self.state.selected); if(ns[l.company])delete ns[l.company]; else ns[l.company]=true; self.setState({selected:ns}); }};
+    });
+    const selCount = Object.keys(sel).filter(k=>sel[k]).length;
+    const allOn = filtered.length>0 && filtered.every(l=>sel[l.company]);
+
+    const chip=(on)=> on ? 'color:#10b981;background:rgba(16,185,129,.12);' : 'color:#c3c0d6;background:var(--grid,#f0eff7);';
+    const scoreAll = LEADS.map(l=>{ const sv=scoreOf(l); const tp=self.temp(sv,T); return {company:l.company,industry:l.ind,score:sv,pct:sv+'%',tempColor:tp.color,tempLabel:tp.label,key:tp.key,phoneChip:chip(true),emailChip:chip(l.email),siteChip:chip(l.site),onOpen:()=>openLeadFn(l)}; })
+      .sort((a,b)=>b.score-a.score);
+    const scoreList = this.state.scoreFilter==='all' ? scoreAll : scoreAll.filter(c=>c.key===this.state.scoreFilter);
+
+    // LEAD DETAIL
+    const cur = LEADS.find(l=>l.company===this.state.openLead) || null;
+    let ld = {};
+    if(cur){
+      const sv = scoreOf(cur);
+      const parts = scoreParts(cur);
+      const tp = self.temp(sv, T);
+      const ck = effKey(cur);
+      const sm = statusByKey[ck];
+      const initials = cur.company.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const okBadge = 'display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#10b981;background:rgba(16,185,129,.12);padding:4px 10px;border-radius:20px;';
+      const noBadge = 'display:inline-flex;align-items:center;font-size:11px;font-weight:700;color:#c3c0d6;background:var(--grid,#f0eff7);padding:4px 10px;border-radius:20px;';
+      const badge = (on,label)=> React.createElement('span',{style:{}, dangerouslySetInnerHTML:{__html: on ? ('<span style="'+okBadge+'"><svg width=\"11\" height=\"11\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"><path d=\"M20 6 9 17l-5-5\"/></svg>'+label+'</span>') : ('<span style="'+noBadge+'">'+T.lead.invalid+'</span>') }});
+      const dotOk = 'width:9px;height:9px;border-radius:50%;background:#10b981;flex-shrink:0;';
+      const dotNo = 'width:9px;height:9px;border-radius:50%;background:#d8d5e8;flex-shrink:0;';
+      const bd = (label,on,pts)=>({label,dot: on?dotOk:dotNo, color: on?'#10b981':'#a6a3c0', points:(on?'+':'')+pts});
+      const breakdown = [
+        bd(T.lead.pPhone, true, parts.phone),
+        bd(T.lead.pEmail, cur.email, parts.email),
+        bd(T.lead.pSite, cur.site, parts.site),
+        bd(T.lead.pAddress, true, parts.address),
+        bd(T.lead.pNiche, parts.niche>0, parts.niche),
+      ];
+      const btn=(active,color)=> active ? ('border:1px solid '+color+';background:'+color+';color:#fff;') : 'border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--text,#211d3b);';
+      ld = {
+        company:cur.company, initials, industry:cur.ind, location:cur.loc,
+        phone:cur.phone, email:cur.email?cur.emailAddr:'—', website:cur.web, address:cur.addr,
+        score:sv, tempColor:tp.color, tempLabel:tp.label, tempBg: tp.color==='#ef4444'?'rgba(239,68,68,.12)':(tp.color==='#f59e0b'?'rgba(245,158,11,.12)':'rgba(109,92,245,.12)'),
+        statusStyle:sm.style, statusLabel:sm.label,
+        phoneVerify: badge(true, T.lead.verified), emailVerify: badge(cur.email, T.lead.verified), siteVerify: badge(cur.site, T.lead.online),
+        breakdown,
+        btnNew: btn(ck==='new','#6d5cf5'), btnQualified: btn(ck==='qualified','#f59e0b'), btnConverted: btn(ck==='converted','#10b981'),
+        setNew:()=>this.setState({statusOverride:Object.assign({},ov,{[cur.company]:'new'})}),
+        setQualified:()=>this.setState({statusOverride:Object.assign({},ov,{[cur.company]:'qualified'})}),
+        setConverted:()=>this.setState({statusOverride:Object.assign({},ov,{[cur.company]:'converted'})}),
+      };
+    }
+
+    const tlIcon = (color,path)=>({icon:svg(path,18)});
+    const dates = {pt:'3 de fev. de 2025, 14:00',en:'Feb 3, 2025, 2:00 PM',es:'3 de feb. de 2025, 14:00'};
+    const actions = {
+      pt:['Lead adicionado ao sistema','Status alterado para Qualificado','Tag adicionada'],
+      en:['Lead added to the system','Status changed to Qualified','Tag added'],
+      es:['Lead añadido al sistema','Estado cambiado a Calificado','Etiqueta añadida']
+    };
+    const actArr = actions[this.state.lang];
+    const evStyles = [
+      {bg:'rgba(109,92,245,.12)',c:'#6d5cf5',p:'<path d="M12 5v14M5 12h14"/>'},
+      {bg:'rgba(245,158,11,.14)',c:'#f59e0b',p:'<path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>'},
+      {bg:'rgba(16,185,129,.14)',c:'#10b981',p:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>'},
+    ];
+    const timeline = LEADS.slice(0,7).map((l,i)=>{ const es=evStyles[i%3]; return {company:l.company,date:dates[this.state.lang],action:actArr[i%3],phone:l.phone,website:'maislead.com.br',iconBg:es.bg,iconColor:es.c,icon:svg(es.p,18)}; });
+
+    // integrations
+    const connSet = this.state.conn || {};
+    const mk = (name,color,initials,desc)=>({name,color,initials,desc,connected:!!connSet[name],
+      btnLabel: connSet[name] ? T.int.connected : T.int.connect,
+      btnStyle: connSet[name] ? 'border:1px solid #10b981;background:rgba(16,185,129,.1);color:#10b981;' : 'border:none;background:linear-gradient(135deg,#6d5cf5,#8b6bff);color:#fff;box-shadow:0 6px 14px rgba(109,92,245,.22);',
+      onClick: connSet[name]
+        ? (()=>{ const c=Object.assign({},self.state.conn); delete c[name]; self.setState({conn:c}); })
+        : (()=>self.setState({connect:{name,color,initials}})) });
+    const intPopular = [ mk('HubSpot','#ff7a59','H','CRM & Marketing'), mk('Salesforce','#00a1e0','SF','Enterprise CRM'), mk('Pipedrive','#1a1a1a','P','Sales pipeline'), mk('Zoho CRM','#e42527','Z','Suite completa'), mk('ActiveCampaign','#356ae6','AC','Email & CRM'), mk('Freshsales','#ff6600','FS','CRM Freshworks') ];
+    const intBrazil = [ mk('RD Station','#7c3aed','RD','Marketing & CRM'), mk('Ploomes','#2d9cdb','PL','CRM nacional'), mk('Agendor','#00b3a4','AG','CRM de vendas'), mk('PipeRun','#f04e23','PR','CRM & vendas') ];
+    const intAuto = [ mk('Zapier','#ff4a00','Zp','5000+ apps'), mk('Make','#6d00cc','Mk','Automação visual'), mk('n8n','#ea4b71','n8','Open-source'), mk('Webhook','#6d5cf5','{}','Endpoint custom') ];
+    const connectedTotal = Object.keys(connSet).filter(k=>connSet[k]).length;
+    const cc = self.state.connect;
+
+    const titleArr = T.titles[s==='leadslist'?'leadslist':s] || T.titles.dashboard;
+
+    return {
+      t:T,
+      themeVars: this.state.dark
+        ? '--bg:#121120;--card:#1c1a2e;--sidebar:#17162a;--text:#ececff;--muted:#9d9ac2;--border:#2a2842;--hover:#232138;--grid:#26243c;--input:#232138;--navtext:#b6b3d6;'
+        : '--bg:#f4f5fb;--card:#ffffff;--sidebar:#ffffff;--text:#211d3b;--muted:#8f8caa;--border:#ecebf5;--hover:#f4f3fb;--grid:#eef0f6;--input:#fbfbfe;--navtext:#514e6b;',
+      themeIcon: this.state.dark ? svg('<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/>') : svg('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'),
+      pageTitle: titleArr[0], pageSub: titleArr[1],
+
+      act:{dashboard:A('dashboard'), add:(s==='manual'?'color:#6d5cf5;font-weight:600;':A('add')), manual:A('manual'), gplaces:A('gplaces'), websites:A('websites'), leads:A('leadslist'), score:A('score'), timeline:A('timeline'), reports:A('reports'), integrations:A('integrations'), sub:A('sub'), settings:A('settings')},
+
+      lang:{ pt:this.state.lang==='pt'?'background:#6d5cf5;color:#fff;':'', en:this.state.lang==='en'?'background:#6d5cf5;color:#fff;':'', es:this.state.lang==='es'?'background:#6d5cf5;color:#fff;':'' },
+      langBtn:{ pt:this.state.lang==='pt'?'border:1px solid #6d5cf5;background:rgba(109,92,245,.1);color:#6d5cf5;':'border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--text,#211d3b);', en:this.state.lang==='en'?'border:1px solid #6d5cf5;background:rgba(109,92,245,.1);color:#6d5cf5;':'border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--text,#211d3b);', es:this.state.lang==='es'?'border:1px solid #6d5cf5;background:rgba(109,92,245,.1);color:#6d5cf5;':'border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--text,#211d3b);' },
+      themeBtn:{ light:!this.state.dark?'border:1px solid #6d5cf5;background:rgba(109,92,245,.1);color:#6d5cf5;':'border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--text,#211d3b);', dark:this.state.dark?'border:1px solid #6d5cf5;background:rgba(109,92,245,.1);color:#6d5cf5;':'border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--text,#211d3b);' },
+
+      navDashboard:()=>this.go('dashboard'), navManual:()=>this.go('manual'), navGplaces:()=>this.go('gplaces'), navWebsites:()=>this.go('websites'), navLeads:()=>this.go('leadslist'), navScore:()=>this.go('score'), navTimeline:()=>this.go('timeline'), navReports:()=>this.go('reports'), navIntegrations:()=>this.go('integrations'), navSub:()=>this.go('sub'), navSettings:()=>this.go('settings'),
+      toggleTheme:()=>this.toggleTheme(), setLight:()=>this.setState({dark:false}), setDark:()=>this.setState({dark:true}),
+      setPt:()=>this.setLang('pt'), setEn:()=>this.setLang('en'), setEs:()=>this.setLang('es'),
+      openProfile:()=>this.setState({profile:true}), closeProfile:()=>this.setState({profile:false}),
+      overlayStyle: this.state.profile?'opacity:1;pointer-events:auto;':'opacity:0;pointer-events:none;',
+      drawerStyle: this.state.profile?'transform:translateX(0);':'transform:translateX(105%);',
+
+      hasLead: !!cur, ld,
+      leadOverlayStyle: cur?'opacity:1;pointer-events:auto;':'opacity:0;pointer-events:none;',
+      leadDrawerStyle: cur?'transform:translateX(0);':'transform:translateX(105%);',
+      closeLead:()=>this.setState({openLead:null}),
+      showWelcome: this.state.showWelcome, dismissWelcome:()=>this.dismissWelcome(),
+
+      isDashboard:s==='dashboard', isManual:s==='manual', isSearch:isG||s==='websites', isLeadsList:s==='leadslist', isScore:s==='score', isTimeline:s==='timeline', isReports:s==='reports', isIntegrations:s==='integrations', isSub:s==='sub', isSettings:s==='settings',
+
+      leads, showingText: T.leads.showing+' '+filtered.length+' / 160',
+
+      // filters
+      filtersOpen: this.state.filtersOpen,
+      toggleFilters: ()=>this.setState({filtersOpen:!this.state.filtersOpen}),
+      filtersBtnStyle: (this.state.filtersOpen || fS!=='all' || fI!=='all' || fT!=='all') ? 'border:1px solid #6d5cf5;background:rgba(109,92,245,.1);color:#6d5cf5;' : 'border:1px solid var(--border,#e4e2f0);background:var(--card,#fff);color:var(--text,#211d3b);',
+      filterCountLabel: (function(){ var n=(fS!=='all'?1:0)+(fI!=='all'?1:0)+(fT!=='all'?1:0); return n>0?(' ('+n+')'):''; })(),
+      setFilterStatus:(e)=>this.setState({fStatus:e.target.value}),
+      setFilterIndustry:(e)=>this.setState({fIndustry:e.target.value}),
+      setFilterTemp:(e)=>this.setState({fTemp:e.target.value}),
+      clearFilters:()=>this.setState({fStatus:'all',fIndustry:'all',fTemp:'all'}),
+
+      // selection
+      hasSelection: selCount>0,
+      selectionLabel: selCount+' '+(selCount===1?T.leads.selectedOne:T.leads.selected),
+      selectAllStyle: allOn?boxOn:boxOff,
+      selectAllCheck: allOn?checkSvg:'',
+      toggleSelectAll:()=>{ if(allOn){ this.setState({selected:{}}); } else { const ns={}; filtered.forEach(l=>ns[l.company]=true); this.setState({selected:ns}); } },
+      clearSelection:()=>this.setState({selected:{}}),
+
+      // mass email
+      massEmailOpen: this.state.massEmailOpen,
+      openMassEmail:()=>this.setState({massEmailOpen:true, emailSubjEdit:null, emailBodyEdit:null}),
+      closeMassEmail:()=>this.setState({massEmailOpen:false}),
+      onSubjectChange:(e)=>this.setState({emailSubjEdit:e.target.value}),
+      onBodyChange:(e)=>this.setState({emailBodyEdit:e.target.value}),
+      massEmailRecipients: selCount+' '+(selCount===1?T.leads.selectedOne:T.leads.selected),
+      sendLabel: T.email.send+' '+selCount,
+      templates: T.tpls.map((tp,i)=>({name:tp.name, desc:tp.desc, style: this.state.emailTpl===i?'border:1.5px solid #6d5cf5;background:rgba(109,92,245,.08);':'border:1.5px solid var(--border,#ecebf5);background:var(--card,#fff);', onSelect:()=>this.setState({emailTpl:i, emailSubjEdit:null, emailBodyEdit:null})})),
+      emailSubject: this.state.emailSubjEdit!=null ? this.state.emailSubjEdit : (function(){ const subs={pt:['Parceria com {{empresa}}','Retomando nosso contato','Proposta para {{empresa}}'],en:['Partnership with {{empresa}}','Following up','Proposal for {{empresa}}'],es:['Alianza con {{empresa}}','Retomando el contacto','Propuesta para {{empresa}}']}; return subs[self.state.lang][self.state.emailTpl]; })(),
+      emailBody: this.state.emailBodyEdit!=null ? this.state.emailBodyEdit : (function(){ const b={
+        pt:['Olá {{empresa}},\n\nVi que vocês atuam com {{setor}} em {{cidade}} e acredito que podemos ajudar a gerar mais clientes para o seu negócio.\n\nPodemos conversar esta semana?','Olá {{empresa}},\n\nRetomando nossa conversa — continua fazendo sentido avançarmos? Fico à disposição.','Olá {{empresa}},\n\nSegue nossa proposta personalizada para {{setor}}. Qualquer dúvida, estou à disposição.'],
+        en:['Hi {{empresa}},\n\nI saw you work with {{setor}} in {{cidade}} and I believe we can help bring more clients to your business.\n\nCan we talk this week?','Hi {{empresa}},\n\nFollowing up on our conversation — does it still make sense to move forward? I am available.','Hi {{empresa}},\n\nHere is our tailored proposal for {{setor}}. Let me know if you have any questions.'],
+        es:['Hola {{empresa}},\n\nVi que trabajan con {{setor}} en {{cidade}} y creo que podemos ayudar a generar más clientes para su negocio.\n\n¿Podemos hablar esta semana?','Hola {{empresa}},\n\nRetomando nuestra conversación — ¿sigue teniendo sentido avanzar? Quedo a disposición.','Hola {{empresa}},\n\nAdjunto nuestra propuesta personalizada para {{setor}}. Cualquier duda, quedo a disposición.']
+      }; return b[self.state.lang][self.state.emailTpl]; })(),
+
+      // import
+      importOpen: this.state.importOpen,
+      openImport:()=>this.setState({importOpen:true}),
+      closeImport:()=>this.setState({importOpen:false}),
+
+      // reports
+      setPeriod:(e)=>this.setState({reportPeriod:e.target.value}),
+      reportTabs: (function(){ const types=[['funnel',T.rep.funnel,'<path d="M22 3H2l8 9.46V19l4 2v-8.54z"/>'],['source',T.rep.source,'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>'],['score',T.rep.score,'<circle cx="12" cy="8" r="6"/><path d="M8.2 13.9L7 22l5-3 5 3-1.2-8.1"/>'],['industry',T.rep.industry,'<path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/>'],['time',T.rep.time,'<path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>']]; const cur=self.state.reportType; return types.map(ty=>({label:ty[1],icon:svg(ty[2],15),style: cur===ty[0]?'background:#6d5cf5;color:#fff;border-color:#6d5cf5;':'background:var(--card,#fff);color:var(--text,#211d3b);',onClick:()=>self.setState({reportType:ty[0]})})); })(),
+      rIsFunnel: this.state.reportType==='funnel',
+      rIsBars: this.state.reportType==='source'||this.state.reportType==='score'||this.state.reportType==='industry',
+      rIsTime: this.state.reportType==='time',
+      reportTitle: T.rep[this.state.reportType+'T'],
+      reportDesc: T.rep[this.state.reportType+'D'],
+      reportKpis: (function(){ const rt=self.state.reportType;
+        if(rt==='funnel') return [ {label:T.rep.kTotal,value:'160',sub:'',color:'var(--text,#211d3b)'},{label:T.status.qualified,value:'42',sub:'26%',color:'#f59e0b'},{label:T.status.converted,value:'22',sub:'13,8%',color:'#10b981'},{label:T.rep.kAvg,value:'8,4',sub:'',color:'#6d5cf5'} ];
+        if(rt==='source') return [ {label:T.rep.kBest,value:'Google Maps',sub:'18% conv.',color:'#6d5cf5'},{label:'Google Maps',value:'86',sub:T.rep.leadsW,color:'var(--text,#211d3b)'},{label:'Websites',value:'52',sub:T.rep.leadsW,color:'var(--text,#211d3b)'},{label:T.dash.manualEntry,value:'22',sub:T.rep.leadsW,color:'var(--text,#211d3b)'} ];
+        if(rt==='score') return [ {label:T.rep.kHot,value:'38',sub:'24% '+T.rep.ofTotal,color:'#ef4444'},{label:T.score.warmL,value:'71',sub:'44% '+T.rep.ofTotal,color:'#f59e0b'},{label:T.score.coolL,value:'51',sub:'32% '+T.rep.ofTotal,color:'#6d5cf5'},{label:T.rep.kActionable,value:'92%',sub:'',color:'#10b981'} ];
+        if(rt==='industry') return [ {label:'Madeireira',value:'41',sub:'',color:'var(--text,#211d3b)'},{label:'Reformas',value:'28',sub:'',color:'var(--text,#211d3b)'},{label:'Pisos',value:'19',sub:'',color:'var(--text,#211d3b)'},{label:T.rep.kConv,value:'14%',sub:'',color:'#10b981'} ];
+        return [ {label:T.rep.kTotal,value:'160',sub:'+12%',color:'var(--text,#211d3b)'},{label:T.dash.recent,value:'18',sub:T.rep.p30,color:'#6d5cf5'},{label:T.rep.kConv,value:'13,8%',sub:'',color:'#10b981'},{label:T.rep.kAvg,value:'8,4',sub:'',color:'#f59e0b'} ];
+      })(),
+      funnel: (function(){ const stages=[[T.status.new,96,'#6d5cf5','100%'],[T.status.qualified,42,'#f59e0b','44%'],[T.status.converted,22,'#10b981','23%']]; return stages.map((s,i)=>({label:s[0],count:s[1],color:s[2],width:s[3],rate: i===0?'100%':(Math.round(s[1]/stages[i-1][1]*100)+'%')})); })(),
+      reportBars: (function(){ const rt=self.state.reportType; const P='linear-gradient(90deg,#6d5cf5,#9d7bff)',B='linear-gradient(90deg,#3b82f6,#60a5fa)',G='linear-gradient(90deg,#10b981,#34d399)',O='linear-gradient(90deg,#f59e0b,#fbbf24)',R='linear-gradient(90deg,#ef4444,#f87171)';
+        if(rt==='source') return [ {label:'Google Maps',detail:'86 '+T.rep.leadsW+' · 18% '+T.rep.conv,pct:'54%',color:P},{label:'Websites',detail:'52 '+T.rep.leadsW+' · 12% '+T.rep.conv,pct:'33%',color:B},{label:T.dash.manualEntry,detail:'22 '+T.rep.leadsW+' · 27% '+T.rep.conv,pct:'14%',color:G} ];
+        if(rt==='score') return [ {label:T.score.hotL,detail:'38 '+T.rep.leadsW,pct:'24%',color:R},{label:T.score.warmL,detail:'71 '+T.rep.leadsW,pct:'44%',color:O},{label:T.score.coolL,detail:'51 '+T.rep.leadsW,pct:'32%',color:P} ];
+        return [ {label:'Madeireira',detail:'41 '+T.rep.leadsW+' · 15% '+T.rep.conv,pct:'70%',color:P},{label:'Reformas',detail:'28 '+T.rep.leadsW+' · 18% '+T.rep.conv,pct:'48%',color:B},{label:'Pisos',detail:'19 '+T.rep.leadsW+' · 11% '+T.rep.conv,pct:'32%',color:G},{label:T.dash.industries,detail:'72 '+T.rep.leadsW,pct:'55%',color:O} ];
+      })(),
+
+      scoreList,
+      scf:{ all:this.state.scoreFilter==='all'?'background:#6d5cf5;color:#fff;border-color:#6d5cf5;':'background:var(--card,#fff);color:var(--text,#211d3b);', hot:this.state.scoreFilter==='hot'?'background:#6d5cf5;color:#fff;border-color:#6d5cf5;':'background:var(--card,#fff);color:var(--text,#211d3b);', warm:this.state.scoreFilter==='warm'?'background:#6d5cf5;color:#fff;border-color:#6d5cf5;':'background:var(--card,#fff);color:var(--text,#211d3b);', cool:this.state.scoreFilter==='cool'?'background:#6d5cf5;color:#fff;border-color:#6d5cf5;':'background:var(--card,#fff);color:var(--text,#211d3b);' },
+      filterAll:()=>this.setState({scoreFilter:'all'}), filterHot:()=>this.setState({scoreFilter:'hot'}), filterWarm:()=>this.setState({scoreFilter:'warm'}), filterCool:()=>this.setState({scoreFilter:'cool'}),
+
+      timeline,
+
+      intPopular, intBrazil, intAuto,
+      connectedCount: connectedTotal + ' ' + T.int.connected.toLowerCase() + (this.state.lang==='pt'?'s':this.state.lang==='es'?'s':''),
+      connectOpen: !!cc,
+      connectName: cc?cc.name:'', connectColor: cc?cc.color:'#6d5cf5', connectInitials: cc?cc.initials:'',
+      openConnect:(name,color,initials)=>this.setState({connect:{name,color,initials}}),
+      closeConnect:()=>this.setState({connect:null}),
+      confirmConnect:()=>{ const c=this.state.connect; if(!c) return; const conn=Object.assign({},this.state.conn,{[c.name]:true}); this.setState({conn,connect:null}); },
+      disconnect:(name)=>{ const conn=Object.assign({},this.state.conn); delete conn[name]; this.setState({conn}); },
+      stop:(e)=>e.stopPropagation(),
+
+      searchTitle: isG?T.search.gTitle:T.search.wTitle,
+      searchSub: isG?T.search.gSub:T.search.wSub,
+      searchNiches: (function(){ const names={pt:['Restaurantes','Academias','Clínicas','Madeireiras','Reformas','Pisos','Advocacia','Estética'],en:['Restaurants','Gyms','Clinics','Lumber','Renovation','Flooring','Law firms','Aesthetics'],es:['Restaurantes','Gimnasios','Clínicas','Madereras','Reformas','Pisos','Abogacía','Estética']}; const ic=['<path d="M3 2v7c0 1.1.9 2 2 2a2 2 0 002-2V2M5 2v20M17 2c-1.7 0-3 2-3 5s1 4 3 4v11"/>','<path d="M6.5 6.5l11 11M21 21l-1-1M3 3l1 1"/>','<path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/>','<path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/>','<path d="M2 20h20M4 20V10l8-6 8 6v10M9 20v-6h6v6"/>','<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>','<path d="M12 3l9 4-9 4-9-4 9-4zM3 12l9 4 9-4M3 17l9 4 9-4"/>','<path d="M12 2a5 5 0 015 5c0 3-5 10-5 10S7 10 7 7a5 5 0 015-5z"/>']; return names[self.state.lang].map((label,i)=>({label, icon: svg(ic[i%ic.length],14)})); })(),
+      searchRecent: (function(){ const rows={
+        pt:[['Restaurantes','São Paulo, SP','há 2h',48],['Academias','Campinas, SP','há 5h',31],['Clínicas odontológicas','Rio de Janeiro, RJ','ontem',22],['Madeireiras','Curitiba, PR','há 2 dias',86]],
+        en:[['Restaurants','New York, NY','2h ago',48],['Gyms','Austin, TX','5h ago',31],['Dental clinics','Miami, FL','yesterday',22],['Lumber yards','Portland, OR','2 days ago',86]],
+        es:[['Restaurantes','Madrid','hace 2h',48],['Gimnasios','Barcelona','hace 5h',31],['Clínicas dentales','Valencia','ayer',22],['Madereras','Sevilla','hace 2 días',86]]
+      }; return rows[self.state.lang].map(r=>({query:r[0],loc:r[1],when:r[2],count:r[3]})); })(),
+      searchFields: (function(){ const f={
+        pt:['Nome da empresa','Telefone','E-mail','Website','Endereço','Avaliações'],
+        en:['Company name','Phone','Email','Website','Address','Reviews'],
+        es:['Nombre de empresa','Teléfono','Email','Sitio web','Dirección','Reseñas']
+      }; const ic=['<path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/>','<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.94.36 1.86.7 2.73a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.35-1.27a2 2 0 012.11-.45c.87.34 1.79.57 2.73.7A2 2 0 0122 16.92z"/>','<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/>','<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/>','<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/>','<path d="M12 2l3 7 7 .5-5.5 4.5L18 21l-6-4-6 4 1.5-7L2 9.5 9 9z"/>']; return f[self.state.lang].map((label,i)=>({label, icon: svg(ic[i],14)})); })(),
+      searchIconBg: isG?'rgba(59,130,246,.13)':'rgba(16,185,129,.14)',
+      searchIconColor: isG?'#3b82f6':'#10b981',
+      searchIcon: isG? svg('<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/>',26) : svg('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.9 3.8 9S14.5 18.3 12 21c-2.5-2.7-3.8-5.9-3.8-9S9.5 5.7 12 3z"/>',26),
+    };
+  }
+}
+</script>
+</body>
+</html>

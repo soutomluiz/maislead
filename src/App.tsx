@@ -1,13 +1,17 @@
-import { BrowserRouter } from "react-router-dom";
-import Index from "./pages/Index";
-import { Toaster } from "@/components/ui/sonner";
+import "./app/theme.css";
+import { ThemeProvider, LanguageProvider } from "./app/LangTheme";
+import { AuthProvider } from "./app/AuthContext";
+import { MaisLeadApp } from "./app/MaisLeadApp";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Index />
-      <Toaster />
-    </BrowserRouter>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <MaisLeadApp />
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 

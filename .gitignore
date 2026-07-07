@@ -23,7 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Env
+# Env / secrets
 .env
 .env.local
 .env.*.local
@@ -31,3 +31,9 @@ dist-ssr
 # Local junk
 arquivos.txt
 result.txt
+
+# DB restore com dados pessoais / hashes de senha (nao versionar)
+supabase/restore_data.sql
+
+# Claude Code local tooling
+.claude/

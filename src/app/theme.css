@@ -1,0 +1,47 @@
+/* maisLEAD — tokens de tema (fiéis ao protótipo docs/maisLEAD.prototype.spec.html) */
+.ml-root {
+  --ml-primary: #6d5cf5;
+  --ml-primary-2: #8b6bff;
+  --ml-bg: #f4f5fb;
+  --ml-card: #ffffff;
+  --ml-sidebar: #ffffff;
+  --ml-text: #211d3b;
+  --ml-muted: #8f8caa;
+  --ml-border: #ecebf5;
+  --ml-hover: #f4f3fb;
+  --ml-grid: #eef0f6;
+  --ml-input: #fbfbfe;
+  --ml-navtext: #514e6b;
+  --ml-green: #10b981;
+  --ml-amber: #f59e0b;
+  --ml-red: #ef4444;
+  --ml-blue: #3b82f6;
+
+  color: var(--ml-text);
+  background: var(--ml-bg);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+}
+.ml-root.dark {
+  --ml-bg: #121120;
+  --ml-card: #1c1a2e;
+  --ml-sidebar: #17162a;
+  --ml-text: #ececff;
+  --ml-muted: #9d9ac2;
+  --ml-border: #2a2842;
+  --ml-hover: #232138;
+  --ml-grid: #26243c;
+  --ml-input: #232138;
+  --ml-navtext: #b6b3d6;
+}
+
+.ml-root * { box-sizing: border-box; }
+.ml-root input, .ml-root button, .ml-root select, .ml-root textarea { font-family: inherit; }
+.ml-root input::placeholder, .ml-root textarea::placeholder { color: var(--ml-muted); }
+
+.ml-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+.ml-scroll::-webkit-scrollbar-thumb { background: var(--ml-border); border-radius: 8px; }
+
+@keyframes mlFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.ml-fade { animation: mlFade .25s ease; }
+@keyframes mlSpin { to { transform: rotate(360deg); } }
+.ml-spin { animation: mlSpin .8s linear infinite; }

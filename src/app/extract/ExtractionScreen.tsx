@@ -1,0 +1,214 @@
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useLang } from "../LangTheme";
+import { useAuth } from "../AuthContext";
+import { Icon, type IconName } from "../icons";
+
+const Panel = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
+  <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 18, boxShadow: "0 4px 16px rgba(30,25,70,.04)", ...style }}>{children}</div>
+);
+
+type Source = "google_maps" | "website";
+
+const DICT = {
+  pt: {
+    gTitle: "Buscar em Google Places", gSub: "Encontre empresas por nicho e localização no Google Maps",
+    wTitle: "Buscar em Websites", wSub: "Rastreie websites por nicho e localização",
+    niche: "Nicho de Atuação", nichePh: "Ex: Restaurantes, Academias...", location: "Localização", locPh: "Ex: São Paulo, SP",
+    search: "Buscar", searching: "Buscando…", info: "A busca retorna nome, telefone, endereço e website públicos das empresas encontradas.",
+    popular: "Nichos populares", recent: "Buscas recentes", noRecent: "Nenhuma busca ainda.",
+    receive: "O que você recebe", receiveSub: "Cada resultado traz os dados públicos da empresa.",
+    reqNiche: "Informe um nicho para buscar.",
+    okTitle: "Extração concluída", inserted: "novos leads", skipped: "duplicados ignorados", found: "encontrados", goLeads: "Ver na lista de Leads",
+    errKey: "A chave de API desta extração ainda não foi configurada no servidor. Assim que você enviar a chave, esta tela passa a extrair de verdade.",
+    errLimit: "Limite de leads do seu plano foi atingido este mês. Faça upgrade para continuar extraindo.",
+    errPlaces: "O provedor de busca recusou a requisição (verifique a chave/faturamento).", errGeneric: "Não foi possível concluir a extração agora.",
+    f_company: "Nome da empresa", f_phone: "Telefone", f_email: "E-mail", f_site: "Website", f_addr: "Endereço", f_rating: "Avaliações",
+  },
+  en: {
+    gTitle: "Search Google Places", gSub: "Find businesses by niche and location on Google Maps",
+    wTitle: "Search Websites", wSub: "Crawl websites by niche and location",
+    niche: "Niche", nichePh: "E.g.: Restaurants, Gyms...", location: "Location", locPh: "E.g.: New York, NY",
+    search: "Search", searching: "Searching…", info: "The search returns public name, phone, address and website of the businesses found.",
+    popular: "Popular niches", recent: "Recent searches", noRecent: "No searches yet.",
+    receive: "What you get", receiveSub: "Each result brings the company's public data.",
+    reqNiche: "Enter a niche to search.",
+    okTitle: "Extraction complete", inserted: "new leads", skipped: "duplicates skipped", found: "found", goLeads: "View in Leads list",
+    errKey: "This extraction's API key isn't configured on the server yet. As soon as you send the key, this screen extracts for real.",
+    errLimit: "Your plan's monthly lead limit was reached. Upgrade to keep extracting.",
+    errPlaces: "The search provider rejected the request (check key/billing).", errGeneric: "Couldn't complete the extraction right now.",
+    f_company: "Company name", f_phone: "Phone", f_email: "Email", f_site: "Website", f_addr: "Address", f_rating: "Ratings",
+  },
+  es: {
+    gTitle: "Buscar en Google Places", gSub: "Encuentra empresas por nicho y ubicación en Google Maps",
+    wTitle: "Buscar en Sitios Web", wSub: "Rastrea sitios web por nicho y ubicación",
+    niche: "Nicho", nichePh: "Ej: Restaurantes, Gimnasios...", location: "Ubicación", locPh: "Ej: Madrid",
+    search: "Buscar", searching: "Buscando…", info: "La búsqueda devuelve nombre, teléfono, dirección y web públicos de las empresas encontradas.",
+    popular: "Nichos populares", recent: "Búsquedas recientes", noRecent: "Aún no hay búsquedas.",
+    receive: "Lo que recibes", receiveSub: "Cada resultado trae los datos públicos de la empresa.",
+    reqNiche: "Ingresa un nicho para buscar.",
+    okTitle: "Extracción completa", inserted: "nuevos leads", skipped: "duplicados omitidos", found: "encontrados", goLeads: "Ver en la lista de Leads",
+    errKey: "La clave de API de esta extracción aún no está configurada en el servidor. En cuanto envíes la clave, esta pantalla extrae de verdad.",
+    errLimit: "Se alcanzó el límite mensual de leads de tu plan. Mejora tu plan para seguir extrayendo.",
+    errPlaces: "El proveedor de búsqueda rechazó la solicitud (revisa clave/facturación).", errGeneric: "No se pudo completar la extracción ahora.",
+    f_company: "Nombre de empresa", f_phone: "Teléfono", f_email: "Email", f_site: "Sitio web", f_addr: "Dirección", f_rating: "Reseñas",
+  },
+};
+
+const POPULAR = ["Restaurantes", "Academias", "Clínicas", "Madeireiras", "Reformas", "Pisos", "Advocacia", "Estética"];
+const POPULAR_ICONS: Record<string, IconName> = { Restaurantes: "database", Academias: "award", Clínicas: "plus", Madeireiras: "database", Reformas: "settings", Pisos: "dashboard", Advocacia: "award", Estética: "spark" };
+
+interface SearchRow { id: string; query: string; location: string | null; count: number; created_at: string; }
+interface Preview { company_name: string; phone?: string | null; website?: string | null; email?: string | null; score: number; }
+
+export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn: string; onGoLeads?: () => void }) {
+  const { lang } = useLang();
+  const { refresh } = useAuth();
+  const auth = useAuth();
+  const D = DICT[lang];
+  const [niche, setNiche] = useState("");
+  const [location, setLocation] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [recent, setRecent] = useState<SearchRow[]>([]);
+  const [result, setResult] = useState<{ inserted: number; skipped: number; found: number; preview: Preview[] } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const title = source === "google_maps" ? D.gTitle : D.wTitle;
+  const sub = source === "google_maps" ? D.gSub : D.wSub;
+
+  async function loadRecent() {
+    const acc = auth.account?.id;
+    if (!acc) return;
+    const { data } = await supabase.from("searches").select("id, query, location, count, created_at").eq("account_id", acc).eq("source", source).order("created_at", { ascending: false }).limit(6);
+    setRecent((data as SearchRow[]) ?? []);
+  }
+  useEffect(() => { loadRecent(); /* eslint-disable-next-line */ }, [auth.account?.id, source]);
+
+  async function run() {
+    setErr(null); setResult(null);
+    if (!niche.trim()) { setErr(D.reqNiche); return; }
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(fn, { body: { niche: niche.trim(), location: location.trim() || null } });
+      let code: string | null = data?.error ?? null;
+      if (error) { code = "errGeneric"; try { const body = await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.(); code = body?.error ?? code; } catch { /* ignore */ } }
+      if (code) { setErr(code === "missing_api_key" ? D.errKey : code === "limit_reached" ? D.errLimit : code === "places_error" || code === "cse_error" ? D.errPlaces : D.errGeneric); return; }
+      setResult({ inserted: data.inserted ?? 0, skipped: data.skipped ?? 0, found: data.found ?? 0, preview: data.preview ?? [] });
+      await Promise.all([loadRecent(), refresh()]);
+    } catch { setErr(D.errGeneric); }
+    finally { setBusy(false); }
+  }
+
+  const RECEIVE: [IconName, string][] = [["database", D.f_company], ["phone", D.f_phone], ["mail", D.f_email], ["globe", D.f_site], ["mapPin", D.f_addr], ["award", D.f_rating]];
+
+  return (
+    <div className="ml-fade" style={{ maxWidth: 780, margin: "0 auto", display: "flex", flexDirection: "column", gap: 18 }}>
+      {/* card de busca */}
+      <Panel style={{ padding: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+          <div style={{ width: 46, height: 46, borderRadius: 13, background: source === "google_maps" ? "rgba(109,92,245,.12)" : "rgba(16,185,129,.14)", color: source === "google_maps" ? "var(--ml-primary)" : "var(--ml-green)", display: "grid", placeItems: "center" }}><Icon name={source === "google_maps" ? "mapPin" : "globe"} size={24} /></div>
+          <div>
+            <div style={{ fontSize: 19, fontWeight: 800 }}>{title}</div>
+            <div style={{ fontSize: 13.5, color: "var(--ml-muted)" }}>{sub}</div>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div>
+            <label style={lbl}>{D.niche}</label>
+            <input value={niche} onChange={(e) => setNiche(e.target.value)} placeholder={D.nichePh} style={inp} onKeyDown={(e) => e.key === "Enter" && run()} />
+          </div>
+          <div>
+            <label style={lbl}>{D.location}</label>
+            <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder={D.locPh} style={inp} onKeyDown={(e) => e.key === "Enter" && run()} />
+          </div>
+        </div>
+
+        <button onClick={run} disabled={busy} style={{ width: "100%", marginTop: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 22px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1 }}>
+          {busy ? <Icon name="loader" size={17} className="ml-spin" /> : <Icon name="search" size={17} />}{busy ? D.searching : D.search}
+        </button>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16, padding: "12px 14px", borderRadius: 11, background: "var(--ml-grid)", fontSize: 13, color: "var(--ml-muted)" }}>
+          <Icon name="timer" size={16} />{D.info}
+        </div>
+        {err && <div style={{ marginTop: 14, fontSize: 13.5, color: "var(--ml-red)", background: "rgba(239,68,68,.1)", padding: "11px 13px", borderRadius: 10, lineHeight: 1.5 }}>{err}</div>}
+      </Panel>
+
+      {/* chips */}
+      <div>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ml-muted)", marginBottom: 10 }}>{D.popular}</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {POPULAR.map((p) => (
+            <button key={p} onClick={() => setNiche(p)} style={chip(niche === p)}><Icon name={POPULAR_ICONS[p] ?? "database"} size={14} />{p}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* resultado */}
+      {result && (
+        <Panel>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 9, background: "rgba(16,185,129,.14)", display: "grid", placeItems: "center", color: "var(--ml-green)" }}><Icon name="check" size={17} /></div>
+            <div style={{ fontWeight: 700 }}>{D.okTitle}</div>
+          </div>
+          <div style={{ display: "flex", gap: 18, fontSize: 13.5, marginBottom: result.preview.length ? 14 : 0 }}>
+            <span><b style={{ color: "var(--ml-green)", fontSize: 18 }}>{result.inserted}</b> {D.inserted}</span>
+            <span style={{ color: "var(--ml-muted)" }}><b>{result.skipped}</b> {D.skipped}</span>
+            <span style={{ color: "var(--ml-muted)" }}><b>{result.found}</b> {D.found}</span>
+          </div>
+          {result.preview.length > 0 && (
+            <>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {result.preview.map((p, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 10px", borderRadius: 9, background: "var(--ml-grid)", fontSize: 13 }}>
+                    <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.company_name}</span>
+                    <span style={{ color: "var(--ml-muted)", flexShrink: 0 }}>{p.phone || p.email || p.website || "—"} · <b style={{ color: "var(--ml-primary)" }}>{p.score}</b></span>
+                  </div>
+                ))}
+              </div>
+              {onGoLeads && <button onClick={onGoLeads} style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 13.5, cursor: "pointer" }}><Icon name="users" size={15} />{D.goLeads}</button>}
+            </>
+          )}
+        </Panel>
+      )}
+
+      {/* recentes + o que você recebe */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <Panel>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 700, marginBottom: 14 }}><Icon name="timer" size={16} />{D.recent}</div>
+          {recent.length === 0 ? (
+            <div style={{ fontSize: 13, color: "var(--ml-muted)" }}>{D.noRecent}</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {recent.map((s) => (
+                <button key={s.id} onClick={() => { setNiche(s.query); setLocation(s.location ?? ""); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "9px 11px", borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", cursor: "pointer", textAlign: "left" }}>
+                  <span style={{ overflow: "hidden" }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.query}</div>
+                    {s.location && <div style={{ fontSize: 11.5, color: "var(--ml-muted)" }}>{s.location}</div>}
+                  </span>
+                  <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(109,92,245,.12)", padding: "3px 9px", borderRadius: 20 }}>{s.count} leads</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </Panel>
+
+        <Panel style={{ background: "var(--ml-grid)" }}>
+          <div style={{ fontSize: 14, fontWeight: 700 }}>{D.receive}</div>
+          <div style={{ fontSize: 12.5, color: "var(--ml-muted)", marginBottom: 14 }}>{D.receiveSub}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            {RECEIVE.map(([icon, label]) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 13 }}>
+                <span style={{ color: "var(--ml-primary)", display: "grid", placeItems: "center" }}><Icon name={icon} size={16} /></span>{label}
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+const lbl: CSSProperties = { display: "block", fontSize: 12.5, fontWeight: 600, color: "var(--ml-navtext)", marginBottom: 7 };
+const inp: CSSProperties = { width: "100%", padding: "12px 14px", borderRadius: 11, border: "1px solid var(--ml-border)", background: "var(--ml-input)", color: "var(--ml-text)", fontSize: 14, outline: "none" };
+const chip = (on: boolean): CSSProperties => ({ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: `1px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "rgba(109,92,245,.12)" : "var(--ml-card)", color: on ? "var(--ml-primary)" : "var(--ml-navtext)", fontSize: 13, fontWeight: 600, cursor: "pointer" });

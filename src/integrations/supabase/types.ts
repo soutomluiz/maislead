@@ -555,7 +555,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      current_account_id: { Args: never; Returns: string }
+      current_account_id: { Args: Record<PropertyKey, never>; Returns: string }
       is_valid_trial: { Args: { user_profile_id: string }; Returns: boolean }
       lead_score: {
         Args: {
