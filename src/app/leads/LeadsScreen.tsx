@@ -9,12 +9,13 @@ import { LeadRow, LeadStatus, STATUS_META, hasVal } from "./model";
 import { LeadDrawer } from "./LeadDrawer";
 import { MassEmailModal } from "./MassEmailModal";
 import { ImportCsvModal } from "./ImportCsvModal";
+import { EnrichEmailsModal } from "./EnrichEmailsModal";
 import type { Temperature } from "@/lib/score";
 
 const XT = {
-  pt: { import: "Importar", massEmail: "Enviar E-mail", addTag: "Adicionar Tag", total: "Total de Leads", tags: "Tags", loc: "Localização", prev: "Anterior", next: "Próximo" },
-  en: { import: "Import", massEmail: "Send Email", addTag: "Add Tag", total: "Total Leads", tags: "Tags", loc: "Location", prev: "Previous", next: "Next" },
-  es: { import: "Importar", massEmail: "Enviar Email", addTag: "Añadir Tag", total: "Total de Leads", tags: "Tags", loc: "Ubicación", prev: "Anterior", next: "Siguiente" },
+  pt: { import: "Importar", massEmail: "Enviar E-mail", findEmail: "Buscar E-mails", addTag: "Adicionar Tag", total: "Total de Leads", tags: "Tags", loc: "Localização", prev: "Anterior", next: "Próximo" },
+  en: { import: "Import", massEmail: "Send Email", findEmail: "Find Emails", addTag: "Add Tag", total: "Total Leads", tags: "Tags", loc: "Location", prev: "Previous", next: "Next" },
+  es: { import: "Importar", massEmail: "Enviar Email", findEmail: "Buscar Emails", addTag: "Añadir Tag", total: "Total de Leads", tags: "Tags", loc: "Ubicación", prev: "Anterior", next: "Siguiente" },
 };
 
 function exportLeads(rows: LeadRow[], format: ExportFormat) {
@@ -46,6 +47,7 @@ export function LeadsScreen() {
   const { leads, loading, error, refetch } = useLeads();
   const [emailOpen, setEmailOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [enrichOpen, setEnrichOpen] = useState(false);
 
   const [q, setQ] = useState("");
   const [fStatus, setFStatus] = useState<LeadStatus | "all">("all");
@@ -142,7 +144,8 @@ export function LeadsScreen() {
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 20px", borderBottom: "1px solid var(--ml-border)", background: "rgba(109,92,245,.07)", flexWrap: "wrap" }}>
             <span style={{ fontSize: 13.5, fontWeight: 700, color: "#6d5cf5" }}>{selCount} {selCount === 1 ? L.selectedOne : L.selected}</span>
             <span style={{ flex: 1 }} />
-            <button onClick={() => setEmailOpen(true)} style={{ ...bulkPrimary }}><Icon name="mail" size={15} /> {X.massEmail}</button>
+            <button onClick={() => setEnrichOpen(true)} style={{ ...bulkPrimary }}><Icon name="search" size={15} /> {X.findEmail}</button>
+            <button onClick={() => setEmailOpen(true)} style={bulkOutline}><Icon name="mail" size={15} /> {X.massEmail}</button>
             <button style={bulkOutline}><Icon name="tag" size={14} /> {X.addTag}</button>
             <button onClick={() => exportLeads(leads.filter((l) => selected.has(l.id)), getExportFormat())} style={bulkOutline}><Icon name="download" size={14} /> {L.exportCsv}</button>
             {(["new", "qualified", "converted"] as LeadStatus[]).map((s) => (
@@ -230,6 +233,7 @@ export function LeadsScreen() {
 
       <LeadDrawer lead={openLead} onClose={() => setOpenLead(null)} onChanged={refetch} />
       {emailOpen && <MassEmailModal leadIds={[...selected]} onClose={() => setEmailOpen(false)} />}
+      {enrichOpen && <EnrichEmailsModal leadIds={[...selected]} onDone={refetch} onClose={() => setEnrichOpen(false)} />}
       {importOpen && <ImportCsvModal accountId={account?.id} userId={session?.user?.id} existing={leads.map((l) => ({ phone: l.phone, website: l.website }))} onDone={refetch} onClose={() => setImportOpen(false)} />}
     </div>
   );

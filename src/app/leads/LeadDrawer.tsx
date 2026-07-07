@@ -22,15 +22,36 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
   const [busy, setBusy] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verify, setVerify] = useState<{ email: { status: string }; phone: { status: string }; website: { status: string } } | null>(null);
+  const [enriching, setEnriching] = useState(false);
+  const [emailOverride, setEmailOverride] = useState<string | null>(null);
+  const [enrichMsg, setEnrichMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (lead) {
       setStatus(lead.status);
       setNoteInput("");
       setVerify(null);
+      setEmailOverride(null);
+      setEnrichMsg(null);
       fetchNotes(lead.id).then(setNotes).catch(() => setNotes([]));
     }
   }, [lead]);
+
+  async function runEnrich() {
+    if (!lead) return;
+    setEnriching(true); setEnrichMsg(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("enrich-emails", { body: { leadIds: [lead.id] } });
+      if (error || data?.error) { setEnrichMsg(EN[lang].fail); return; }
+      if ((data.enriched ?? 0) > 0 && data.sample?.[0]?.email) {
+        setEmailOverride(data.sample[0].email);
+        onChanged();
+      } else {
+        setEnrichMsg(EN[lang].none);
+      }
+    } catch { setEnrichMsg(EN[lang].fail); }
+    finally { setEnriching(false); }
+  }
 
   async function runVerify() {
     if (!lead) return;
@@ -61,6 +82,8 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
   const initials = lead ? lead.company.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() : "";
   const tm = lead ? TEMP_META[lead.temp] : null;
   const tempLabel = lead ? L[lead.temp] : "";
+  const shownEmail = emailOverride ?? lead?.email ?? null;
+  const canEnrich = !!lead && hasVal(lead.website) && !hasVal(shownEmail);
 
   const breakdownRows = bd ? [
     { label: L.pPhone, on: bd.phone > 0, pts: bd.phone },
@@ -119,12 +142,30 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
             </div>
 
             {/* contatos */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 18 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: canEnrich || emailOverride ? 10 : 18 }}>
               <ContactRow icon="phone" value={lead.phone} />
-              <ContactRow icon="mail" value={lead.email} />
+              <ContactRow icon="mail" value={shownEmail} />
               <ContactRow icon="globe" value={lead.website} />
               <ContactRow icon="mapPin" value={lead.address} />
             </div>
+
+            {/* buscar e-mail no site (grátis) */}
+            {(canEnrich || emailOverride) && (
+              <div style={{ marginBottom: 18 }}>
+                {emailOverride ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--ml-green)", background: "rgba(16,185,129,.1)", padding: "9px 12px", borderRadius: 10 }}>
+                    <Icon name="check" size={14} /> {EN[lang].ok}
+                  </div>
+                ) : (
+                  <>
+                    <button onClick={runEnrich} disabled={enriching} style={{ display: "flex", alignItems: "center", gap: 7, width: "100%", justifyContent: "center", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--ml-primary)", background: "rgba(109,92,245,.08)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 13, cursor: enriching ? "default" : "pointer" }}>
+                      {enriching ? <Icon name="loader" size={14} className="ml-spin" /> : <Icon name="search" size={14} />}{enriching ? EN[lang].searching : EN[lang].find}
+                    </button>
+                    {enrichMsg && <div style={{ marginTop: 8, fontSize: 12.5, color: "var(--ml-muted)", textAlign: "center" }}>{enrichMsg}</div>}
+                  </>
+                )}
+              </div>
+            )}
 
             {/* verificação */}
             <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 16, marginBottom: 18 }}>
@@ -147,7 +188,7 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 20 }}>
               <Action icon="chat" label={L.whatsapp} color="var(--ml-green)" filled href={hasVal(lead.phone) ? waLink(lead.phone!, `Olá ${lead.company}`) : undefined} />
               <Action icon="phone" label={L.call} color="var(--ml-blue)" href={hasVal(lead.phone) ? `tel:${lead.phone!.replace(/\s/g, "")}` : undefined} />
-              <Action icon="mail" label={L.sendEmail} color="var(--ml-primary)" href={hasVal(lead.email) ? `mailto:${lead.email}` : undefined} />
+              <Action icon="mail" label={L.sendEmail} color="var(--ml-primary)" href={hasVal(shownEmail) ? `mailto:${shownEmail}` : undefined} />
               <Action icon="globe" label={L.site} color="var(--ml-amber)" href={hasVal(lead.website) ? (lead.website!.startsWith("http") ? lead.website! : `https://${lead.website}`) : undefined} />
             </div>
 
@@ -201,6 +242,12 @@ function Action({ icon, label, color, href, filled }: { icon: IconName; label: s
 }
 
 const iconBtn: CSSProperties = { width: 34, height: 34, borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-text)", cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 };
+
+const EN = {
+  pt: { find: "Buscar e-mail no site", searching: "Buscando…", ok: "E-mail encontrado e salvo!", none: "Nenhum e-mail encontrado no site.", fail: "Não foi possível buscar agora." },
+  en: { find: "Find email on website", searching: "Searching…", ok: "Email found and saved!", none: "No email found on the website.", fail: "Couldn't search right now." },
+  es: { find: "Buscar email en el sitio", searching: "Buscando…", ok: "¡Email encontrado y guardado!", none: "No se encontró email en el sitio.", fail: "No se pudo buscar ahora." },
+};
 
 const VDICT = {
   pt: { title: "Verificação de dados", run: "Verificar", email: "E-mail", phone: "Telefone", site: "Site",
