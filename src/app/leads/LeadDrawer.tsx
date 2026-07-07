@@ -73,19 +73,19 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
   const target = (typeof document !== "undefined" && document.querySelector(".ml-root")) as HTMLElement | null;
   const node = (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(15,12,40,.45)", zIndex: 50, transition: ".25s", opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none" }} />
-      <aside className="ml-scroll" style={{ position: "fixed", top: 0, right: 0, height: "100vh", width: "min(460px,100vw)", background: "var(--ml-card)", borderLeft: "1px solid var(--ml-border)", zIndex: 51, boxShadow: "-20px 0 50px rgba(15,12,40,.16)", transition: "transform .28s cubic-bezier(.4,0,.2,1)", transform: open ? "translateX(0)" : "translateX(105%)", overflowY: "auto", padding: 22 }}>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(20,17,40,.5)", backdropFilter: open ? "blur(3px)" : "none", zIndex: 50, transition: "opacity .28s", opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none" }} />
+      <aside className="ml-scroll" style={{ position: "fixed", top: 0, right: 0, height: "100vh", width: "min(480px,94vw)", background: "var(--ml-bg)", borderLeft: "1px solid var(--ml-border)", zIndex: 51, boxShadow: "-18px 0 50px rgba(20,17,40,.16)", transition: "transform .32s cubic-bezier(.4,0,.2,1)", transform: open ? "translateX(0)" : "translateX(105%)", overflowY: "auto", padding: 22 }}>
         {lead && (
           <>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 18 }}>
-              <div style={{ display: "flex", gap: 12 }}>
-                <div style={{ width: 46, height: 46, borderRadius: 13, background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 16, flexShrink: 0 }}>{initials}</div>
+              <div style={{ display: "flex", gap: 14 }}>
+                <div style={{ width: 54, height: 54, borderRadius: 15, background: "linear-gradient(135deg,#6d5cf5,#9d7bff)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 19, flexShrink: 0 }}>{initials}</div>
                 <div>
-                  <div style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.2 }}>{lead.company}</div>
-                  <div style={{ fontSize: 13, color: "var(--ml-muted)", marginTop: 2 }}>{lead.industry || "—"}{lead.location ? ` · ${lead.location}` : ""}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.2 }}>{lead.company}</div>
+                  <div style={{ fontSize: 13, color: "var(--ml-muted)", marginTop: 3 }}>{lead.industry || "—"}{lead.location ? ` · ${lead.location}` : ""}</div>
                 </div>
               </div>
-              <button onClick={onClose} style={iconBtn}><Icon name="chevron" size={18} style={{ transform: "rotate(-90deg)" }} /></button>
+              <button onClick={onClose} style={iconBtn}><Icon name="x" size={17} strokeWidth={2.2} /></button>
             </div>
 
             {/* status */}
@@ -100,15 +100,11 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
             </div>
 
             {/* score + breakdown */}
-            <div style={{ background: "var(--ml-grid)", borderRadius: 14, padding: 16, marginBottom: 18 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                  <span style={{ fontSize: 30, fontWeight: 800, color: tm?.color }}>{lead.score}</span>
-                  <span style={{ fontSize: 14, color: "var(--ml-muted)" }}>/ 100</span>
-                </div>
-                <span style={{ fontSize: 12.5, fontWeight: 700, color: tm?.color, background: tm?.bg, padding: "5px 12px", borderRadius: 20 }}>{tempLabel}</span>
+            <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 18, marginBottom: 18 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ml-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>{L.whyScore}</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: tm?.color }}>{lead.score}<span style={{ fontSize: 12, color: "var(--ml-muted)", fontWeight: 600 }}>/100</span></div>
               </div>
-              <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ml-navtext)", marginBottom: 8 }}>{L.whyScore}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                 {breakdownRows.map((r) => (
                   <div key={r.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13 }}>
@@ -131,7 +127,7 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
             </div>
 
             {/* verificação */}
-            <div style={{ background: "var(--ml-grid)", borderRadius: 14, padding: 14, marginBottom: 18 }}>
+            <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 16, marginBottom: 18 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: verify ? 12 : 0 }}>
                 <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ml-navtext)" }}>{VDICT[lang].title}</div>
                 <button onClick={runVerify} disabled={verifying} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 9, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 12.5, cursor: verifying ? "default" : "pointer" }}>
@@ -149,7 +145,7 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
 
             {/* ações */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 20 }}>
-              <Action icon="chat" label={L.whatsapp} color="var(--ml-green)" href={hasVal(lead.phone) ? waLink(lead.phone!, `Olá ${lead.company}`) : undefined} />
+              <Action icon="chat" label={L.whatsapp} color="var(--ml-green)" filled href={hasVal(lead.phone) ? waLink(lead.phone!, `Olá ${lead.company}`) : undefined} />
               <Action icon="phone" label={L.call} color="var(--ml-blue)" href={hasVal(lead.phone) ? `tel:${lead.phone!.replace(/\s/g, "")}` : undefined} />
               <Action icon="mail" label={L.sendEmail} color="var(--ml-primary)" href={hasVal(lead.email) ? `mailto:${lead.email}` : undefined} />
               <Action icon="globe" label={L.site} color="var(--ml-amber)" href={hasVal(lead.website) ? (lead.website!.startsWith("http") ? lead.website! : `https://${lead.website}`) : undefined} />
@@ -190,12 +186,15 @@ function ContactRow({ icon, value }: { icon: IconName; value: string | null }) {
   );
 }
 
-function Action({ icon, label, color, href }: { icon: IconName; label: string; color: string; href?: string }) {
+function Action({ icon, label, color, href, filled }: { icon: IconName; label: string; color: string; href?: string; filled?: boolean }) {
   const disabled = !href;
+  const useFilled = filled && !disabled;
   const style: CSSProperties = {
-    display: "flex", flexDirection: "column", alignItems: "center", gap: 5, padding: "11px 4px", borderRadius: 12,
-    border: "1px solid var(--ml-border)", fontSize: 11.5, fontWeight: 600, textDecoration: "none",
-    color: disabled ? "var(--ml-muted)" : color, background: "var(--ml-card)", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1,
+    display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "14px 4px", borderRadius: 14,
+    border: useFilled ? "none" : "1px solid var(--ml-border)", fontSize: 11.5, fontWeight: 700, textDecoration: "none",
+    color: useFilled ? "#fff" : disabled ? "var(--ml-muted)" : color, background: useFilled ? "#25d366" : "var(--ml-card)",
+    cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1,
+    boxShadow: useFilled ? "0 6px 14px rgba(37,211,102,.28)" : undefined,
   };
   if (disabled) return <div style={style}><Icon name={icon} size={17} />{label}</div>;
   return <a href={href} target="_blank" rel="noreferrer" style={style}><Icon name={icon} size={17} />{label}</a>;
