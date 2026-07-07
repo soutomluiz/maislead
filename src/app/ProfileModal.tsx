@@ -80,8 +80,8 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
 
   return createPortal(
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(15,12,40,.45)", zIndex: 900 }} />
-      <aside className="ml-scroll" style={{ position: "fixed", top: 0, right: 0, height: "100vh", width: "min(420px,100vw)", background: "var(--ml-card)", borderLeft: "1px solid var(--ml-border)", zIndex: 901, boxShadow: "-20px 0 50px rgba(15,12,40,.16)", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(20,17,40,.5)", backdropFilter: "blur(3px)", zIndex: 900 }} />
+      <aside className="ml-scroll" style={{ position: "fixed", top: 0, right: 0, height: "100vh", width: "min(420px,92vw)", background: "var(--ml-card)", borderLeft: "1px solid var(--ml-border)", zIndex: 901, boxShadow: "-18px 0 50px rgba(20,17,40,.16)", overflowY: "auto", display: "flex", flexDirection: "column" }}>
         {/* header roxo */}
         <div style={{ position: "relative", height: 96, background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", flexShrink: 0 }}>
           <div style={{ position: "absolute", top: -30, right: -30, width: 140, height: 140, borderRadius: "50%", background: "rgba(255,255,255,.12)" }} />

@@ -143,8 +143,8 @@ export function ImportCsvModal({ accountId, userId, existing, onDone, onClose }:
   }
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(15,12,40,.5)", display: "grid", placeItems: "center", zIndex: 1000, padding: 20 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 480, background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 18, padding: 22 }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(20,17,40,.55)", backdropFilter: "blur(3px)", display: "grid", placeItems: "center", zIndex: 1000, padding: 24 }}>
+      <div className="ml-float" onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 520, background: "var(--ml-card)", borderRadius: 22, padding: 28, boxShadow: "0 30px 70px rgba(20,17,40,.35)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
           <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", display: "grid", placeItems: "center" }}><Icon name="plus" size={18} /></div>
           <div style={{ fontSize: 17, fontWeight: 800 }}>{D.title}</div>

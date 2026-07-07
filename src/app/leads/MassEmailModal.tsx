@@ -77,8 +77,8 @@ export function MassEmailModal({ leadIds, onClose }: { leadIds: string[]; onClos
   }
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(15,12,40,.5)", display: "grid", placeItems: "center", zIndex: 1000, padding: 20 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 18, padding: 22, maxHeight: "90vh", overflowY: "auto" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(20,17,40,.55)", backdropFilter: "blur(3px)", display: "grid", placeItems: "center", zIndex: 1000, padding: 24 }}>
+      <div className="ml-float ml-scroll" onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 680, background: "var(--ml-card)", borderRadius: 22, padding: 28, maxHeight: "88vh", overflowY: "auto", boxShadow: "0 30px 70px rgba(20,17,40,.35)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
           <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", display: "grid", placeItems: "center" }}><Icon name="mail" size={18} /></div>
           <div style={{ fontSize: 17, fontWeight: 800 }}>{D.title}</div>
