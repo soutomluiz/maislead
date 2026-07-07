@@ -116,7 +116,7 @@ async function findEmailForSite(website: string): Promise<string | null> {
 }
 
 interface Body { leadIds?: string[]; limit?: number; }
-interface LeadRow { id: string; phone: string | null; address: string | null; email: string | null; website: string | null; niche_quality: number | null; }
+interface LeadRow { id: string; company_name: string; phone: string | null; address: string | null; email: string | null; website: string | null; niche_quality: number | null; }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
     const cap = Math.min(Math.max(1, limit ?? 40), 40);
 
     // Leads elegíveis: têm website, não têm e-mail, da conta do usuário.
-    let qb = admin.from("leads").select("id, phone, address, email, website, niche_quality").eq("account_id", accountId).not("website", "is", null);
+    let qb = admin.from("leads").select("id, company_name, phone, address, email, website, niche_quality").eq("account_id", accountId).not("website", "is", null);
     if (Array.isArray(leadIds) && leadIds.length) qb = qb.in("id", leadIds.slice(0, 400));
     const { data: all, error: qe } = await qb;
     if (qe) return json({ error: "query_failed", message: qe.message }, 500);
@@ -154,19 +154,28 @@ Deno.serve(async (req) => {
 
     let enriched = 0;
     const events: Record<string, unknown>[] = [];
-    const sample: { email: string }[] = [];
+    const out: { leadId: string; company: string; email: string | null }[] = [];
     for (const { lead, email } of results) {
-      if (!email) continue;
-      const score = scoreOf({ phone: lead.phone, address: lead.address, email, website: lead.website, nicheQuality: lead.niche_quality });
-      const { error: upErr } = await admin.from("leads").update({ email, score }).eq("id", lead.id);
-      if (upErr) continue;
-      enriched++;
-      events.push({ lead_id: lead.id, account_id: accountId, type: "email_enriched", payload: { email, source: "website_scrape" } });
-      if (sample.length < 8) sample.push({ email });
+      if (email) {
+        const score = scoreOf({ phone: lead.phone, address: lead.address, email, website: lead.website, nicheQuality: lead.niche_quality });
+        const { error: upErr } = await admin.from("leads").update({ email, score }).eq("id", lead.id);
+        if (!upErr) {
+          enriched++;
+          events.push({ lead_id: lead.id, account_id: accountId, type: "email_enriched", payload: { email, source: "website_scrape" } });
+          out.push({ leadId: lead.id, company: lead.company_name, email });
+          continue;
+        }
+      }
+      out.push({ leadId: lead.id, company: lead.company_name, email: null });
     }
     if (events.length) await admin.from("lead_events").insert(events);
 
-    return json({ processed: eligible.length, enriched, noEmail: eligible.length - enriched, remaining: 0, sample });
+    const processed = eligible.length;
+    const rate = processed ? Math.round((enriched / processed) * 100) : 0;
+    return json({
+      processed, found: enriched, notFound: processed - enriched, rate, results: out,
+      enriched, noEmail: processed - enriched, remaining: 0, // compat
+    });
   } catch (e) {
     return json({ error: "unexpected", message: String((e as Error).message ?? e) }, 500);
   }

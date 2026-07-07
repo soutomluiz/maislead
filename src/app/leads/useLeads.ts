@@ -4,19 +4,24 @@ import { mapLead, LeadRow, LeadStatus } from "./model";
 
 export function useLeads() {
   const [leads, setLeads] = useState<LeadRow[]>([]);
+  const [enrichedIds, setEnrichedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
-    const { data, error } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
-    if (error) setError(error.message);
-    else { setError(null); setLeads((data ?? []).map(mapLead)); }
+    const [leadsRes, evRes] = await Promise.all([
+      supabase.from("leads").select("*").order("created_at", { ascending: false }),
+      supabase.from("lead_events").select("lead_id").eq("type", "email_enriched"),
+    ]);
+    if (leadsRes.error) setError(leadsRes.error.message);
+    else { setError(null); setLeads((leadsRes.data ?? []).map(mapLead)); }
+    setEnrichedIds(new Set((evRes.data ?? []).map((e) => e.lead_id as string)));
     setLoading(false);
   }, []);
 
   useEffect(() => { refetch(); }, [refetch]);
 
-  return { leads, loading, error, refetch };
+  return { leads, enrichedIds, loading, error, refetch };
 }
 
 // Muda status de 1+ leads e registra evento na timeline.

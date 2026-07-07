@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "../LangTheme";
@@ -6,126 +6,180 @@ import { Icon } from "../icons";
 
 const DICT = {
   pt: {
-    title: "Buscar e-mails", intro: "Vamos varrer o site de cada lead selecionado que ainda não tem e-mail e tentar encontrar o endereço de contato. É grátis e não gasta seu limite de extração.",
-    eligible: "leads selecionados", searching: "Buscando e-mails…", start: "Buscar e-mails", cancel: "Cancelar", close: "Fechar",
-    okTitle: "Busca concluída", found: "e-mails encontrados", processed: "sites analisados", none: "sem e-mail no site",
-    noneEligible: "Nenhum dos leads selecionados tem site sem e-mail. Selecione leads que tenham website mas ainda sem e-mail.",
-    failed: "Não foi possível concluir a busca agora.",
-    hintFound: "Os e-mails já foram salvos nos leads e o score foi recalculado (+25 por e-mail).",
+    title: "Enriquecimento de E-mails", subBusy: "Buscando e-mails nos sites…", subDone: "Enriquecimento concluído",
+    searching: "Analisando", analyzed: "analisados", statFound: "e-mails encontrados", statProcessed: "leads processados", statRate: "Taxa de acerto",
+    foundTitle: "E-mails encontrados", noneTitle: "Sem e-mail público", notFound: "não encontrado",
+    empty: "Todos os leads selecionados já têm e-mail. Selecione leads sem e-mail para enriquecer.",
+    failed: "Não foi possível concluir a busca agora.", close: "Fechar",
   },
   en: {
-    title: "Find emails", intro: "We'll scan each selected lead's website that has no email yet and try to find the contact address. It's free and doesn't use your extraction quota.",
-    eligible: "selected leads", searching: "Finding emails…", start: "Find emails", cancel: "Cancel", close: "Close",
-    okTitle: "Search complete", found: "emails found", processed: "sites analyzed", none: "no email on site",
-    noneEligible: "None of the selected leads have a website without an email. Select leads that have a website but no email yet.",
-    failed: "Couldn't finish the search right now.",
-    hintFound: "Emails were saved to the leads and the score was recalculated (+25 per email).",
+    title: "Email Enrichment", subBusy: "Searching emails on websites…", subDone: "Enrichment complete",
+    searching: "Analyzing", analyzed: "analyzed", statFound: "emails found", statProcessed: "leads processed", statRate: "Hit rate",
+    foundTitle: "Emails found", noneTitle: "No public email", notFound: "not found",
+    empty: "All selected leads already have an email. Select leads without email to enrich.",
+    failed: "Couldn't finish the search right now.", close: "Close",
   },
   es: {
-    title: "Buscar emails", intro: "Escanearemos el sitio de cada lead seleccionado que aún no tiene email e intentaremos encontrar la dirección de contacto. Es gratis y no gasta tu límite de extracción.",
-    eligible: "leads seleccionados", searching: "Buscando emails…", start: "Buscar emails", cancel: "Cancelar", close: "Cerrar",
-    okTitle: "Búsqueda completa", found: "emails encontrados", processed: "sitios analizados", none: "sin email en el sitio",
-    noneEligible: "Ninguno de los leads seleccionados tiene sitio sin email. Selecciona leads con sitio web pero aún sin email.",
-    failed: "No se pudo completar la búsqueda ahora.",
-    hintFound: "Los emails se guardaron en los leads y la puntuación se recalculó (+25 por email).",
+    title: "Enriquecimiento de Emails", subBusy: "Buscando emails en los sitios…", subDone: "Enriquecimiento completo",
+    searching: "Analizando", analyzed: "analizados", statFound: "emails encontrados", statProcessed: "leads procesados", statRate: "Tasa de acierto",
+    foundTitle: "Emails encontrados", noneTitle: "Sin email público", notFound: "no encontrado",
+    empty: "Todos los leads seleccionados ya tienen email. Selecciona leads sin email para enriquecer.",
+    failed: "No se pudo completar la búsqueda ahora.", close: "Cerrar",
   },
 };
 
 const BATCH = 10;
+type Res = { company: string; email: string | null };
 
 export function EnrichEmailsModal({ leadIds, onDone, onClose }: { leadIds: string[]; onDone: () => void; onClose: () => void }) {
   const { lang } = useLang();
   const D = DICT[lang];
-  const [busy, setBusy] = useState(false);
-  const [progress, setProgress] = useState(0); // 0..1
-  const [live, setLive] = useState<{ found: number; done: number; total: number }>({ found: 0, done: 0, total: 0 });
+  const [busy, setBusy] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [live, setLive] = useState<{ found: number; done: number; total: number }>({ found: 0, done: 0, total: leadIds.length });
+  const [results, setResults] = useState<Res[]>([]);
+  const [stats, setStats] = useState<{ found: number; processed: number; rate: number }>({ found: 0, processed: 0, rate: 0 });
   const [err, setErr] = useState<string | null>(null);
-  const [result, setResult] = useState<{ found: number; processed: number; none: number } | null>(null);
+  const started = useRef(false);
   const root = document.querySelector(".ml-root") as HTMLElement | null;
-  if (!root) return null;
 
-  async function run() {
-    setErr(null); setResult(null); setBusy(true); setProgress(0);
-    const ids = [...leadIds];
-    const batches = Math.max(1, Math.ceil(ids.length / BATCH));
-    setLive({ found: 0, done: 0, total: ids.length });
-    let found = 0, processed = 0, none = 0, failedBatches = 0;
-    for (let b = 0; b < batches; b++) {
-      const batch = ids.slice(b * BATCH, (b + 1) * BATCH);
-      try {
-        const { data, error } = await supabase.functions.invoke("enrich-emails", { body: { leadIds: batch } });
-        if (error || data?.error) throw new Error(data?.error ?? "invoke_error");
-        found += data.enriched ?? 0;
-        processed += data.processed ?? 0;
-        none += data.noEmail ?? 0;
-        if ((data.enriched ?? 0) > 0) onDone(); // atualiza a lista em tempo real conforme acha
-      } catch {
-        failedBatches++; // um lote falhou (site pesado); pula e segue os demais
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    (async () => {
+      const ids = [...leadIds];
+      const batches = Math.max(1, Math.ceil(ids.length / BATCH));
+      let found = 0, processed = 0, failedBatches = 0;
+      const acc: Res[] = [];
+      for (let b = 0; b < batches; b++) {
+        const batch = ids.slice(b * BATCH, (b + 1) * BATCH);
+        try {
+          const { data, error } = await supabase.functions.invoke("enrich-emails", { body: { leadIds: batch } });
+          if (error || data?.error) throw new Error(data?.error ?? "invoke_error");
+          found += data.found ?? 0;
+          processed += data.processed ?? 0;
+          for (const r of (data.results ?? []) as Res[]) acc.push(r);
+          if ((data.found ?? 0) > 0) onDone();
+        } catch { failedBatches++; }
+        setProgress((b + 1) / batches);
+        setLive({ found, done: Math.min(ids.length, (b + 1) * BATCH), total: ids.length });
       }
-      setProgress((b + 1) / batches);
-      setLive({ found, done: Math.min(ids.length, (b + 1) * BATCH), total: ids.length });
-    }
-    setBusy(false);
-    if (processed === 0 && failedBatches === batches) { setErr(D.failed); return; }
-    setResult({ found, processed, none });
-  }
+      setResults(acc);
+      setStats({ found, processed, rate: processed ? Math.round((found / processed) * 100) : 0 });
+      setBusy(false);
+      if (processed === 0 && failedBatches === batches) setErr(D.failed);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!root) return null;
+  const foundList = results.filter((r) => r.email);
+  const noneList = results.filter((r) => !r.email);
+  const noTargets = !busy && !err && stats.processed === 0;
 
   return createPortal(
     <div onClick={busy ? undefined : onClose} style={{ position: "fixed", inset: 0, background: "rgba(20,17,40,.55)", backdropFilter: "blur(3px)", display: "grid", placeItems: "center", zIndex: 1000, padding: 24 }}>
-      <div className="ml-float" onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 520, background: "var(--ml-card)", borderRadius: 22, padding: 28, boxShadow: "0 30px 70px rgba(20,17,40,.35)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", display: "grid", placeItems: "center" }}><Icon name="mail" size={18} /></div>
-          <div style={{ fontSize: 17, fontWeight: 800 }}>{D.title}</div>
+      <div className="ml-float ml-scroll" onClick={(e) => e.stopPropagation()} style={{ width: 560, maxWidth: "100%", maxHeight: "88vh", overflowY: "auto", background: "var(--ml-card)", borderRadius: 22, boxShadow: "0 30px 70px rgba(20,17,40,.35)" }}>
+        {/* Header (sticky) */}
+        <div style={{ position: "sticky", top: 0, background: "var(--ml-card)", display: "flex", alignItems: "center", gap: 12, padding: "22px 26px", borderBottom: "1px solid var(--ml-border)", zIndex: 1 }}>
+          <div style={{ width: 46, height: 46, borderRadius: 13, background: "rgba(16,185,129,.13)", color: "#059669", display: "grid", placeItems: "center", flexShrink: 0 }}>
+            {busy ? <Icon name="loader" size={22} className="ml-spin" /> : <Icon name="send" size={22} />}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 18, fontWeight: 800 }}>{D.title}</div>
+            <div style={{ fontSize: 12.5, color: "var(--ml-muted)" }}>{busy ? D.subBusy : D.subDone}</div>
+          </div>
+          <button onClick={onClose} style={{ width: 34, height: 34, borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-muted)", cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--ml-red)"; e.currentTarget.style.borderColor = "var(--ml-red)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--ml-muted)"; e.currentTarget.style.borderColor = "var(--ml-border)"; }}>
+            <Icon name="x" size={16} strokeWidth={2.2} />
+          </button>
         </div>
 
-        {!result && (
-          <>
-            <div style={{ fontSize: 13, color: "var(--ml-muted)", margin: "10px 0 16px", lineHeight: 1.55 }}>{D.intro}</div>
-            <div style={{ fontSize: 13, color: "var(--ml-text)", marginBottom: 16 }}><b style={{ color: "var(--ml-primary)", fontSize: 16 }}>{leadIds.length}</b> {D.eligible}</div>
-
-            {busy && (
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ height: 8, borderRadius: 20, background: "var(--ml-grid)", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${Math.round(progress * 100)}%`, borderRadius: 20, background: "linear-gradient(90deg,var(--ml-primary),var(--ml-primary-2))", transition: "width .3s" }} />
-                </div>
-                <div style={{ fontSize: 12.5, color: "var(--ml-muted)", marginTop: 8, display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                  <Icon name="loader" size={13} className="ml-spin" />
-                  <span>{live.done}/{live.total} {D.processed}</span>
-                  <span style={{ color: "var(--ml-green)", fontWeight: 700 }}>· {live.found} {D.found}</span>
-                </div>
+        {/* Body */}
+        <div style={{ padding: "24px 26px 26px" }}>
+          {busy && (
+            <div>
+              <div style={{ height: 8, borderRadius: 20, background: "var(--ml-grid)", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${Math.round(progress * 100)}%`, borderRadius: 20, background: "linear-gradient(90deg,#6d5cf5,#8b6bff)", transition: "width .3s" }} />
               </div>
-            )}
-
-            {err && <div style={{ marginBottom: 14, fontSize: 13, color: "var(--ml-red)", background: "rgba(239,68,68,.1)", padding: "10px 12px", borderRadius: 10 }}>{err}</div>}
-
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={run} disabled={busy || leadIds.length === 0} style={{ ...btnPrimary(busy), opacity: busy || leadIds.length === 0 ? 0.6 : 1 }}>{busy ? <Icon name="loader" size={15} className="ml-spin" /> : <Icon name="search" size={15} />}{busy ? D.searching : D.start}</button>
-              <button onClick={onClose} disabled={busy} style={btnGhost}>{D.cancel}</button>
+              <div style={{ fontSize: 12.5, color: "var(--ml-muted)", marginTop: 10, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span>{D.searching} {live.done}/{live.total} {D.analyzed}</span>
+                <span style={{ color: "#059669", fontWeight: 700 }}>· {live.found} {D.statFound}</span>
+              </div>
             </div>
-          </>
-        )}
+          )}
 
-        {result && (
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "12px 0 14px" }}>
-              <div style={{ width: 30, height: 30, borderRadius: 9, background: "rgba(16,185,129,.14)", display: "grid", placeItems: "center", color: "var(--ml-green)" }}><Icon name="check" size={17} /></div>
-              <div style={{ fontWeight: 700 }}>{D.okTitle}</div>
+          {err && <div style={{ fontSize: 13.5, color: "var(--ml-red)", background: "rgba(239,68,68,.1)", padding: "12px 14px", borderRadius: 12 }}>{err}</div>}
+
+          {noTargets && (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13.5, color: "#c07f0d", background: "rgba(245,158,11,.09)", border: "1px solid rgba(245,158,11,.25)", padding: "13px 15px", borderRadius: 13, lineHeight: 1.5 }}>
+              <span style={{ flexShrink: 0, marginTop: 1 }}><Icon name="info" size={16} /></span>{D.empty}
             </div>
-            <div style={{ display: "flex", gap: 18, fontSize: 13.5, marginBottom: 14 }}>
-              <span><b style={{ color: "var(--ml-green)", fontSize: 18 }}>{result.found}</b> {D.found}</span>
-              <span style={{ color: "var(--ml-muted)" }}><b>{result.processed}</b> {D.processed}</span>
-              {result.none > 0 && <span style={{ color: "var(--ml-muted)" }}><b>{result.none}</b> {D.none}</span>}
-            </div>
-            {result.found > 0 && <div style={{ fontSize: 12.5, color: "var(--ml-muted)", marginBottom: 18, lineHeight: 1.5 }}>{D.hintFound}</div>}
-            {result.found === 0 && result.processed === 0 && <div style={{ fontSize: 13, color: "var(--ml-muted)", marginBottom: 18, lineHeight: 1.5 }}>{D.noneEligible}</div>}
-            <button onClick={onClose} style={btnPrimary(false)}>{D.close}</button>
-          </div>
-        )}
+          )}
+
+          {!busy && !err && stats.processed > 0 && (
+            <>
+              {/* 3 stats */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 22 }}>
+                <StatCard value={String(stats.found)} label={D.statFound} color="#059669" />
+                <StatCard value={String(stats.processed)} label={D.statProcessed} />
+                <StatCard value={`${stats.rate}%`} label={D.statRate} color="#6d5cf5" />
+              </div>
+
+              {foundList.length > 0 && (
+                <div style={{ marginBottom: noneList.length ? 20 : 0 }}>
+                  <div style={secTitle}>{D.foundTitle} ({foundList.length})</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {foundList.map((r, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 11, padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(16,185,129,.22)", background: "rgba(16,185,129,.05)" }}>
+                        <span style={{ width: 30, height: 30, borderRadius: 9, background: "rgba(16,185,129,.14)", color: "#059669", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name="check" size={16} /></span>
+                        <span style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ fontSize: 13.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.company}</div>
+                          <div style={{ fontSize: 12.5, color: "#059669", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.email}</div>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {noneList.length > 0 && (
+                <div>
+                  <div style={secTitle}>{D.noneTitle} ({noneList.length})</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {noneList.map((r, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 11, padding: "12px 14px", borderRadius: 12, border: "1px solid var(--ml-border)", background: "var(--ml-hover)" }}>
+                        <span style={{ width: 30, height: 30, borderRadius: 9, background: "var(--ml-grid)", color: "var(--ml-muted)", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name="x" size={15} strokeWidth={2.2} /></span>
+                        <span style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.company}</div>
+                          <div style={{ fontSize: 12, color: "var(--ml-muted)" }}>{D.notFound}</div>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {!busy && (
+            <button onClick={onClose} style={{ width: "100%", height: 48, marginTop: 22, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", boxShadow: "0 6px 14px rgba(109,92,245,.25)" }}>{D.close}</button>
+          )}
+        </div>
       </div>
     </div>,
     root
   );
 }
 
-const btnPrimary = (busy: boolean): CSSProperties => ({ display: "flex", alignItems: "center", gap: 7, padding: "11px 20px", borderRadius: 11, border: "none", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", fontWeight: 700, fontSize: 14, cursor: busy ? "default" : "pointer" });
-const btnGhost: CSSProperties = { display: "flex", alignItems: "center", gap: 7, padding: "11px 18px", borderRadius: 11, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-navtext)", fontWeight: 600, fontSize: 14, cursor: "pointer" };
+function StatCard({ value, label, color }: { value: string; label: string; color?: string }) {
+  return (
+    <div style={{ background: "var(--ml-hover)", border: "1px solid var(--ml-border)", borderRadius: 15, padding: "15px 16px", textAlign: "center" }}>
+      <div style={{ fontSize: 28, fontWeight: 800, color: color ?? "var(--ml-text)" }}>{value}</div>
+      <div style={{ fontSize: 11.5, color: "var(--ml-muted)", marginTop: 2 }}>{label}</div>
+    </div>
+  );
+}
+
+const secTitle: CSSProperties = { fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: "var(--ml-muted)", marginBottom: 10 };

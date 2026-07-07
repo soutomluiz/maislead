@@ -13,9 +13,9 @@ import { EnrichEmailsModal } from "./EnrichEmailsModal";
 import type { Temperature } from "@/lib/score";
 
 const XT = {
-  pt: { import: "Importar", massEmail: "Enviar E-mail", findEmail: "Buscar E-mails", addTag: "Adicionar Tag", total: "Total de Leads", tags: "Tags", loc: "Localização", prev: "Anterior", next: "Próximo" },
-  en: { import: "Import", massEmail: "Send Email", findEmail: "Find Emails", addTag: "Add Tag", total: "Total Leads", tags: "Tags", loc: "Location", prev: "Previous", next: "Next" },
-  es: { import: "Importar", massEmail: "Enviar Email", findEmail: "Buscar Emails", addTag: "Añadir Tag", total: "Total de Leads", tags: "Tags", loc: "Ubicación", prev: "Anterior", next: "Siguiente" },
+  pt: { import: "Importar", massEmail: "Enviar E-mail", findEmail: "Buscar E-mails", addTag: "Adicionar Tag", total: "Total de Leads", tags: "Tags", loc: "Localização", email: "E-mail", newBadge: "novo", prev: "Anterior", next: "Próximo", contact: "Contato", cAny: "Qualquer contato", cHasEmail: "Com e-mail", cNoEmail: "Sem e-mail", cHasPhone: "Com telefone", cNoPhone: "Sem telefone" },
+  en: { import: "Import", massEmail: "Send Email", findEmail: "Find Emails", addTag: "Add Tag", total: "Total Leads", tags: "Tags", loc: "Location", email: "Email", newBadge: "new", prev: "Previous", next: "Next", contact: "Contact", cAny: "Any contact", cHasEmail: "Has email", cNoEmail: "No email", cHasPhone: "Has phone", cNoPhone: "No phone" },
+  es: { import: "Importar", massEmail: "Enviar Email", findEmail: "Buscar Emails", addTag: "Añadir Tag", total: "Total de Leads", tags: "Tags", loc: "Ubicación", email: "Email", newBadge: "nuevo", prev: "Anterior", next: "Siguiente", contact: "Contacto", cAny: "Cualquier contacto", cHasEmail: "Con email", cNoEmail: "Sin email", cHasPhone: "Con teléfono", cNoPhone: "Sin teléfono" },
 };
 
 function exportLeads(rows: LeadRow[], format: ExportFormat) {
@@ -44,7 +44,7 @@ export function LeadsScreen() {
   const { account, session } = useAuth();
   const L = leadsI18n[lang];
   const X = XT[lang];
-  const { leads, loading, error, refetch } = useLeads();
+  const { leads, enrichedIds, loading, error, refetch } = useLeads();
   const [emailOpen, setEmailOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [enrichOpen, setEnrichOpen] = useState(false);
@@ -54,12 +54,14 @@ export function LeadsScreen() {
   const [fStatus, setFStatus] = useState<LeadStatus | "all">("all");
   const [fIndustry, setFIndustry] = useState<string>("all");
   const [fTemp, setFTemp] = useState<Temperature | "all">("all");
+  type ContactFilter = "all" | "hasEmail" | "noEmail" | "hasPhone" | "noPhone";
+  const [fContact, setFContact] = useState<ContactFilter>("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [openLead, setOpenLead] = useState<LeadRow | null>(null);
   const perPage = getPerPage();
   const [page, setPage] = useState(1);
-  useEffect(() => { setPage(1); }, [q, fStatus, fIndustry, fTemp]);
+  useEffect(() => { setPage(1); }, [q, fStatus, fIndustry, fTemp, fContact]);
 
   const industries = useMemo(() => Array.from(new Set(leads.map((l) => l.industry).filter(Boolean))) as string[], [leads]);
   // leads que dá pra enriquecer: têm site mas ainda sem e-mail
@@ -71,15 +73,22 @@ export function LeadsScreen() {
       if (fStatus !== "all" && l.status !== fStatus) return false;
       if (fIndustry !== "all" && l.industry !== fIndustry) return false;
       if (fTemp !== "all" && l.temp !== fTemp) return false;
+      if (fContact !== "all") {
+        const hasEmail = hasVal(l.email), hasPhone = hasVal(l.phone);
+        if (fContact === "hasEmail" && !hasEmail) return false;
+        if (fContact === "noEmail" && hasEmail) return false;
+        if (fContact === "hasPhone" && !hasPhone) return false;
+        if (fContact === "noPhone" && hasPhone) return false;
+      }
       if (term) {
         const hay = `${l.company} ${l.contact ?? ""} ${l.phone ?? ""} ${l.email ?? ""} ${l.location ?? ""}`.toLowerCase();
         if (!hay.includes(term)) return false;
       }
       return true;
     });
-  }, [leads, q, fStatus, fIndustry, fTemp]);
+  }, [leads, q, fStatus, fIndustry, fTemp, fContact]);
 
-  const activeFilters = (fStatus !== "all" ? 1 : 0) + (fIndustry !== "all" ? 1 : 0) + (fTemp !== "all" ? 1 : 0);
+  const activeFilters = (fStatus !== "all" ? 1 : 0) + (fIndustry !== "all" ? 1 : 0) + (fTemp !== "all" ? 1 : 0) + (fContact !== "all" ? 1 : 0);
   const allOn = filtered.length > 0 && filtered.every((l) => selected.has(l.id));
   const selCount = selected.size;
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
@@ -141,7 +150,8 @@ export function LeadsScreen() {
             <Select value={fStatus} onChange={(v) => setFStatus(v as LeadStatus | "all")} label={L.status} options={[["all", L.all], ["new", L.new], ["qualified", L.qualified], ["converted", L.converted]]} />
             <Select value={fIndustry} onChange={setFIndustry} label={L.industry} options={[["all", L.all], ...industries.map((i) => [i, i] as [string, string])]} />
             <Select value={fTemp} onChange={(v) => setFTemp(v as Temperature | "all")} label={L.temperature} options={[["all", L.all], ["hot", L.hot], ["warm", L.warm], ["cool", L.cool]]} />
-            <button onClick={() => { setFStatus("all"); setFIndustry("all"); setFTemp("all"); }} style={{ height: 40, padding: "0 16px", borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-muted)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{L.clearFilters}</button>
+            <Select value={fContact} onChange={(v) => setFContact(v as ContactFilter)} label={X.contact} options={[["all", X.cAny], ["hasEmail", X.cHasEmail], ["noEmail", X.cNoEmail], ["hasPhone", X.cHasPhone], ["noPhone", X.cNoPhone]]} />
+            <button onClick={() => { setFStatus("all"); setFIndustry("all"); setFTemp("all"); setFContact("all"); }} style={{ height: 40, padding: "0 16px", borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-muted)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{L.clearFilters}</button>
           </div>
         )}
 
@@ -150,7 +160,9 @@ export function LeadsScreen() {
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 20px", borderBottom: "1px solid var(--ml-border)", background: "rgba(109,92,245,.07)", flexWrap: "wrap" }}>
             <span style={{ fontSize: 13.5, fontWeight: 700, color: "#6d5cf5" }}>{selCount} {selCount === 1 ? L.selectedOne : L.selected}</span>
             <span style={{ flex: 1 }} />
-            <button onClick={() => { setEnrichIds([...selected]); setEnrichOpen(true); }} style={{ ...bulkPrimary }}><Icon name="search" size={15} /> {X.findEmail}</button>
+            <button onClick={() => { setEnrichIds([...selected]); setEnrichOpen(true); }} style={{ ...bulkOutline, fontWeight: 700 }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#6d5cf5"; e.currentTarget.style.color = "#6d5cf5"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--ml-border)"; e.currentTarget.style.color = "var(--ml-text)"; }}><Icon name="search" size={15} /> {X.findEmail}</button>
             <button onClick={() => setEmailOpen(true)} style={bulkOutline}><Icon name="mail" size={15} /> {X.massEmail}</button>
             <button style={bulkOutline}><Icon name="tag" size={14} /> {X.addTag}</button>
             <button onClick={() => exportLeads(leads.filter((l) => selected.has(l.id)), getExportFormat())} style={bulkOutline}><Icon name="download" size={14} /> {L.exportCsv}</button>
@@ -163,7 +175,7 @@ export function LeadsScreen() {
 
         {/* Tabela */}
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 940 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1080 }}>
             <thead>
               <tr style={{ textAlign: "left" }}>
                 <th style={{ ...thBase, padding: "14px 12px 14px 20px", width: 20 }}><Check on={allOn} onClick={toggleAll} /></th>
@@ -172,6 +184,7 @@ export function LeadsScreen() {
                 <th style={thBase}>{L.industry}</th>
                 <th style={thBase}>{X.loc}</th>
                 <th style={thBase}>{L.phone}</th>
+                <th style={thBase}>{X.email}</th>
                 <th style={thBase}>{X.tags}</th>
                 <th style={{ ...thBase, padding: "14px 20px" }} />
               </tr>
@@ -198,6 +211,7 @@ export function LeadsScreen() {
                     <td style={{ ...tdBase, fontSize: 13.5, color: "var(--ml-muted)" }}>{l.industry || "—"}</td>
                     <td style={{ ...tdBase, fontSize: 13.5, color: "var(--ml-muted)" }}>{l.location || "—"}</td>
                     <td style={{ ...tdBase, fontSize: 13.5, fontWeight: 500, color: hasVal(l.phone) ? "var(--ml-text)" : "var(--ml-muted)" }}>{l.phone || "—"}</td>
+                    <td style={tdBase}><EmailCell email={l.email} isNew={enrichedIds.has(l.id)} badge={X.newBadge} /></td>
                     <td style={tdBase}>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                         {tags.slice(0, 2).map((tg, i) => (
@@ -216,7 +230,7 @@ export function LeadsScreen() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={8} style={{ ...tdBase, textAlign: "center", color: "var(--ml-muted)", padding: 40 }}>{L.noLeads}</td></tr>
+                <tr><td colSpan={9} style={{ ...tdBase, textAlign: "center", color: "var(--ml-muted)", padding: 40 }}>{L.noLeads}</td></tr>
               )}
             </tbody>
           </table>
@@ -254,6 +268,25 @@ function OutlineBtn({ children, icon, onClick, active }: { children: React.React
       <Icon name={icon} size={15} /> {children}
     </button>
   );
+}
+
+function EmailCell({ email, isNew, badge }: { email: string | null; isNew: boolean; badge: string }) {
+  if (!hasVal(email)) {
+    return (
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#c3c0d6", fontSize: 13 }}>
+        <Icon name="x" size={12} strokeWidth={2} />—
+      </span>
+    );
+  }
+  if (isNew) {
+    return (
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 7, maxWidth: 240 }}>
+        <span style={{ color: "#059669", fontWeight: 600, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{email}</span>
+        <span style={{ flexShrink: 0, fontSize: 9.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.4, color: "#059669", background: "rgba(16,185,129,.13)", padding: "2px 6px", borderRadius: 6 }}>{badge}</span>
+      </span>
+    );
+  }
+  return <span style={{ display: "inline-block", maxWidth: 240, color: "var(--ml-text)", fontWeight: 500, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", verticalAlign: "middle" }}>{email}</span>;
 }
 
 function Check({ on, onClick }: { on: boolean; onClick: () => void }) {
