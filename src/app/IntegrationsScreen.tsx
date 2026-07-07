@@ -87,34 +87,34 @@ export function IntegrationsScreen() {
   return (
     <div className="ml-fade" style={{ display: "flex", flexDirection: "column", gap: 22 }}>
       {/* banner */}
-      <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", borderRadius: 18, padding: "22px 24px", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+      <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(120deg,#6d5cf5,#9d7bff)", borderRadius: 20, padding: "26px 28px", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap", boxShadow: "0 12px 30px rgba(109,92,245,.25)" }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 800 }}>{D.header}</div>
-          <div style={{ fontSize: 13.5, opacity: 0.92, marginTop: 4 }}>{D.headerSub}</div>
+          <div style={{ fontSize: 20, fontWeight: 800 }}>{D.header}</div>
+          <div style={{ fontSize: 13.5, opacity: 0.92, marginTop: 4, maxWidth: 520 }}>{D.headerSub}</div>
         </div>
-        <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700, background: "rgba(255,255,255,.18)", padding: "6px 13px", borderRadius: 20, whiteSpace: "nowrap" }}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#34d399" }} />{connectedCount} {D.connectedCount}
+        <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 700, background: "rgba(255,255,255,.2)", padding: "9px 16px", borderRadius: 12, whiteSpace: "nowrap" }}>
+          <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 0 4px rgba(74,222,128,.3)" }} />{connectedCount} {D.connectedCount}
         </span>
       </div>
 
       {groups.map((g) => (
         <div key={g.key}>
           <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--ml-muted)", marginBottom: 12 }}>{g.title}</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 16 }}>
             {PROVIDERS.filter((p) => p.group === g.key).map((p) => {
               const row = byProvider[p.id];
               const on = row?.status === "connected";
               return (
-                <div key={p.id} style={{ background: "var(--ml-card)", border: `1px solid ${on ? "var(--ml-green)" : "var(--ml-border)"}`, borderRadius: 16, padding: 18 }}>
+                <div key={p.id} style={{ background: "var(--ml-card)", border: `1px solid ${on ? "var(--ml-green)" : "var(--ml-border)"}`, borderRadius: 18, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 11, background: p.color, color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 15, flexShrink: 0 }}>{p.initials}</div>
+                    <div style={{ width: 46, height: 46, borderRadius: 13, background: p.color, color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 16, flexShrink: 0 }}>{p.initials}</div>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 700, fontSize: 15 }}>{p.name}</div>
                       <div style={{ fontSize: 12.5, color: "var(--ml-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.sub}</div>
                     </div>
                     {on && <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "var(--ml-green)", background: "rgba(16,185,129,.12)", padding: "3px 8px", borderRadius: 20 }}><Icon name="check" size={11} />{D.connected}</span>}
                   </div>
-                  <button onClick={() => setOpen(p)} style={{ width: "100%", padding: "11px", borderRadius: 11, border: on ? "1px solid var(--ml-border)" : "none", background: on ? "var(--ml-card)" : "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: on ? "var(--ml-primary)" : "#fff", fontWeight: 700, fontSize: 13.5, cursor: "pointer" }}>
+                  <button onClick={() => setOpen(p)} style={{ width: "100%", height: 40, marginTop: 0, borderRadius: 11, border: on ? "1px solid var(--ml-border)" : "none", background: on ? "var(--ml-card)" : "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: on ? "var(--ml-green)" : "#fff", fontWeight: 700, fontSize: 13.5, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
                     {on ? D.manage : D.connect}
                   </button>
                 </div>
@@ -175,10 +175,10 @@ function ConnectModal({ provider, row, onClose, onSaved, D, accountId }: { provi
   }
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(15,12,40,.5)", display: "grid", placeItems: "center", zIndex: 1000, padding: 20 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 460, background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 18, padding: 22 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 11, background: provider.color, color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 15 }}>{provider.initials}</div>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(20,17,40,.55)", backdropFilter: "blur(3px)", display: "grid", placeItems: "center", zIndex: 1000, padding: 24 }}>
+      <div className="ml-float" onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 440, background: "var(--ml-card)", borderRadius: 22, padding: 28, boxShadow: "0 30px 70px rgba(20,17,40,.35)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+          <div style={{ width: 50, height: 50, borderRadius: 14, background: provider.color, color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 18 }}>{provider.initials}</div>
           <div style={{ fontSize: 17, fontWeight: 800 }}>{D.modalTitle} {provider.name}</div>
         </div>
 

@@ -5,7 +5,7 @@ import { useAuth } from "../AuthContext";
 import { Icon, type IconName } from "../icons";
 
 const Panel = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
-  <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 18, boxShadow: "0 4px 16px rgba(30,25,70,.04)", ...style }}>{children}</div>
+  <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 18, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)", ...style }}>{children}</div>
 );
 
 type Source = "google_maps" | "website";
@@ -102,11 +102,11 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
   const RECEIVE: [IconName, string][] = [["database", D.f_company], ["phone", D.f_phone], ["mail", D.f_email], ["globe", D.f_site], ["mapPin", D.f_addr], ["award", D.f_rating]];
 
   return (
-    <div className="ml-fade" style={{ maxWidth: 780, margin: "0 auto", display: "flex", flexDirection: "column", gap: 18 }}>
+    <div className="ml-fade" style={{ maxWidth: 900, margin: "8px auto 0", display: "flex", flexDirection: "column", gap: 22 }}>
       {/* card de busca */}
-      <Panel style={{ padding: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-          <div style={{ width: 46, height: 46, borderRadius: 13, background: source === "google_maps" ? "rgba(109,92,245,.12)" : "rgba(16,185,129,.14)", color: source === "google_maps" ? "var(--ml-primary)" : "var(--ml-green)", display: "grid", placeItems: "center" }}><Icon name={source === "google_maps" ? "mapPin" : "globe"} size={24} /></div>
+      <Panel style={{ padding: 32, borderRadius: 22 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 24 }}>
+          <div style={{ width: 52, height: 52, borderRadius: 15, background: source === "google_maps" ? "rgba(109,92,245,.12)" : "rgba(16,185,129,.14)", color: source === "google_maps" ? "var(--ml-primary)" : "var(--ml-green)", display: "grid", placeItems: "center" }}><Icon name={source === "google_maps" ? "mapPin" : "globe"} size={24} /></div>
           <div>
             <div style={{ fontSize: 19, fontWeight: 800 }}>{title}</div>
             <div style={{ fontSize: 13.5, color: "var(--ml-muted)" }}>{sub}</div>
@@ -124,7 +124,7 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
           </div>
         </div>
 
-        <button onClick={run} disabled={busy} style={{ width: "100%", marginTop: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 22px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1 }}>
+        <button onClick={run} disabled={busy} style={{ width: "100%", height: 50, marginTop: 22, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1, boxShadow: "0 10px 24px rgba(109,92,245,.32)" }}>
           {busy ? <Icon name="loader" size={17} className="ml-spin" /> : <Icon name="search" size={17} />}{busy ? D.searching : D.search}
         </button>
 
@@ -210,5 +210,5 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
 }
 
 const lbl: CSSProperties = { display: "block", fontSize: 12.5, fontWeight: 600, color: "var(--ml-navtext)", marginBottom: 7 };
-const inp: CSSProperties = { width: "100%", padding: "12px 14px", borderRadius: 11, border: "1px solid var(--ml-border)", background: "var(--ml-input)", color: "var(--ml-text)", fontSize: 14, outline: "none" };
-const chip = (on: boolean): CSSProperties => ({ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: `1px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "rgba(109,92,245,.12)" : "var(--ml-card)", color: on ? "var(--ml-primary)" : "var(--ml-navtext)", fontSize: 13, fontWeight: 600, cursor: "pointer" });
+const inp: CSSProperties = { width: "100%", height: 48, padding: "0 14px", borderRadius: 12, border: "1px solid var(--ml-border)", background: "var(--ml-input)", color: "var(--ml-text)", fontSize: 14, outline: "none" };
+const chip = (on: boolean): CSSProperties => ({ display: "flex", alignItems: "center", gap: 7, padding: "8px 13px", borderRadius: 20, border: `1px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "rgba(109,92,245,.06)" : "var(--ml-card)", color: on ? "var(--ml-primary)" : "var(--ml-text)", fontSize: 13, fontWeight: 600, cursor: "pointer" });
