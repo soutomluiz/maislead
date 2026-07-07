@@ -108,24 +108,24 @@ export function ReportsScreen() {
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {tabs.map(([k, lbl, icon]) => {
             const on = tab === k;
-            return <button key={k} onClick={() => setTab(k)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 15px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", border: `1px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "var(--ml-primary)" : "var(--ml-card)", color: on ? "#fff" : "var(--ml-text)" }}><Icon name={icon} size={15} />{lbl}</button>;
+            return <button key={k} onClick={() => setTab(k)} style={{ height: 40, padding: "0 16px", display: "flex", alignItems: "center", gap: 8, borderRadius: 11, fontSize: 13.5, fontWeight: 600, cursor: "pointer", border: `1px solid ${on ? "#6d5cf5" : "var(--ml-border)"}`, background: on ? "#6d5cf5" : "var(--ml-card)", color: on ? "#fff" : "var(--ml-text)" }}><Icon name={icon} size={15} />{lbl}</button>;
           })}
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <select value={period} onChange={(e) => setPeriod(e.target.value as Period)} style={{ padding: "9px 12px", borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-text)", fontSize: 13, outline: "none" }}>
+        <div style={{ display: "flex", gap: 10 }}>
+          <select value={period} onChange={(e) => setPeriod(e.target.value as Period)} style={{ height: 40, padding: "0 14px", borderRadius: 11, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-text)", fontSize: 13.5, fontWeight: 600, outline: "none", cursor: "pointer" }}>
             {periods.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
-          <button onClick={exportReport} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 15px", borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-text)", fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}><Icon name="chart" size={15} />{D.export}</button>
+          <button onClick={exportReport} style={{ height: 40, padding: "0 16px", display: "flex", alignItems: "center", gap: 8, borderRadius: 11, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-text)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}><Icon name="download" size={15} />{D.export}</button>
         </div>
       </div>
 
       {/* KPIs */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(190px,1fr))", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 14 }}>
         {kpis.map((k) => (
-          <div key={k.l} style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 14, padding: 16 }}>
-            <div style={{ fontSize: 12.5, color: "var(--ml-muted)", fontWeight: 600, marginBottom: 8 }}>{k.l}</div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: k.c }}>{k.v}</div>
-            {k.sub && <div style={{ fontSize: 12, color: "var(--ml-muted)", marginTop: 3 }}>{k.sub}</div>}
+          <div key={k.l} style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: "16px 18px", boxShadow: "0 1px 3px rgba(30,25,60,.04)" }}>
+            <div style={{ fontSize: 12, color: "var(--ml-muted)" }}>{k.l}</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: k.c, marginTop: 3 }}>{k.v}</div>
+            {k.sub && <div style={{ fontSize: 11.5, color: "var(--ml-muted)", marginTop: 2 }}>{k.sub}</div>}
           </div>
         ))}
       </div>
@@ -133,11 +133,11 @@ export function ReportsScreen() {
       {/* viz */}
       <Card title={D[(tab + "T") as keyof typeof D] as string}>
         {tab === "funnel" && <Funnel data={data} D={D} />}
-        {tab === "source" && <Bars total={data.total} unit={D.leadsW} palette={palette} emptyText={D.noData}
+        {tab === "source" && <Bars palette={palette} emptyText={D.noData} detailRight
           rows={data.sourceRows.map(([k, v]) => ({ label: sourceLabel(k), value: v.n, detail: `${v.n} ${D.leadsW} · ${v.n ? Math.round((v.conv / v.n) * 100) : 0}% ${D.conv}` }))} />}
-        {tab === "score" && <Bars total={data.total} unit={D.leadsW} palette={[TEMP_META.hot.color, TEMP_META.warm.color, TEMP_META.cool.color]} emptyText={D.noData}
+        {tab === "score" && <Bars palette={[TEMP_META.hot.color, TEMP_META.warm.color, TEMP_META.cool.color]} emptyText={D.noData}
           rows={[{ label: D.hot, value: data.temp.hot }, { label: D.warm, value: data.temp.warm }, { label: D.cool, value: data.temp.cool }]} />}
-        {tab === "industry" && <Bars total={data.total} unit={D.leadsW} palette={palette} emptyText={D.noData}
+        {tab === "industry" && <Bars palette={palette} emptyText={D.noData} detailRight
           rows={data.indRows.map(([k, v]) => ({ label: k, value: v.n, detail: `${v.n} ${D.leadsW} · ${v.n ? Math.round((v.conv / v.n) * 100) : 0}% ${D.conv}` }))} />}
         {tab === "time" && <AreaChart series={data.series} labels={MONTHS[lang]} emptyText={D.noData} />}
       </Card>
@@ -151,7 +151,7 @@ function Funnel({ data, D }: { data: { total: number; status: Record<LeadStatus,
   const base = data.status.new || 1;
   let prev = 0;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 760, margin: "0 auto" }}>
       <div style={{ fontSize: 13, color: "var(--ml-muted)", marginTop: -4 }}>{D.funnelSub}</div>
       {stages.map(([k, lbl], i) => {
         const count = data.status[k];
@@ -160,12 +160,12 @@ function Funnel({ data, D }: { data: { total: number; status: Record<LeadStatus,
         prev = count;
         return (
           <div key={k}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 5 }}>
-              <span style={{ fontWeight: 600 }}>{lbl}</span>
-              <span style={{ color: "var(--ml-muted)" }}>{count} · {rate}% {D.passthrough}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", fontSize: 14, marginBottom: 7 }}>
+              <span style={{ fontWeight: 700 }}>{lbl}</span>
+              <span style={{ fontSize: 13, color: "var(--ml-muted)" }}>{count} · {rate}% {D.passthrough}</span>
             </div>
-            <div style={{ height: 30, borderRadius: 8, background: "var(--ml-grid)", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${Math.max(widthPct, 3)}%`, background: STATUS_META[k].color, borderRadius: 8, transition: "width .3s" }} />
+            <div style={{ height: 44, borderRadius: 12, background: "var(--ml-grid)", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${Math.max(widthPct, 6)}%`, background: STATUS_META[k].color, borderRadius: 12, display: "flex", alignItems: "center", paddingLeft: 16, color: "#fff", fontWeight: 800, fontSize: 16, transition: "width .3s" }}>{count}</div>
             </div>
           </div>
         );
