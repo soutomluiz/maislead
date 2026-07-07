@@ -1,7 +1,9 @@
-/* maisLEAD — tokens de tema (fiéis ao protótipo docs/maisLEAD.prototype.spec.html) */
+/* maisLEAD — tokens de tema (fiéis ao maisLEAD.dc.html / DESIGN-SPEC.md) */
 .ml-root {
   --ml-primary: #6d5cf5;
   --ml-primary-2: #8b6bff;
+  --ml-primary-3: #9d7bff;
+  --ml-pink: #ec4899;
   --ml-bg: #f4f5fb;
   --ml-card: #ffffff;
   --ml-sidebar: #ffffff;
@@ -19,7 +21,7 @@
 
   color: var(--ml-text);
   background: var(--ml-bg);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 .ml-root.dark {
   --ml-bg: #121120;
@@ -38,8 +40,19 @@
 .ml-root input, .ml-root button, .ml-root select, .ml-root textarea { font-family: inherit; }
 .ml-root input::placeholder, .ml-root textarea::placeholder { color: var(--ml-muted); }
 
+/* Scrollbar custom (DESIGN-SPEC §9.6) */
+.ml-root ::-webkit-scrollbar,
 .ml-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
-.ml-scroll::-webkit-scrollbar-thumb { background: var(--ml-border); border-radius: 8px; }
+.ml-root ::-webkit-scrollbar-thumb,
+.ml-scroll::-webkit-scrollbar-thumb { background: rgba(120,110,180,.28); border-radius: 20px; border: 3px solid transparent; background-clip: content-box; }
+.ml-root ::-webkit-scrollbar-track,
+.ml-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Keyframes obrigatórios (DESIGN-SPEC §9.1) */
+@keyframes floatIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes drawLine { from { stroke-dashoffset: 1400; } to { stroke-dashoffset: 0; } }
+@keyframes ringGrow { from { stroke-dashoffset: 440; } to { stroke-dashoffset: 0; } }
+.ml-float { animation: floatIn .25s ease; }
 
 @keyframes mlFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 .ml-fade { animation: mlFade .25s ease; }

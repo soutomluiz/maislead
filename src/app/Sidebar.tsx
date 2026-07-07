@@ -3,7 +3,8 @@ import { useLang } from "./LangTheme";
 import { Icon, IconName } from "./icons";
 import type { ScreenKey } from "@/i18n/ml";
 
-interface NavItem { id: ScreenKey; icon: IconName; labelKey: string; }
+type Level = "top" | "sub";
+interface NavItem { id: ScreenKey; icon: IconName; label: string; level: Level; }
 interface NavSection { label?: string; items: NavItem[]; }
 
 export function Sidebar({ active, onNavigate }: { active: ScreenKey; onNavigate: (s: ScreenKey) => void }) {
@@ -11,56 +12,61 @@ export function Sidebar({ active, onNavigate }: { active: ScreenKey; onNavigate:
   const nav = t.nav;
 
   const sections: NavSection[] = [
-    { items: [{ id: "dashboard", icon: "dashboard", labelKey: "dashboard" }] },
+    { items: [{ id: "dashboard", icon: "dashboard", label: nav.dashboard, level: "top" }] },
     { label: nav.secPros, items: [
-      { id: "manual", icon: "plus", labelKey: "manual" },
-      { id: "gplaces", icon: "mapPin", labelKey: "gplaces" },
-      { id: "websites", icon: "globe", labelKey: "websites" },
+      { id: "manual", icon: "database", label: nav.add, level: "top" },
+      { id: "manual", icon: "plus", label: nav.manual, level: "sub" },
+      { id: "gplaces", icon: "mapPin", label: nav.gplaces, level: "sub" },
+      { id: "websites", icon: "globe", label: nav.websites, level: "sub" },
     ] },
     { label: nav.secMgmt, items: [
-      { id: "leadslist", icon: "users", labelKey: "leads" },
-      { id: "score", icon: "award", labelKey: "score" },
-      { id: "timeline", icon: "timer", labelKey: "timeline" },
-    ] },
-    { items: [
-      { id: "reports", icon: "chart", labelKey: "reports" },
-      { id: "integrations", icon: "plug", labelKey: "integrations" },
-      { id: "sub", icon: "crown", labelKey: "sub" },
-      { id: "settings", icon: "settings", labelKey: "settings" },
+      { id: "leadslist", icon: "users", label: nav.leads, level: "top" },
+      { id: "score", icon: "award", label: nav.score, level: "sub" },
+      { id: "timeline", icon: "clock", label: nav.timeline, level: "sub" },
+      { id: "reports", icon: "chart", label: nav.reports, level: "top" },
+      { id: "integrations", icon: "plug", label: nav.integrations, level: "top" },
+      { id: "sub", icon: "crown", label: nav.sub, level: "top" },
+      { id: "settings", icon: "settings", label: nav.settings, level: "top" },
     ] },
   ];
 
   return (
-    <aside style={{ width: 244, flexShrink: 0, background: "var(--ml-sidebar)", borderRight: "1px solid var(--ml-border)", height: "100vh", position: "sticky", top: 0, display: "flex", flexDirection: "column", padding: "18px 14px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "4px 8px 20px" }}>
-        <div style={{ width: 38, height: 38, borderRadius: 11, background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", display: "grid", placeItems: "center", color: "#fff", boxShadow: "0 6px 14px rgba(109,92,245,.3)" }}>
-          <Icon name="plus" size={20} />
+    <aside className="ml-scroll" style={{ width: 264, flexShrink: 0, height: "100%", display: "flex", flexDirection: "column", background: "var(--ml-sidebar)", borderRight: "1px solid var(--ml-border)", padding: "22px 16px 18px", overflowY: "auto" }}>
+      {/* Logo */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 8px 22px" }}>
+        <div style={{ width: 38, height: 38, borderRadius: 11, background: "linear-gradient(135deg,#6d5cf5,#9d7bff)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", boxShadow: "0 6px 16px rgba(109,92,245,.35)" }}>
+          <Icon name="plus" size={20} strokeWidth={2.4} />
         </div>
-        <div style={{ lineHeight: 1.05 }}>
-          <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.4 }}><span style={{ fontWeight: 600 }}>mais</span>LEAD</div>
-          <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 1.6, color: "var(--ml-muted)", marginTop: 3 }}>PROSPECÇÃO</div>
+        <div style={{ lineHeight: 1 }}>
+          <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-.02em" }}>mais<span style={{ color: "#6d5cf5" }}>LEAD</span></div>
+          <div style={{ fontSize: 10, fontWeight: 600, color: "var(--ml-muted)", letterSpacing: ".14em", marginTop: 3 }}>PROSPECÇÃO</div>
         </div>
       </div>
 
-      <nav className="ml-scroll" style={{ overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-        {sections.map((sec, i) => (
-          <div key={i} style={{ marginTop: sec.label ? 12 : 4 }}>
-            {sec.label && <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--ml-muted)", padding: "4px 10px 6px" }}>{sec.label}</div>}
-            {sec.items.map((it) => {
+      {/* Nav */}
+      <nav style={{ display: "flex", flexDirection: "column", gap: 3, flex: 1 }}>
+        {sections.map((sec, si) => (
+          <div key={si} style={{ display: "contents" }}>
+            {sec.label && (
+              <div style={{ marginTop: si === 1 ? 8 : 12, padding: "0 12px 6px", fontSize: 11, fontWeight: 700, letterSpacing: ".1em", color: "var(--ml-muted)", textTransform: "uppercase" }}>{sec.label}</div>
+            )}
+            {sec.items.map((it, ii) => {
               const on = active === it.id;
+              const sub = it.level === "sub";
               const style: CSSProperties = {
-                display: "flex", alignItems: "center", gap: 11, width: "100%", padding: "10px 11px",
-                borderRadius: 11, cursor: "pointer", fontSize: 14, fontWeight: 500, border: "none", textAlign: "left",
-                transition: ".15s",
+                display: "flex", alignItems: "center", gap: sub ? 11 : 12,
+                padding: sub ? "9px 12px 9px 30px" : "11px 12px",
+                borderRadius: sub ? 11 : 12, cursor: "pointer", width: "100%", border: "none", textAlign: "left",
+                fontSize: sub ? 13.5 : 14, fontWeight: 500, transition: ".15s",
                 background: on ? "rgba(109,92,245,.12)" : "transparent",
-                color: on ? "var(--ml-primary)" : "var(--ml-navtext)",
+                color: on ? "#6d5cf5" : "var(--ml-navtext)",
               };
               return (
-                <button key={it.id} style={style} onClick={() => onNavigate(it.id)}
+                <button key={`${si}-${ii}`} style={style} onClick={() => onNavigate(it.id)}
                   onMouseEnter={(e) => { if (!on) e.currentTarget.style.background = "var(--ml-hover)"; }}
                   onMouseLeave={(e) => { if (!on) e.currentTarget.style.background = "transparent"; }}>
-                  <Icon name={it.icon} size={18} />
-                  <span>{(nav as Record<string, string>)[it.labelKey]}</span>
+                  <Icon name={it.icon} size={sub ? 16 : 18} />
+                  <span>{it.label}</span>
                 </button>
               );
             })}
@@ -68,10 +74,11 @@ export function Sidebar({ active, onNavigate }: { active: ScreenKey; onNavigate:
         ))}
       </nav>
 
-      <div style={{ paddingTop: 14, marginTop: 8, borderTop: "1px solid var(--ml-border)", display: "flex", flexDirection: "column", gap: 8, fontSize: 11.5, color: "var(--ml-muted)" }}>
-        <a href="tel:+551140028922" style={{ display: "flex", alignItems: "center", gap: 8, color: "inherit", textDecoration: "none" }}><Icon name="chat" size={13} /> (11) 4002-8922</a>
-        <a href="mailto:contato@maislead.com.br" style={{ display: "flex", alignItems: "center", gap: 8, color: "inherit", textDecoration: "none" }}><Icon name="mail" size={13} /> contato@maislead.com.br</a>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}><Icon name="timer" size={13} /> Versão 2.0.0</div>
+      {/* Footer */}
+      <div style={{ marginTop: 14, padding: "14px 12px 4px", borderTop: "1px solid var(--ml-border)", display: "flex", flexDirection: "column", gap: 9, fontSize: 12, color: "var(--ml-muted)" }}>
+        <a href="tel:+551140028922" style={{ display: "flex", alignItems: "center", gap: 9, color: "inherit", textDecoration: "none" }}><Icon name="chat" size={14} /> (11) 4002-8922</a>
+        <a href="mailto:contato@maislead.com.br" style={{ display: "flex", alignItems: "center", gap: 9, color: "inherit", textDecoration: "none" }}><Icon name="mail" size={14} /> contato@maislead.com.br</a>
+        <div style={{ display: "flex", alignItems: "center", gap: 9, opacity: 0.75 }}><Icon name="clock" size={14} /> Versão 2.0.0</div>
       </div>
     </aside>
   );

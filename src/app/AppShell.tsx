@@ -18,23 +18,25 @@ export function AppShell() {
   const [screen, setScreen] = useState<ScreenKey>("dashboard");
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "var(--ml-bg)" }}>
+    <div style={{ position: "relative", display: "flex", height: "100vh", width: "100%", overflow: "hidden", background: "var(--ml-bg)", color: "var(--ml-text)" }}>
       <Sidebar active={screen} onNavigate={setScreen} />
-      <main className="ml-scroll" style={{ flex: 1, padding: "24px 28px", overflowY: "auto", maxHeight: "100vh" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
         <Topbar screen={screen} />
-        {screen === "dashboard" ? <DashboardScreen />
-          : screen === "leadslist" ? <LeadsScreen />
-          : screen === "manual" ? <ManualScreen />
-          : screen === "gplaces" ? <ExtractionScreen source="google_maps" fn="extract-google-maps" onGoLeads={() => setScreen("leadslist")} />
-          : screen === "websites" ? <ExtractionScreen source="website" fn="extract-website" onGoLeads={() => setScreen("leadslist")} />
-          : screen === "score" ? <ScoreScreen />
-          : screen === "timeline" ? <TimelineScreen />
-          : screen === "reports" ? <ReportsScreen />
-          : screen === "integrations" ? <IntegrationsScreen />
-          : screen === "sub" ? <SubScreen />
-          : screen === "settings" ? <SettingsScreen onNavigate={setScreen} />
-          : <Placeholder />}
-      </main>
+        <main className="ml-scroll" style={{ flex: 1, overflowY: "auto", padding: "28px 32px 48px" }}>
+          {screen === "dashboard" ? <DashboardScreen />
+            : screen === "leadslist" ? <LeadsScreen />
+            : screen === "manual" ? <ManualScreen />
+            : screen === "gplaces" ? <ExtractionScreen source="google_maps" fn="extract-google-maps" onGoLeads={() => setScreen("leadslist")} />
+            : screen === "websites" ? <ExtractionScreen source="website" fn="extract-website" onGoLeads={() => setScreen("leadslist")} />
+            : screen === "score" ? <ScoreScreen />
+            : screen === "timeline" ? <TimelineScreen />
+            : screen === "reports" ? <ReportsScreen />
+            : screen === "integrations" ? <IntegrationsScreen />
+            : screen === "sub" ? <SubScreen />
+            : screen === "settings" ? <SettingsScreen onNavigate={setScreen} />
+            : <Placeholder />}
+        </main>
+      </div>
     </div>
   );
 }
