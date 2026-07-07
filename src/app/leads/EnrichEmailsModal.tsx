@@ -31,13 +31,14 @@ const DICT = {
   },
 };
 
-const BATCH = 40;
+const BATCH = 10;
 
 export function EnrichEmailsModal({ leadIds, onDone, onClose }: { leadIds: string[]; onDone: () => void; onClose: () => void }) {
   const { lang } = useLang();
   const D = DICT[lang];
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0); // 0..1
+  const [live, setLive] = useState<{ found: number; done: number; total: number }>({ found: 0, done: 0, total: 0 });
   const [err, setErr] = useState<string | null>(null);
   const [result, setResult] = useState<{ found: number; processed: number; none: number } | null>(null);
   const root = document.querySelector(".ml-root") as HTMLElement | null;
@@ -47,21 +48,26 @@ export function EnrichEmailsModal({ leadIds, onDone, onClose }: { leadIds: strin
     setErr(null); setResult(null); setBusy(true); setProgress(0);
     const ids = [...leadIds];
     const batches = Math.max(1, Math.ceil(ids.length / BATCH));
-    let found = 0, processed = 0, none = 0;
-    try {
-      for (let b = 0; b < batches; b++) {
-        const batch = ids.slice(b * BATCH, (b + 1) * BATCH);
+    setLive({ found: 0, done: 0, total: ids.length });
+    let found = 0, processed = 0, none = 0, failedBatches = 0;
+    for (let b = 0; b < batches; b++) {
+      const batch = ids.slice(b * BATCH, (b + 1) * BATCH);
+      try {
         const { data, error } = await supabase.functions.invoke("enrich-emails", { body: { leadIds: batch } });
         if (error || data?.error) throw new Error(data?.error ?? "invoke_error");
         found += data.enriched ?? 0;
         processed += data.processed ?? 0;
         none += data.noEmail ?? 0;
-        setProgress((b + 1) / batches);
+        if ((data.enriched ?? 0) > 0) onDone(); // atualiza a lista em tempo real conforme acha
+      } catch {
+        failedBatches++; // um lote falhou (site pesado); pula e segue os demais
       }
-      setResult({ found, processed, none });
-      if (found > 0) onDone();
-    } catch { setErr(D.failed); }
-    finally { setBusy(false); }
+      setProgress((b + 1) / batches);
+      setLive({ found, done: Math.min(ids.length, (b + 1) * BATCH), total: ids.length });
+    }
+    setBusy(false);
+    if (processed === 0 && failedBatches === batches) { setErr(D.failed); return; }
+    setResult({ found, processed, none });
   }
 
   return createPortal(
@@ -82,7 +88,11 @@ export function EnrichEmailsModal({ leadIds, onDone, onClose }: { leadIds: strin
                 <div style={{ height: 8, borderRadius: 20, background: "var(--ml-grid)", overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${Math.round(progress * 100)}%`, borderRadius: 20, background: "linear-gradient(90deg,var(--ml-primary),var(--ml-primary-2))", transition: "width .3s" }} />
                 </div>
-                <div style={{ fontSize: 12.5, color: "var(--ml-muted)", marginTop: 8, display: "flex", alignItems: "center", gap: 7 }}><Icon name="loader" size={13} className="ml-spin" /> {D.searching} {Math.round(progress * 100)}%</div>
+                <div style={{ fontSize: 12.5, color: "var(--ml-muted)", marginTop: 8, display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+                  <Icon name="loader" size={13} className="ml-spin" />
+                  <span>{live.done}/{live.total} {D.processed}</span>
+                  <span style={{ color: "var(--ml-green)", fontWeight: 700 }}>· {live.found} {D.found}</span>
+                </div>
               </div>
             )}
 

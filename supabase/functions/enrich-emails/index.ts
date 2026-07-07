@@ -27,7 +27,9 @@ const hostOf = (w?: string | null) => {
   catch { return ""; }
 };
 
-async function fetchText(url: string, ms = 7000): Promise<string> {
+const MAX_HTML = 500_000; // limita CPU/memória do regex por página
+
+async function fetchText(url: string, ms = 6000): Promise<string> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
   try {
@@ -35,7 +37,10 @@ async function fetchText(url: string, ms = 7000): Promise<string> {
     if (!r.ok) return "";
     const ct = r.headers.get("content-type") ?? "";
     if (ct && !/(text|html|xml|json|javascript)/i.test(ct)) return "";
-    return await r.text();
+    const len = Number(r.headers.get("content-length") ?? 0);
+    if (len && len > 3_000_000) return ""; // pula páginas gigantes
+    const txt = await r.text();
+    return txt.length > MAX_HTML ? txt.slice(0, MAX_HTML) : txt;
   } catch { return ""; } finally { clearTimeout(t); }
 }
 
@@ -93,19 +98,21 @@ function pickBest(emails: string[], siteHost: string): string | null {
 const CONTACT_PATHS = ["/contato", "/contact", "/fale-conosco", "/contato/", "/contatos"];
 
 async function findEmailForSite(website: string): Promise<string | null> {
-  const host = hostOf(website);
-  const base = website.startsWith("http") ? website : `https://${website}`;
-  // 1) home
-  let emails = extractEmails(await fetchText(base));
-  let best = pickBest(emails, host);
-  if (best) return best;
-  // 2) páginas de contato (uma tentativa, em paralelo)
-  let origin = "";
-  try { origin = new URL(base).origin; } catch { return null; }
-  const pages = await Promise.all(CONTACT_PATHS.slice(0, 3).map((p) => fetchText(origin + p)));
-  emails = extractEmails(pages.join("\n"));
-  best = pickBest(emails, host);
-  return best;
+  try {
+    const host = hostOf(website);
+    const base = website.startsWith("http") ? website : `https://${website}`;
+    // 1) home
+    let emails = extractEmails(await fetchText(base));
+    let best = pickBest(emails, host);
+    if (best) return best;
+    // 2) páginas de contato (uma tentativa, em paralelo)
+    let origin = "";
+    try { origin = new URL(base).origin; } catch { return null; }
+    const pages = await Promise.all(CONTACT_PATHS.slice(0, 2).map((p) => fetchText(origin + p)));
+    emails = extractEmails(pages.join("\n"));
+    best = pickBest(emails, host);
+    return best;
+  } catch { return null; }
 }
 
 interface Body { leadIds?: string[]; limit?: number; }
@@ -138,7 +145,7 @@ Deno.serve(async (req) => {
 
     // Processa em pequenos lotes concorrentes p/ não estourar o tempo da função.
     const results: { lead: LeadRow; email: string | null }[] = [];
-    const CONC = 8;
+    const CONC = 5;
     for (let i = 0; i < eligible.length; i += CONC) {
       const chunk = eligible.slice(i, i + CONC) as LeadRow[];
       const found = await Promise.all(chunk.map(async (lead) => ({ lead, email: await findEmailForSite(lead.website!) })));
