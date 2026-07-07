@@ -31,37 +31,37 @@ export function ScoreScreen() {
 
   return (
     <div className="ml-fade">
-      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
         {filters.map(([k, lbl]) => {
           const on = filter === k;
-          return <button key={k} onClick={() => setFilter(k)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 16px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", border: `1px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "var(--ml-primary)" : "var(--ml-card)", color: on ? "#fff" : "var(--ml-text)" }}>
+          return <button key={k} onClick={() => setFilter(k)} style={{ height: 38, padding: "0 16px", borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 7, border: `1px solid ${on ? "#6d5cf5" : "var(--ml-border)"}`, background: on ? "#6d5cf5" : "var(--ml-card)", color: on ? "#fff" : "var(--ml-text)" }}>
             {k !== "all" && <span style={{ width: 8, height: 8, borderRadius: "50%", background: on ? "#fff" : DOT[k] }} />}{lbl}
           </button>;
         })}
       </div>
 
       {list.length === 0 ? <Center><span style={{ color: "var(--ml-muted)" }}>{D.noLeads}</span></Center> : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(400px,1fr))", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 16 }}>
           {list.map((l) => {
             const tm = TEMP_META[l.temp];
             return (
-              <div key={l.id} onClick={() => setOpen(l)} style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 14, padding: 16, cursor: "pointer", transition: ".15s" }}
-                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--ml-primary)")}
-                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--ml-border)")}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                  <div style={{ maxWidth: "62%" }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.company}</div>
-                    <div style={{ fontSize: 12.5, color: "var(--ml-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.industry || D.industry}</div>
+              <div key={l.id} onClick={() => setOpen(l)} style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 18, padding: 20, cursor: "pointer", boxShadow: "0 1px 3px rgba(30,25,60,.04)", transition: ".15s" }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 12px 26px rgba(109,92,245,.14)"; e.currentTarget.style.borderColor = "#c9bffb"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 1px 3px rgba(30,25,60,.04)"; e.currentTarget.style.borderColor = "var(--ml-border)"; }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.25 }}>{l.company}</div>
+                    <div style={{ fontSize: 12, color: "var(--ml-muted)", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.industry || D.industry}</div>
                   </div>
-                  <div style={{ textAlign: "right" }}>
+                  <div style={{ textAlign: "center", flexShrink: 0 }}>
                     <div style={{ fontSize: 26, fontWeight: 800, color: tm.color, lineHeight: 1 }}>{l.score}</div>
-                    <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: tm.color, marginTop: 4 }}>{D[TEMP_LABEL[l.temp]]}</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: tm.color, marginTop: 3 }}>{D[TEMP_LABEL[l.temp]]}</div>
                   </div>
                 </div>
-                <div style={{ height: 8, borderRadius: 5, background: "var(--ml-grid)", overflow: "hidden", marginBottom: 14 }}>
-                  <div style={{ height: "100%", width: `${l.score}%`, background: tm.color }} />
+                <div style={{ height: 7, borderRadius: 5, background: "var(--ml-grid)", overflow: "hidden", margin: "14px 0" }}>
+                  <div style={{ height: "100%", width: `${l.score}%`, background: tm.color, borderRadius: 5 }} />
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   <Chip on={hasVal(l.phone)} icon="phone" label={D.cPhone} />
                   <Chip on={hasVal(l.email)} icon="mail" label={D.cEmail} />
                   <Chip on={hasVal(l.website)} icon="globe" label={D.cSite} />

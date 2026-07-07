@@ -67,7 +67,7 @@ export function TimelineScreen() {
   if (events.length === 0) return <Center><span style={{ color: "var(--ml-muted)" }}>{D.empty}</span></Center>;
 
   return (
-    <div className="ml-fade" style={{ maxWidth: 760 }}>
+    <div className="ml-fade" style={{ maxWidth: 820 }}>
       <div style={{ position: "relative" }}>
         {events.map((e, idx) => {
           const m = META[e.type] ?? META.created;
@@ -79,10 +79,10 @@ export function TimelineScreen() {
                 <span style={{ width: 40, height: 40, borderRadius: 12, display: "grid", placeItems: "center", background: m.bg, color: m.color, flexShrink: 0 }}><Icon name={m.icon} size={18} /></span>
                 {!last && <span style={{ flex: 1, width: 2, background: "var(--ml-border)", marginTop: 6, marginBottom: -16 }} />}
               </div>
-              <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 14, padding: "14px 16px", flex: 1 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
+              <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: "16px 18px", flex: 1, boxShadow: "0 1px 3px rgba(30,25,60,.03)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700 }}>{e.company}</div>
+                    <div style={{ fontSize: 14.5, fontWeight: 700 }}>{e.company}</div>
                     <div style={{ fontSize: 13, color: "var(--ml-muted)", marginTop: 2 }}>{detail(e)}</div>
                   </div>
                   <span style={{ fontSize: 12, color: "var(--ml-muted)", whiteSpace: "nowrap", flexShrink: 0 }}>{new Date(e.created_at).toLocaleString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : "en-US", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
