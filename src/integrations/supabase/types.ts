@@ -7,10 +7,279 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          billing_cycle: string
+          created_at: string
+          extraction_count_month: number
+          extraction_reset_at: string
+          id: string
+          name: string
+          plan: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+        }
+        Insert: {
+          billing_cycle?: string
+          created_at?: string
+          extraction_count_month?: number
+          extraction_reset_at?: string
+          id?: string
+          name?: string
+          plan?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Update: {
+          billing_cycle?: string
+          created_at?: string
+          extraction_count_month?: number
+          extraction_reset_at?: string
+          id?: string
+          name?: string
+          plan?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Relationships: []
+      }
+      email_campaigns: {
+        Row: {
+          account_id: string
+          body: string | null
+          created_at: string
+          id: string
+          recipient_lead_ids: string[]
+          scheduled_at: string | null
+          sent_at: string | null
+          status: string
+          subject: string | null
+          template_id: string | null
+        }
+        Insert: {
+          account_id: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          recipient_lead_ids?: string[]
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          recipient_lead_ids?: string[]
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          account_id: string
+          body: string | null
+          created_at: string
+          id: string
+          name: string
+          subject: string | null
+        }
+        Insert: {
+          account_id: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          subject?: string | null
+        }
+        Update: {
+          account_id?: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integrations: {
+        Row: {
+          account_id: string
+          created_at: string
+          credentials_encrypted: string | null
+          id: string
+          provider: string
+          status: string
+          webhook_url: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          credentials_encrypted?: string | null
+          id?: string
+          provider: string
+          status?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          credentials_encrypted?: string | null
+          id?: string
+          provider?: string
+          status?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_events: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          id: string
+          lead_id: string
+          payload: Json | null
+          type: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          id?: string
+          lead_id: string
+          payload?: Json | null
+          type: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string
+          payload?: Json | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_events_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_notes: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          lead_id: string
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          lead_id: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          lead_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_notes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_tags: {
+        Row: {
+          id: string
+          lead_id: string
+          tag: string
+        }
+        Insert: {
+          id?: string
+          lead_id: string
+          tag: string
+        }
+        Update: {
+          id?: string
+          lead_id?: string
+          tag?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_tags_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
+          account_id: string | null
           address: string | null
           company_name: string
           contact_name: string | null
@@ -24,10 +293,13 @@ export type Database = {
           last_exported_at: string | null
           last_interaction_at: string | null
           location: string | null
+          niche_quality: number
           notes: string | null
           opening_date: string | null
           phone: string | null
           rating: number | null
+          score: number | null
+          source: string | null
           stage: Database["public"]["Enums"]["pipeline_stage"] | null
           status: string | null
           tags: string[] | null
@@ -37,6 +309,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          account_id?: string | null
           address?: string | null
           company_name: string
           contact_name?: string | null
@@ -50,10 +323,13 @@ export type Database = {
           last_exported_at?: string | null
           last_interaction_at?: string | null
           location?: string | null
+          niche_quality?: number
           notes?: string | null
           opening_date?: string | null
           phone?: string | null
           rating?: number | null
+          score?: number | null
+          source?: string | null
           stage?: Database["public"]["Enums"]["pipeline_stage"] | null
           status?: string | null
           tags?: string[] | null
@@ -63,6 +339,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          account_id?: string | null
           address?: string | null
           company_name?: string
           contact_name?: string | null
@@ -76,10 +353,13 @@ export type Database = {
           last_exported_at?: string | null
           last_interaction_at?: string | null
           location?: string | null
+          niche_quality?: number
           notes?: string | null
           opening_date?: string | null
           phone?: string | null
           rating?: number | null
+          score?: number | null
+          source?: string | null
           stage?: Database["public"]["Enums"]["pipeline_stage"] | null
           status?: string | null
           tags?: string[] | null
@@ -88,7 +368,15 @@ export type Database = {
           user_ratings_total?: number | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leads_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -128,6 +416,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_id: string | null
+          account_role: string
           avatar_url: string | null
           bio: string | null
           company_name: string | null
@@ -138,6 +428,7 @@ export type Database = {
           id: string
           industry: string | null
           location: string | null
+          onboarded_at: string | null
           phone: string | null
           subscription_type: string | null
           trial_start_date: string | null
@@ -147,6 +438,8 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          account_id?: string | null
+          account_role?: string
           avatar_url?: string | null
           bio?: string | null
           company_name?: string | null
@@ -157,6 +450,7 @@ export type Database = {
           id: string
           industry?: string | null
           location?: string | null
+          onboarded_at?: string | null
           phone?: string | null
           subscription_type?: string | null
           trial_start_date?: string | null
@@ -166,6 +460,8 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          account_id?: string | null
+          account_role?: string
           avatar_url?: string | null
           bio?: string | null
           company_name?: string | null
@@ -176,6 +472,7 @@ export type Database = {
           id?: string
           industry?: string | null
           location?: string | null
+          onboarded_at?: string | null
           phone?: string | null
           subscription_type?: string | null
           trial_start_date?: string | null
@@ -184,7 +481,53 @@ export type Database = {
           webhook_url?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      searches: {
+        Row: {
+          account_id: string
+          count: number
+          created_at: string
+          id: string
+          location: string | null
+          query: string
+          source: string | null
+        }
+        Insert: {
+          account_id: string
+          count?: number
+          created_at?: string
+          id?: string
+          location?: string | null
+          query: string
+          source?: string | null
+        }
+        Update: {
+          account_id?: string
+          count?: number
+          created_at?: string
+          id?: string
+          location?: string | null
+          query?: string
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "searches_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -212,11 +555,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_valid_trial: {
+      current_account_id: { Args: never; Returns: string }
+      is_valid_trial: { Args: { user_profile_id: string }; Returns: boolean }
+      lead_score: {
         Args: {
-          user_profile_id: string
+          p_address: string
+          p_email: string
+          p_niche_quality: number
+          p_phone: string
+          p_website: string
         }
-        Returns: boolean
+        Returns: number
       }
     }
     Enums: {
@@ -236,27 +585,33 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -264,20 +619,24 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -285,20 +644,24 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -306,29 +669,52 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      pipeline_stage: [
+        "novo",
+        "primeiro_contato",
+        "qualificacao",
+        "proposta",
+        "negociacao",
+        "fechado_ganho",
+        "fechado_perdido",
+      ],
+      user_role: ["admin", "user"],
+    },
+  },
+} as const
