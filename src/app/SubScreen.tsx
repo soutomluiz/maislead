@@ -24,13 +24,13 @@ export function SubScreen() {
   const D = DICT[lang];
 
   return (
-    <div className="ml-fade" style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexDirection: "column", gap: 18 }}>
+    <div className="ml-fade" style={{ maxWidth: 760, margin: "8px auto 0", display: "flex", flexDirection: "column", gap: 18 }}>
       {/* card vitalício */}
-      <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", borderRadius: 20, padding: 26, color: "#fff" }}>
+      <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg,#6d5cf5,#9d7bff)", borderRadius: 22, padding: 32, color: "#fff", boxShadow: "0 16px 40px rgba(109,92,245,.3)" }}>
         <div style={{ position: "absolute", top: -40, right: -20, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,.10)" }} />
         <div style={{ position: "relative" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", opacity: 0.9 }}><Icon name="crown" size={15} />{D.badge}</div>
-          <div style={{ fontSize: 30, fontWeight: 800, marginTop: 10 }}>{D.title}</div>
+          <div style={{ fontSize: 28, fontWeight: 800, marginTop: 14 }}>{D.title}</div>
           <div style={{ fontSize: 14.5, opacity: 0.92, marginTop: 6, maxWidth: 460 }}>{D.sub}</div>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 16, fontSize: 12.5, fontWeight: 700, background: "rgba(16,185,129,.25)", color: "#fff", padding: "6px 13px", borderRadius: 20 }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#34d399" }} />{D.active}
@@ -62,4 +62,4 @@ export function SubScreen() {
   );
 }
 
-const card: React.CSSProperties = { background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 18, padding: 22 };
+const card: React.CSSProperties = { background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 20, padding: 24, boxShadow: "0 1px 3px rgba(30,25,60,.04)" };

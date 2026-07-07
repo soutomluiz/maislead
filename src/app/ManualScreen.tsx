@@ -6,9 +6,9 @@ import { Icon } from "./icons";
 import { scoreOf } from "@/lib/score";
 
 const DICT = {
-  pt: { company: "Nome da empresa", contact: "Contato", industry: "Indústria", location: "Localização", phone: "Telefone", email: "E-mail", website: "Website", address: "Endereço", niche: "Relevância do nicho (0–10)", save: "Cadastrar lead", saved: "Lead cadastrado com sucesso!", required: "Informe o nome da empresa", err: "Erro ao cadastrar o lead" },
-  en: { company: "Company name", contact: "Contact", industry: "Industry", location: "Location", phone: "Phone", email: "Email", website: "Website", address: "Address", niche: "Niche relevance (0–10)", save: "Add lead", saved: "Lead added successfully!", required: "Enter the company name", err: "Error adding the lead" },
-  es: { company: "Nombre de empresa", contact: "Contacto", industry: "Industria", location: "Ubicación", phone: "Teléfono", email: "Email", website: "Sitio web", address: "Dirección", niche: "Relevancia del nicho (0–10)", save: "Añadir lead", saved: "¡Lead añadido con éxito!", required: "Ingresa el nombre de la empresa", err: "Error al añadir el lead" },
+  pt: { title: "Novo Lead", subtitle: "Preencha os dados do lead manualmente", company: "Nome da empresa", contact: "Contato", industry: "Indústria", location: "Localização", phone: "Telefone", email: "E-mail", website: "Website", address: "Endereço", niche: "Relevância do nicho (0–10)", save: "Cadastrar lead", saved: "Lead cadastrado com sucesso!", required: "Informe o nome da empresa", err: "Erro ao cadastrar o lead" },
+  en: { title: "New Lead", subtitle: "Fill in the lead data manually", company: "Company name", contact: "Contact", industry: "Industry", location: "Location", phone: "Phone", email: "Email", website: "Website", address: "Address", niche: "Niche relevance (0–10)", save: "Add lead", saved: "Lead added successfully!", required: "Enter the company name", err: "Error adding the lead" },
+  es: { title: "Nuevo Lead", subtitle: "Completa los datos del lead manualmente", company: "Nombre de empresa", contact: "Contacto", industry: "Industria", location: "Ubicación", phone: "Teléfono", email: "Email", website: "Sitio web", address: "Dirección", niche: "Relevancia del nicho (0–10)", save: "Añadir lead", saved: "¡Lead añadido con éxito!", required: "Ingresa el nombre de la empresa", err: "Error al añadir el lead" },
 };
 
 export function ManualScreen() {
@@ -58,9 +58,11 @@ export function ManualScreen() {
   }
 
   return (
-    <div className="ml-fade" style={{ maxWidth: 720 }}>
-      <form onSubmit={submit} style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 22 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+    <div className="ml-fade" style={{ maxWidth: 640, margin: "8px auto 0" }}>
+      <form onSubmit={submit} style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 22, padding: 32, boxShadow: "0 1px 3px rgba(30,25,60,.04)" }}>
+        <div style={{ fontSize: 19, fontWeight: 800 }}>{D.title}</div>
+        <div style={{ fontSize: 13, color: "var(--ml-muted)", marginTop: 3, marginBottom: 24 }}>{D.subtitle}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
           <Field label={D.company} value={f.company} onChange={set("company")} required full />
           <Field label={D.contact} value={f.contact} onChange={set("contact")} />
           <Field label={D.industry} value={f.industry} onChange={set("industry")} />
@@ -73,8 +75,8 @@ export function ManualScreen() {
 
         {msg && <div style={{ marginTop: 14, fontSize: 13.5, color: msg.ok ? "var(--ml-green)" : "var(--ml-red)", background: msg.ok ? "rgba(16,185,129,.12)" : "rgba(239,68,68,.1)", padding: "10px 12px", borderRadius: 10 }}>{msg.text}</div>}
 
-        <button type="submit" disabled={busy} style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 8, padding: "11px 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", fontWeight: 700, fontSize: 14, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1 }}>
-          {busy ? <Icon name="loader" size={16} className="ml-spin" /> : <Icon name="plus" size={16} />}
+        <button type="submit" disabled={busy} style={{ width: "100%", height: 50, marginTop: 26, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1, boxShadow: "0 10px 24px rgba(109,92,245,.32)" }}>
+          {busy ? <Icon name="loader" size={18} className="ml-spin" /> : <Icon name="plus" size={18} strokeWidth={2.2} />}
           {D.save}
         </button>
       </form>
@@ -91,5 +93,5 @@ function Field({ label, value, onChange, type = "text", required, full }: { labe
   );
 }
 
-const labelStyle: CSSProperties = { display: "block", fontSize: 12.5, fontWeight: 600, color: "var(--ml-navtext)", marginBottom: 6 };
-const inputStyle: CSSProperties = { width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-input)", color: "var(--ml-text)", fontSize: 14, outline: "none" };
+const labelStyle: CSSProperties = { display: "block", fontSize: 13, fontWeight: 600, color: "var(--ml-text)", marginBottom: 7 };
+const inputStyle: CSSProperties = { width: "100%", height: 46, padding: "0 14px", borderRadius: 12, border: "1px solid var(--ml-border)", background: "var(--ml-input)", color: "var(--ml-text)", fontSize: 14, outline: "none" };

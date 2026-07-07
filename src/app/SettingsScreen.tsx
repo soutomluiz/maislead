@@ -26,7 +26,7 @@ export function SettingsScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => 
   }
 
   return (
-    <div className="ml-fade" style={{ maxWidth: 760, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
+    <div className="ml-fade" style={{ maxWidth: 820, margin: "8px auto 0", display: "flex", flexDirection: "column", gap: 18 }}>
       <div style={card}>
         <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>{D.prefs}</div>
 
@@ -55,7 +55,7 @@ export function SettingsScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => 
           </div>
         </div>
 
-        <button onClick={apply} style={{ width: "100%", marginTop: 22, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", fontWeight: 700, fontSize: 14.5, cursor: "pointer" }}>
+        <button onClick={apply} style={{ width: "100%", height: 48, marginTop: 22, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", boxShadow: "0 10px 24px rgba(109,92,245,.3)" }}>
           {saved ? <Icon name="check" size={17} /> : null}{saved ? D.saved : D.apply}
         </button>
       </div>
@@ -80,7 +80,7 @@ function Toggle<T extends string | boolean>({ options, value, onChange }: { opti
         const v = o[0]; const lblTxt = o[1]; const icon = o[2] as IconName | undefined;
         const on = value === v;
         return (
-          <button key={String(v)} onClick={() => onChange(v)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 8px", borderRadius: 10, border: `1px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "rgba(109,92,245,.1)" : "var(--ml-card)", color: on ? "var(--ml-primary)" : "var(--ml-navtext)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          <button key={String(v)} onClick={() => onChange(v)} style={{ flex: 1, height: 46, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 12, border: `1px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "rgba(109,92,245,.1)" : "var(--ml-card)", color: on ? "var(--ml-primary)" : "var(--ml-navtext)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             {icon && <Icon name={icon} size={14} />}{lblTxt}
           </button>
         );
@@ -89,6 +89,6 @@ function Toggle<T extends string | boolean>({ options, value, onChange }: { opti
   );
 }
 
-const card: CSSProperties = { background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 22 };
-const lbl: CSSProperties = { display: "block", fontSize: 12.5, fontWeight: 600, color: "var(--ml-navtext)", marginBottom: 7 };
-const select: CSSProperties = { width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-input)", color: "var(--ml-text)", fontSize: 14, outline: "none" };
+const card: CSSProperties = { background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 20, padding: 26, boxShadow: "0 1px 3px rgba(30,25,60,.04)" };
+const lbl: CSSProperties = { display: "block", fontSize: 13, fontWeight: 600, color: "var(--ml-text)", marginBottom: 7 };
+const select: CSSProperties = { width: "100%", height: 46, padding: "0 14px", borderRadius: 12, border: "1px solid var(--ml-border)", background: "var(--ml-input)", color: "var(--ml-text)", fontSize: 14, outline: "none", cursor: "pointer" };
