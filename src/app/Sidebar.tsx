@@ -17,7 +17,7 @@ export function Sidebar({ active, onNavigate }: { active: ScreenKey; onNavigate:
       { id: "manual", icon: "database", label: nav.add, level: "top" },
       { id: "manual", icon: "plus", label: nav.manual, level: "sub" },
       { id: "gplaces", icon: "mapPin", label: nav.gplaces, level: "sub" },
-      { id: "websites", icon: "globe", label: nav.websites, level: "sub" },
+      { id: "cnpj", icon: "building", label: nav.cnpj, level: "sub" },
     ] },
     { label: nav.secMgmt, items: [
       { id: "leadslist", icon: "users", label: nav.leads, level: "top" },

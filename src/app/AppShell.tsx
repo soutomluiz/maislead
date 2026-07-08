@@ -10,6 +10,7 @@ import { TimelineScreen } from "./TimelineScreen";
 import { ReportsScreen } from "./ReportsScreen";
 import { SettingsScreen } from "./SettingsScreen";
 import { ExtractionScreen } from "./extract/ExtractionScreen";
+import { CnpjScreen } from "./extract/CnpjScreen";
 import { SubScreen } from "./SubScreen";
 import { IntegrationsScreen } from "./IntegrationsScreen";
 import type { ScreenKey } from "@/i18n/ml";
@@ -27,7 +28,7 @@ export function AppShell() {
             : screen === "leadslist" ? <LeadsScreen />
             : screen === "manual" ? <ManualScreen />
             : screen === "gplaces" ? <ExtractionScreen source="google_maps" fn="extract-google-maps" onGoLeads={() => setScreen("leadslist")} />
-            : screen === "websites" ? <ExtractionScreen source="website" fn="extract-website" onGoLeads={() => setScreen("leadslist")} />
+            : screen === "cnpj" ? <CnpjScreen onNavigate={setScreen} />
             : screen === "score" ? <ScoreScreen />
             : screen === "timeline" ? <TimelineScreen />
             : screen === "reports" ? <ReportsScreen />

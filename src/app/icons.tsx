@@ -6,7 +6,8 @@ export type IconName =
   | "award" | "timer" | "chart" | "plug" | "crown" | "settings"
   | "chevron" | "sun" | "moon" | "mail" | "lock" | "user" | "eye" | "eyeOff"
   | "logout" | "loader" | "check" | "search" | "spark" | "phone" | "chat" | "camera" | "x"
-  | "trendUp" | "clock" | "send" | "info" | "download" | "upload" | "filter" | "refresh" | "tag" | "dots" | "edit";
+  | "trendUp" | "clock" | "send" | "info" | "download" | "upload" | "filter" | "refresh" | "tag" | "dots" | "edit"
+  | "building";
 
 const P: Record<IconName, string> = {
   dashboard: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
@@ -49,6 +50,7 @@ const P: Record<IconName, string> = {
   chat: '<path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>',
   camera: '<path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/>',
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  building: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/>',
 };
 
 export function Icon({ name, size = 18, strokeWidth = 2, className, style }: { name: IconName; size?: number; strokeWidth?: number; className?: string; style?: CSSProperties }) {

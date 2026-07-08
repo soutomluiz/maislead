@@ -53,7 +53,10 @@ Deno.serve(async (req) => {
       await admin.from("accounts").update({ extraction_count_month: 0, extraction_reset_at: now.toISOString() }).eq("id", accountId);
     }
 
-    const cap = planCap(acc?.plan);
+    // Admin não tem limite (conta vitalícia), independente do plano.
+    const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", userId);
+    const isAdmin = (roles ?? []).some((r: { role: string }) => r.role === "admin");
+    const cap = isAdmin ? Infinity : planCap(acc?.plan);
     const remaining = cap === Infinity ? Infinity : Math.max(0, cap - count);
     if (remaining <= 0) return json({ error: "limit_reached", cap, used: count }, 402);
 
