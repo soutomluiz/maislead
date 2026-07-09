@@ -1,6 +1,7 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { CenterModal } from "../CenterModal";
 import { Icon, type IconName } from "../icons";
+import { PitchPanel } from "../leads/PitchPanel";
 
 // Detalhe de uma empresa AINDA NÃO importada (staging) — popup central com dados da Receita
 // + botão "Adicionar à lista". Compartilhado por CNPJ e Recém-abertas.
@@ -128,6 +129,20 @@ export function StagingDetailModal({ data, badges, added, importing, onAdd, onCl
             </div>
           )}
         </div>
+
+        {/* IA de abordagem — usa os sinais da Receita (recém-aberta, CNAE, porte) */}
+        <PitchPanel lang={lang} signals={{
+          company: data.company,
+          razao_social: data.razao_social,
+          cnae: data.cnae,
+          uf: data.uf,
+          municipio: data.municipio,
+          porte: data.porte,
+          abertura: data.abertura,
+          mei: data.mei,
+          email: data.email,
+          phone: data.phone,
+        }} />
 
         <button onClick={onAdd} disabled={added || importing} style={{ width: "100%", height: 48, borderRadius: 13, border: "none", background: added ? "var(--ml-grid)" : "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: added ? "var(--ml-muted)" : "#fff", fontWeight: 700, fontSize: 15, cursor: added || importing ? "default" : "pointer", opacity: importing && !added ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: added ? "none" : "0 8px 18px rgba(109,92,245,.28)" }}>
           {added ? <><Icon name="check" size={16} />{D.added}</> : importing ? <><Icon name="loader" size={16} className="ml-spin" />{D.adding}</> : <><Icon name="plus" size={16} strokeWidth={2.4} />{D.add}</>}

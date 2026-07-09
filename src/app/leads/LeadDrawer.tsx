@@ -9,6 +9,7 @@ import { LeadRow, LeadStatus, STATUS_META, TEMP_META, hasVal, waLink, scoreBreak
 import { updateLeadStatus, fetchNotes, addNote, LeadNote } from "./useLeads";
 import { TechChips } from "./DetectTechModal";
 import { techOpportunities } from "./techInsights";
+import { PitchPanel } from "./PitchPanel";
 
 const STATUSES: LeadStatus[] = ["new", "qualified", "converted"];
 
@@ -256,6 +257,9 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
                 {techMsg && <div style={{ marginTop: 8, fontSize: 12.5, color: "var(--ml-muted)" }}>{techMsg}</div>}
               </div>
             )}
+
+            {/* IA de abordagem */}
+            <PitchPanel leadId={lead.id} lang={lang} />
 
             {/* ações */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 20 }}>
