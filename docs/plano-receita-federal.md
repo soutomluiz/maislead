@@ -195,17 +195,29 @@ começar manual, automatizar depois.
 
 ---
 
-## 7. Decisões que preciso de você antes de codar
+## 7. Decisões travadas (09/07/2026)
 
-1. **Escopo geográfico da Fase 1:** nacional (aperta o free tier) ou começar por **1–2 estados**
-   (ex.: SP)? Recorte por UF é o maior fator de caber com folga.
-2. **CNAEs alvo:** filtrar por nichos específicos (ex.: comércio, serviços) ou trazer todos?
-3. **Incluir MEI?** MEIs são volume enorme. Se o público-alvo dos seus clientes são PMEs com
-   verba, talvez excluir MEI (`opcao_mei=false`) enxugue muito e melhore a qualidade.
-4. **Janela "recém-aberta":** 30 ou 60 dias?
-5. **Ingestão:** roda manual da sua máquina no início, ou já monto a **GitHub Action** mensal?
-6. **Ficar no free** e caber na fatia, ou topa migrar pro **Pro (US$ 25/mês)** e destravar a
-   Fase 2 (filtros em massa nacionais) de uma vez?
+1. **Escopo geográfico:** **NACIONAL**.
+2. **CNAEs:** **todos** (sem recorte de nicho).
+3. **MEI:** **incluir**.
+4. **Janela:** ingerir **60 dias** (o filtro de **30 dias** vira um toggle na tela — 60 é superset).
+5. **Tier:** ficar no **FREE por enquanto**; migrar pro **Pro assim que começar a vender**.
+
+### ⚠️ Impacto no tamanho (nacional + MEI + 60 dias no free 500 MB)
+O Brasil abre ~300 mil empresas/mês (MEI é a maior fatia) → 60 dias ≈ **600–800 mil linhas**.
+Isso é **apertado** para os ~350–400 MB disponíveis. Mitigações obrigatórias na Fase 1:
+- Só **situação ativa** (`= 02`).
+- **Schema mínimo** + **índices só o essencial** (btree em `data_abertura`, `uf`, `cnae_principal`,
+  `situacao`). **SEM** o índice trigram de nome e **SEM** GIN de CNAE secundária no começo
+  (são os que mais pesam) — busca por nome fica pra depois do Pro.
+- Após a 1ª ingestão, **medir o tamanho real** (`pg_total_relation_size`). Se passar do teto:
+  **fallback para 30 dias** como janela viva até migrar pro Pro.
+- **Gatilho de Pro:** quando vender / quando a fatia de 60 dias não couber → Pro (8 GB) destrava
+  60+ dias nacional e a Fase 2 (filtros em massa) de uma vez.
+
+### Ainda a definir (não bloqueia o começo)
+- **Ingestão:** manual da sua máquina na 1ª rodada (pra medir tamanho), depois automatizar via
+  **GitHub Action** mensal.
 
 ---
 

@@ -8,6 +8,7 @@ import { leadsI18n } from "./i18n";
 import { LeadRow, LeadStatus, STATUS_META, TEMP_META, hasVal, waLink, scoreBreakdown, type TechInfo } from "./model";
 import { updateLeadStatus, fetchNotes, addNote, LeadNote } from "./useLeads";
 import { TechChips } from "./DetectTechModal";
+import { techOpportunities } from "./techInsights";
 
 const STATUSES: LeadStatus[] = ["new", "qualified", "converted"];
 
@@ -214,7 +215,28 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
                     {detecting ? <Icon name="loader" size={13} className="ml-spin" /> : <Icon name="cpu" size={13} />}{shownTech ? TD[lang].again : TD[lang].run}
                   </button>
                 </div>
-                {shownTech && <TechChips tech={shownTech} noStack={TD[lang].none} noPixelLabel={TD[lang].noPixel} />}
+                {shownTech && <TechChips tech={shownTech} noStack={TD[lang].none} noPixelLabel={TD[lang].noPixel} lang={lang} />}
+                {shownTech && (() => {
+                  const ops = techOpportunities(shownTech, lang);
+                  if (!ops.length) return null;
+                  return (
+                    <div style={{ marginTop: 14, borderTop: "1px dashed var(--ml-border)", paddingTop: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: "var(--ml-primary)", marginBottom: 9 }}>
+                        <Icon name="spark" size={13} /> {TD[lang].howToApproach}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {ops.map((o, i) => (
+                          <div key={i} style={{ display: "flex", gap: 8, fontSize: 12.5, lineHeight: 1.5, color: "var(--ml-text)", background: o.tone === "gap" ? "rgba(245,158,11,.08)" : "rgba(16,185,129,.08)", border: `1px solid ${o.tone === "gap" ? "rgba(245,158,11,.22)" : "rgba(16,185,129,.2)"}`, borderRadius: 10, padding: "9px 11px" }}>
+                            <span style={{ flexShrink: 0, marginTop: 1, color: o.tone === "gap" ? "#c07f0d" : "#059669" }}>
+                              <Icon name={o.tone === "gap" ? "trendUp" : "check"} size={14} />
+                            </span>
+                            <span>{o.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
                 {techMsg && <div style={{ marginTop: 8, fontSize: 12.5, color: "var(--ml-muted)" }}>{techMsg}</div>}
               </div>
             )}
@@ -285,9 +307,9 @@ const EN = {
 };
 
 const TD = {
-  pt: { title: "Tecnologia do site", run: "Detectar", again: "Refazer", none: "Nada reconhecido", noPixel: "sem Pixel", fail: "Não foi possível analisar o site." },
-  en: { title: "Website tech", run: "Detect", again: "Redo", none: "Nothing recognized", noPixel: "no Pixel", fail: "Couldn't analyze the website." },
-  es: { title: "Tecnología del sitio", run: "Detectar", again: "Rehacer", none: "Nada reconocido", noPixel: "sin Pixel", fail: "No se pudo analizar el sitio." },
+  pt: { title: "Tecnologia do site", run: "Detectar", again: "Refazer", none: "Nada reconhecido", noPixel: "sem Pixel", fail: "Não foi possível analisar o site.", howToApproach: "Como abordar" },
+  en: { title: "Website tech", run: "Detect", again: "Redo", none: "Nothing recognized", noPixel: "no Pixel", fail: "Couldn't analyze the website.", howToApproach: "How to approach" },
+  es: { title: "Tecnología del sitio", run: "Detectar", again: "Rehacer", none: "Nada reconocido", noPixel: "sin Pixel", fail: "No se pudo analizar el sitio.", howToApproach: "Cómo abordar" },
 };
 
 const VDICT = {

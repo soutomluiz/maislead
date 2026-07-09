@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "../LangTheme";
 import { Icon } from "../icons";
 import type { TechInfo } from "./model";
+import { techWhat, type Lang } from "./techInsights";
 
 const DICT = {
   pt: {
@@ -143,7 +144,7 @@ export function DetectTechModal({ leadIds, onDone, onClose }: { leadIds: string[
                     {okList.map((r, i) => (
                       <div key={i} style={{ padding: "11px 14px", borderRadius: 12, border: "1px solid var(--ml-border)", background: "var(--ml-hover)" }}>
                         <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 7, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.company}</div>
-                        <TechChips tech={r.tech!} noStack={D.noStack} noPixelLabel={D.noPixelBadge} />
+                        <TechChips tech={r.tech!} noStack={D.noStack} noPixelLabel={D.noPixelBadge} lang={lang} />
                       </div>
                     ))}
                   </div>
@@ -177,15 +178,17 @@ export function DetectTechModal({ leadIds, onDone, onClose }: { leadIds: string[
 }
 
 // Chips reutilizáveis das tecnologias de um lead. Exportado p/ uso no LeadDrawer.
-export function TechChips({ tech, noStack, noPixelLabel = "sem Pixel" }: { tech: TechInfo; noStack?: string; noPixelLabel?: string }) {
-  const chips: { label: string; kind: "brand" | "pixel" | "warn" | "ecom" }[] = [];
-  if (tech.cms) chips.push({ label: tech.cms, kind: "brand" });
-  if (tech.builder) chips.push({ label: tech.builder, kind: "brand" });
-  for (const e of tech.ecommerce) chips.push({ label: e, kind: "ecom" });
-  for (const p of tech.pixels) chips.push({ label: p, kind: "pixel" });
-  for (const a of tech.analytics) chips.push({ label: a, kind: "brand" });
-  for (const m of tech.marketing) chips.push({ label: m, kind: "brand" });
-  for (const c of tech.chat) chips.push({ label: c, kind: "brand" });
+// title (tooltip) explica "o que é" cada tecnologia — passe lang p/ ativar.
+export function TechChips({ tech, noStack, noPixelLabel = "sem Pixel", lang }: { tech: TechInfo; noStack?: string; noPixelLabel?: string; lang?: Lang }) {
+  const chips: { label: string; kind: "brand" | "pixel" | "warn" | "ecom"; title?: string }[] = [];
+  const tip = (l: string) => (lang ? techWhat(l, lang) : undefined);
+  if (tech.cms) chips.push({ label: tech.cms, kind: "brand", title: tip(tech.cms) });
+  if (tech.builder) chips.push({ label: tech.builder, kind: "brand", title: tip(tech.builder) });
+  for (const e of tech.ecommerce) chips.push({ label: e, kind: "ecom", title: tip(e) });
+  for (const p of tech.pixels) chips.push({ label: p, kind: "pixel", title: tip(p) });
+  for (const a of tech.analytics) chips.push({ label: a, kind: "brand", title: tip(a) });
+  for (const m of tech.marketing) chips.push({ label: m, kind: "brand", title: tip(m) });
+  for (const c of tech.chat) chips.push({ label: c, kind: "brand", title: tip(c) });
   // sinal de venda: tem site mas sem Pixel
   if (tech.ok && !tech.has_pixel) chips.push({ label: noPixelLabel, kind: "warn" });
 
@@ -200,7 +203,7 @@ export function TechChips({ tech, noStack, noPixelLabel = "sem Pixel" }: { tech:
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
       {chips.map((c, i) => (
-        <span key={i} style={{ fontSize: 11.5, fontWeight: 600, padding: "3px 9px", borderRadius: 20, ...style(c.kind) }}>{c.label}</span>
+        <span key={i} title={c.title} style={{ fontSize: 11.5, fontWeight: 600, padding: "3px 9px", borderRadius: 20, cursor: c.title ? "help" : "default", ...style(c.kind) }}>{c.label}</span>
       ))}
     </div>
   );
