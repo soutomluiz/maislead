@@ -19,7 +19,9 @@ const planCap = (p?: string | null) => PLAN_CAPS[(p ?? "starter").toLowerCase()]
 
 const onlyDigits = (s: string) => String(s).replace(/\D/g, "");
 const fmtCnpj = (c: string) => c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
-const titleCase = (s?: string | null) => (s ? String(s).toLowerCase().replace(/(^|[\s\-/(])(\p{L})/gu, (_m, sep, ch) => sep + ch.toUpperCase()) : "");
+// Remove o prefixo de CNPJ que a Receita coloca na razão social de MEI (ex.: "67.305.103 FULANO").
+const stripDoc = (s?: string | null) => (s ? String(s).replace(/^\d{2}\.?\d{3}\.?\d{3}(\/?\d{4}-?\d{2})?\s+/, "").trim() : s ?? "");
+const titleCase = (s?: string | null) => (s ? String(stripDoc(s)).toLowerCase().replace(/(^|[\s\-/(])(\p{L})/gu, (_m, sep, ch) => sep + ch.toUpperCase()) : "");
 const fmtBRL = (n?: number | string | null) => {
   const v = typeof n === "string" ? parseFloat(n) : n;
   if (v == null || Number.isNaN(v)) return null;
