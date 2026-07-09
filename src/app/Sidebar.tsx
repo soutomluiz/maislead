@@ -18,7 +18,6 @@ export function Sidebar({ active, onNavigate }: { active: ScreenKey; onNavigate:
       { id: "manual", icon: "plus", label: nav.manual, level: "sub" },
       { id: "gplaces", icon: "mapPin", label: nav.gplaces, level: "sub" },
       { id: "cnpj", icon: "building", label: nav.cnpj, level: "sub" },
-      { id: "recem", icon: "spark", label: nav.recem, level: "sub" },
     ] },
     { label: nav.secMgmt, items: [
       { id: "leadslist", icon: "users", label: nav.leads, level: "top" },
