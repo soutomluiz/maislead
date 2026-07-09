@@ -4,6 +4,23 @@ import { scoreOf, temperature, scoreBreakdown, type Temperature } from "@/lib/sc
 export type DbLead = Tables<"leads">;
 export type LeadStatus = "new" | "qualified" | "converted";
 
+// Tecnologia detectada no site (edge function detect-tech). Sinal de venda, não faz parte do score.
+export interface TechInfo {
+  cms: string | null;
+  builder: string | null;
+  ecommerce: string[];
+  analytics: string[];
+  pixels: string[];
+  chat: string[];
+  marketing: string[];
+  framework: string[];
+  has_pixel: boolean;
+  has_analytics: boolean;
+  is_ecommerce: boolean;
+  checked_at?: string;
+  ok?: boolean;
+}
+
 export interface LeadRow {
   id: string;
   company: string;
@@ -21,6 +38,7 @@ export interface LeadRow {
   createdAt: string | null;
   source: string | null;
   tags: string[];
+  tech: TechInfo | null;
 }
 
 export function mapLead(r: DbLead): LeadRow {
@@ -43,6 +61,7 @@ export function mapLead(r: DbLead): LeadRow {
     createdAt: r.created_at,
     source: r.source,
     tags: Array.isArray(r.tags) ? (r.tags as string[]) : [],
+    tech: ((r as { tech?: TechInfo | null }).tech) ?? null,
   };
 }
 

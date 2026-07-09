@@ -5,8 +5,9 @@ import { useLang } from "../LangTheme";
 import { useAuth } from "../AuthContext";
 import { Icon, IconName } from "../icons";
 import { leadsI18n } from "./i18n";
-import { LeadRow, LeadStatus, STATUS_META, TEMP_META, hasVal, waLink, scoreBreakdown } from "./model";
+import { LeadRow, LeadStatus, STATUS_META, TEMP_META, hasVal, waLink, scoreBreakdown, type TechInfo } from "./model";
 import { updateLeadStatus, fetchNotes, addNote, LeadNote } from "./useLeads";
+import { TechChips } from "./DetectTechModal";
 
 const STATUSES: LeadStatus[] = ["new", "qualified", "converted"];
 
@@ -25,6 +26,9 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
   const [enriching, setEnriching] = useState(false);
   const [emailOverride, setEmailOverride] = useState<string | null>(null);
   const [enrichMsg, setEnrichMsg] = useState<string | null>(null);
+  const [detecting, setDetecting] = useState(false);
+  const [techOverride, setTechOverride] = useState<TechInfo | null>(null);
+  const [techMsg, setTechMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (lead) {
@@ -33,6 +37,8 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
       setVerify(null);
       setEmailOverride(null);
       setEnrichMsg(null);
+      setTechOverride(null);
+      setTechMsg(null);
       fetchNotes(lead.id).then(setNotes).catch(() => setNotes([]));
     }
   }, [lead]);
@@ -51,6 +57,19 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
       }
     } catch { setEnrichMsg(EN[lang].fail); }
     finally { setEnriching(false); }
+  }
+
+  async function runDetectTech() {
+    if (!lead) return;
+    setDetecting(true); setTechMsg(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("detect-tech", { body: { leadIds: [lead.id], redetect: true } });
+      if (error || data?.error) { setTechMsg(TD[lang].fail); return; }
+      const t = (data.results?.[0]?.tech ?? null) as TechInfo | null;
+      if (t && t.ok) { setTechOverride(t); onChanged(); }
+      else setTechMsg(TD[lang].fail);
+    } catch { setTechMsg(TD[lang].fail); }
+    finally { setDetecting(false); }
   }
 
   async function runVerify() {
@@ -84,6 +103,8 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
   const tempLabel = lead ? L[lead.temp] : "";
   const shownEmail = emailOverride ?? lead?.email ?? null;
   const canEnrich = !!lead && hasVal(lead.website) && !hasVal(shownEmail);
+  const shownTech = techOverride ?? lead?.tech ?? null;
+  const canDetectTech = !!lead && hasVal(lead.website);
 
   const breakdownRows = bd ? [
     { label: L.pPhone, on: bd.phone > 0, pts: bd.phone },
@@ -184,6 +205,20 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
               )}
             </div>
 
+            {/* tecnologia do site */}
+            {canDetectTech && (
+              <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 16, marginBottom: 18 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: shownTech ? 12 : 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ml-navtext)" }}>{TD[lang].title}</div>
+                  <button onClick={runDetectTech} disabled={detecting} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 9, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 12.5, cursor: detecting ? "default" : "pointer" }}>
+                    {detecting ? <Icon name="loader" size={13} className="ml-spin" /> : <Icon name="cpu" size={13} />}{shownTech ? TD[lang].again : TD[lang].run}
+                  </button>
+                </div>
+                {shownTech && <TechChips tech={shownTech} noStack={TD[lang].none} noPixelLabel={TD[lang].noPixel} />}
+                {techMsg && <div style={{ marginTop: 8, fontSize: 12.5, color: "var(--ml-muted)" }}>{techMsg}</div>}
+              </div>
+            )}
+
             {/* ações */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 20 }}>
               <Action icon="chat" label={L.whatsapp} color="var(--ml-green)" filled href={hasVal(lead.phone) ? waLink(lead.phone!, `Olá ${lead.company}`) : undefined} />
@@ -247,6 +282,12 @@ const EN = {
   pt: { find: "Buscar e-mail no site", searching: "Buscando…", ok: "E-mail encontrado e salvo!", none: "Nenhum e-mail encontrado no site.", fail: "Não foi possível buscar agora." },
   en: { find: "Find email on website", searching: "Searching…", ok: "Email found and saved!", none: "No email found on the website.", fail: "Couldn't search right now." },
   es: { find: "Buscar email en el sitio", searching: "Buscando…", ok: "¡Email encontrado y guardado!", none: "No se encontró email en el sitio.", fail: "No se pudo buscar ahora." },
+};
+
+const TD = {
+  pt: { title: "Tecnologia do site", run: "Detectar", again: "Refazer", none: "Nada reconhecido", noPixel: "sem Pixel", fail: "Não foi possível analisar o site." },
+  en: { title: "Website tech", run: "Detect", again: "Redo", none: "Nothing recognized", noPixel: "no Pixel", fail: "Couldn't analyze the website." },
+  es: { title: "Tecnología del sitio", run: "Detectar", again: "Rehacer", none: "Nada reconocido", noPixel: "sin Pixel", fail: "No se pudo analizar el sitio." },
 };
 
 const VDICT = {

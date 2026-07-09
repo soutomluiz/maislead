@@ -10,12 +10,13 @@ import { LeadDrawer } from "./LeadDrawer";
 import { MassEmailModal } from "./MassEmailModal";
 import { ImportCsvModal } from "./ImportCsvModal";
 import { EnrichEmailsModal } from "./EnrichEmailsModal";
+import { DetectTechModal } from "./DetectTechModal";
 import type { Temperature } from "@/lib/score";
 
 const XT = {
-  pt: { import: "Importar", massEmail: "Enviar E-mail", findEmail: "Buscar E-mails", addTag: "Adicionar Tag", total: "Total de Leads", tags: "Tags", loc: "Localização", email: "E-mail", newBadge: "novo", prev: "Anterior", next: "Próximo", contact: "Contato", cAny: "Qualquer contato", cHasEmail: "Com e-mail", cNoEmail: "Sem e-mail", cHasPhone: "Com telefone", cNoPhone: "Sem telefone" },
-  en: { import: "Import", massEmail: "Send Email", findEmail: "Find Emails", addTag: "Add Tag", total: "Total Leads", tags: "Tags", loc: "Location", email: "Email", newBadge: "new", prev: "Previous", next: "Next", contact: "Contact", cAny: "Any contact", cHasEmail: "Has email", cNoEmail: "No email", cHasPhone: "Has phone", cNoPhone: "No phone" },
-  es: { import: "Importar", massEmail: "Enviar Email", findEmail: "Buscar Emails", addTag: "Añadir Tag", total: "Total de Leads", tags: "Tags", loc: "Ubicación", email: "Email", newBadge: "nuevo", prev: "Anterior", next: "Siguiente", contact: "Contacto", cAny: "Cualquier contacto", cHasEmail: "Con email", cNoEmail: "Sin email", cHasPhone: "Con teléfono", cNoPhone: "Sin teléfono" },
+  pt: { import: "Importar", massEmail: "Enviar E-mail", findEmail: "Buscar E-mails", detectTech: "Detectar Tecnologia", addTag: "Adicionar Tag", total: "Total de Leads", tags: "Tags", loc: "Localização", email: "E-mail", newBadge: "novo", prev: "Anterior", next: "Próximo", contact: "Contato", cAny: "Qualquer contato", cHasEmail: "Com e-mail", cNoEmail: "Sem e-mail", cHasPhone: "Com telefone", cNoPhone: "Sem telefone" },
+  en: { import: "Import", massEmail: "Send Email", findEmail: "Find Emails", detectTech: "Detect Tech", addTag: "Add Tag", total: "Total Leads", tags: "Tags", loc: "Location", email: "Email", newBadge: "new", prev: "Previous", next: "Next", contact: "Contact", cAny: "Any contact", cHasEmail: "Has email", cNoEmail: "No email", cHasPhone: "Has phone", cNoPhone: "No phone" },
+  es: { import: "Importar", massEmail: "Enviar Email", findEmail: "Buscar Emails", detectTech: "Detectar Tecnología", addTag: "Añadir Tag", total: "Total de Leads", tags: "Tags", loc: "Ubicación", email: "Email", newBadge: "nuevo", prev: "Anterior", next: "Siguiente", contact: "Contacto", cAny: "Cualquier contacto", cHasEmail: "Con email", cNoEmail: "Sin email", cHasPhone: "Con teléfono", cNoPhone: "Sin teléfono" },
 };
 
 function exportLeads(rows: LeadRow[], format: ExportFormat) {
@@ -49,6 +50,8 @@ export function LeadsScreen() {
   const [importOpen, setImportOpen] = useState(false);
   const [enrichOpen, setEnrichOpen] = useState(false);
   const [enrichIds, setEnrichIds] = useState<string[]>([]);
+  const [techOpen, setTechOpen] = useState(false);
+  const [techIds, setTechIds] = useState<string[]>([]);
 
   const [q, setQ] = useState("");
   const [fStatus, setFStatus] = useState<LeadStatus | "all">("all");
@@ -163,6 +166,9 @@ export function LeadsScreen() {
             <button onClick={() => { setEnrichIds([...selected]); setEnrichOpen(true); }} style={{ ...bulkOutline, fontWeight: 700 }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#6d5cf5"; e.currentTarget.style.color = "#6d5cf5"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--ml-border)"; e.currentTarget.style.color = "var(--ml-text)"; }}><Icon name="search" size={15} /> {X.findEmail}</button>
+            <button onClick={() => { setTechIds([...selected]); setTechOpen(true); }} style={{ ...bulkOutline, fontWeight: 700 }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#6d5cf5"; e.currentTarget.style.color = "#6d5cf5"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--ml-border)"; e.currentTarget.style.color = "var(--ml-text)"; }}><Icon name="cpu" size={15} /> {X.detectTech}</button>
             <button onClick={() => setEmailOpen(true)} style={bulkOutline}><Icon name="mail" size={15} /> {X.massEmail}</button>
             <button style={bulkOutline}><Icon name="tag" size={14} /> {X.addTag}</button>
             <button onClick={() => exportLeads(leads.filter((l) => selected.has(l.id)), getExportFormat())} style={bulkOutline}><Icon name="download" size={14} /> {L.exportCsv}</button>
@@ -254,6 +260,7 @@ export function LeadsScreen() {
       <LeadDrawer lead={openLead} onClose={() => setOpenLead(null)} onChanged={refetch} />
       {emailOpen && <MassEmailModal leadIds={[...selected]} onClose={() => setEmailOpen(false)} />}
       {enrichOpen && <EnrichEmailsModal leadIds={enrichIds} onDone={refetch} onClose={() => setEnrichOpen(false)} />}
+      {techOpen && <DetectTechModal leadIds={techIds} onDone={refetch} onClose={() => setTechOpen(false)} />}
       {importOpen && <ImportCsvModal accountId={account?.id} userId={session?.user?.id} existing={leads.map((l) => ({ phone: l.phone, website: l.website }))} onDone={refetch} onClose={() => setImportOpen(false)} />}
     </div>
   );
