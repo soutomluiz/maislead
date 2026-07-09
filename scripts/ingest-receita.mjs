@@ -51,6 +51,8 @@ const CFG = {
   source: process.env.RECEITA_SOURCE || "dump",
   days: parseInt(process.env.RECEITA_DAYS || "60", 10),
   month: process.env.RECEITA_MONTH || null,
+  transport: process.env.RECEITA_TRANSPORT || "http", // http (mirror rápido) | webdav (RF lento)
+  httpBase: (process.env.RECEITA_HTTP_BASE || "https://dados-abertos-rf-cnpj.casadosdados.com.br/arquivos").replace(/\/$/, ""),
   webdavBase: (process.env.RECEITA_WEBDAV_BASE || "https://arquivos.receitafederal.gov.br/public.php/webdav").replace(/\/$/, ""),
   shareToken: process.env.RECEITA_SHARE_TOKEN || "YggdBLfdninEJX9",
   onlyActive: process.env.RECEITA_ONLY_ACTIVE !== "0",
@@ -87,37 +89,47 @@ const ymd = (s) => (s && /^\d{8}$/.test(s) && s !== "00000000") ? `${s.slice(0, 
 const numBR = (s) => { const n = parseFloat(String(s || "").replace(/\./g, "").replace(",", ".")); return Number.isFinite(n) ? n : null; };
 const clean = (s) => { const t = (s ?? "").trim(); return t === "" ? null : t; };
 
-// ---------- WebDAV (Nextcloud público) ----------
-// PROPFIND depth 1 → lista os filhos (pastas de mês, ou arquivos dentro de um mês).
-async function propfind(url) {
-  const res = await fetch(url, { method: "PROPFIND", headers: { Authorization: AUTH, Depth: "1", "User-Agent": UA } });
-  if (!res.ok) throw new Error(`PROPFIND ${res.status} em ${url}. Token do share pode ter mudado — veja a URL nova em gov.br/receitafederal/dados e passe RECEITA_SHARE_TOKEN.`);
-  const xml = await res.text();
-  const hrefs = [...xml.matchAll(/<[a-z0-9]*:?href>([^<]+)<\/[a-z0-9]*:?href>/gi)].map((m) => decodeURIComponent(m[1].trim()));
-  return hrefs;
-}
-// nome do último segmento de um href de pasta/arquivo
+// ---------- Camada de listagem/download (transporte configurável) ----------
+// http   = mirror da Casa dos Dados (CDN Cloudflare, RÁPIDO) — PADRÃO
+// webdav = Nextcloud oficial da Receita (lento; reserva)
+function dlHeaders() { return CFG.transport === "webdav" ? { Authorization: AUTH, "User-Agent": UA } : { "User-Agent": UA }; }
+function baseUrl() { return CFG.transport === "webdav" ? CFG.webdavBase : CFG.httpBase; }
 function lastSeg(href) { return href.replace(/\/$/, "").split("/").filter(Boolean).pop() || ""; }
 
-async function discoverMonth() {
-  if (CFG.month) return CFG.month;
-  log("descobrindo o mês mais recente (WebDAV)…");
-  const hrefs = await propfind(CFG.webdavBase + "/");
-  const months = hrefs.filter((h) => /\/\d{4}-\d{2}\/?$/.test(h)).map((h) => lastSeg(h)).filter((s) => /^\d{4}-\d{2}$/.test(s));
-  if (!months.length) { log("sem pastas de mês no share — assumindo arquivos na raiz."); return ""; }
-  months.sort();
-  return months[months.length - 1];
+// lista os hrefs de um diretório (PROPFIND no webdav, HTML autoindex no http)
+async function listDir(url) {
+  if (CFG.transport === "webdav") {
+    const res = await fetch(url, { method: "PROPFIND", headers: { ...dlHeaders(), Depth: "1" } });
+    if (!res.ok) throw new Error(`PROPFIND ${res.status} em ${url}. Token do share pode ter mudado (RECEITA_SHARE_TOKEN).`);
+    const xml = await res.text();
+    return [...xml.matchAll(/<[a-z0-9]*:?href>([^<]+)<\/[a-z0-9]*:?href>/gi)].map((m) => decodeURIComponent(m[1].trim()));
+  }
+  const res = await fetch(url, { headers: dlHeaders() });
+  if (!res.ok) throw new Error(`GET ${res.status} em ${url}. Mirror indisponível? Tente RECEITA_TRANSPORT=webdav.`);
+  const html = await res.text();
+  return [...html.matchAll(/href="([^"?#]+)"/gi)].map((m) => decodeURIComponent(m[1].trim()));
 }
 
-// lista os arquivos (nomes) dentro do mês (ou raiz) e devolve um mapa nome->url
-async function listFiles(month) {
-  const dirUrl = CFG.webdavBase + (month ? `/${month}` : "");
-  const hrefs = await propfind(dirUrl + "/");
+// descobre a pasta de mês mais recente (YYYY-MM ou YYYY-MM-DD)
+async function discoverFolder() {
+  log(`descobrindo o mês mais recente (${CFG.transport})…`);
+  const hrefs = await listDir(baseUrl() + "/");
+  let folders = hrefs.map(lastSeg).filter((s) => /^\d{4}-\d{2}(-\d{2})?$/.test(s));
+  if (CFG.month) folders = folders.filter((s) => s.startsWith(CFG.month));
+  if (!folders.length) { log("sem pastas de mês — assumindo arquivos na raiz."); return ""; }
+  folders.sort();
+  return folders[folders.length - 1];
+}
+
+// lista os .zip dentro da pasta e devolve mapa nome->url
+async function listFiles(folder) {
+  const dirUrl = baseUrl() + (folder ? `/${folder}` : "");
+  const hrefs = await listDir(dirUrl + "/");
   const map = new Map();
   for (const h of hrefs) {
-    if (/\/$/.test(h)) continue; // pasta
+    if (/\/$/.test(h)) continue;
     const name = lastSeg(h);
-    if (name && /\.(zip|ZIP)$/.test(name)) map.set(name, `${dirUrl}/${encodeURIComponent(name)}`);
+    if (name && /\.zip$/i.test(name)) map.set(name, `${dirUrl}/${encodeURIComponent(name)}`);
   }
   return map;
 }
@@ -128,7 +140,7 @@ function pickAll(map, re) { return [...map].filter(([n]) => re.test(n)).map(([na
 async function download(url, dest) {
   if (fs.existsSync(dest) && fs.statSync(dest).size > 0) { log("já baixado:", path.basename(dest)); return dest; }
   log("baixando", path.basename(dest));
-  const res = await fetch(url, { headers: { Authorization: AUTH, "User-Agent": UA } });
+  const res = await fetch(url, { headers: dlHeaders() });
   if (!res.ok) throw new Error(`download falhou (${res.status}) ${url}`);
   await fs.promises.mkdir(path.dirname(dest), { recursive: true });
   const tmp = dest + ".part";
@@ -162,7 +174,7 @@ async function* zipCsvLines(zipPath, deps) {
 const SOURCES = {};
 SOURCES.dump = async function ingestDump() {
   const deps = await loadDumpDeps();
-  const month = await discoverMonth();
+  const month = await discoverFolder();
   const workdir = path.join(CFG.tmp, month || "root");
   log(`fonte=dump mês=${month || "(raiz)"} janela=${CFG.days}d ativos=${CFG.onlyActive}`);
   const files = await listFiles(month);
