@@ -32,5 +32,6 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           RECEITA_MONTH: ${{ github.event.inputs.month }}
           RECEITA_DAYS: ${{ github.event.inputs.days || '60' }}
+          RECEITA_CLEANUP: "1"
           NODE_OPTIONS: "--max-old-space-size=6144"
         run: node scripts/ingest-receita.mjs

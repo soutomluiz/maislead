@@ -54,6 +54,7 @@ const CFG = {
   webdavBase: (process.env.RECEITA_WEBDAV_BASE || "https://arquivos.receitafederal.gov.br/public.php/webdav").replace(/\/$/, ""),
   shareToken: process.env.RECEITA_SHARE_TOKEN || "YggdBLfdninEJX9",
   onlyActive: process.env.RECEITA_ONLY_ACTIVE !== "0",
+  cleanup: process.env.RECEITA_CLEANUP === "1", // apaga cada zip após processar (essencial em runner com pouco disco)
   supabaseUrl: process.env.SUPABASE_URL,
   serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   tmp: path.join(os.tmpdir(), "receita-ingest"),
@@ -209,6 +210,7 @@ SOURCES.dump = async function ingestDump() {
       basicos.add(basico); kept++;
     }
     log(`${f.name}: lidos ${scanned}, mantidos ${kept} (total ${estabs.length})`);
+    if (CFG.cleanup) { try { fs.unlinkSync(zip); } catch { /* ignora */ } }
   }
   if (!estabs.length) { log("nenhum estabelecimento no período. Fim."); return { records: [] }; }
 
@@ -222,6 +224,7 @@ SOURCES.dump = async function ingestDump() {
       emp.set(c[0], { razao_social: clean(c[1]), capital_social: numBR(c[4]), porte: c[5] ? parseInt(c[5], 10) : null });
     }
     log(`${f.name} ok (match ${emp.size}/${basicos.size})`);
+    if (CFG.cleanup) { try { fs.unlinkSync(zip); } catch { /* ignora */ } }
   }
 
   // 4) Simples (MEI/Simples)
@@ -236,6 +239,7 @@ SOURCES.dump = async function ingestDump() {
         simples.set(c[0], { opcao_simples: c[1] === "S", opcao_mei: c[4] === "S" });
       }
       log(`${sf.name} ok (match ${simples.size})`);
+      if (CFG.cleanup) { try { fs.unlinkSync(path.join(workdir, sf.name)); } catch { /* ignora */ } }
     } catch (e) { log("aviso: Simples não processado:", e.message); }
   }
 
