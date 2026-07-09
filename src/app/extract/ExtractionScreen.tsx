@@ -21,7 +21,7 @@ const DICT = {
     popular: "Nichos populares", recent: "Buscas recentes", noRecent: "Nenhuma busca ainda.",
     receive: "O que você recebe", receiveSub: "Cada resultado traz os dados públicos da empresa.",
     reqNiche: "Informe um nicho para buscar.",
-    okTitle: "Extração concluída", inserted: "novos leads", skipped: "duplicados ignorados", found: "encontrados", goLeads: "Ver na lista de Leads",
+    okTitle: "Extração concluída", inserted: "novos leads", skipped: "duplicados ignorados", found: "encontrados", clickDetail: "clique para ver detalhes", goLeads: "Ver na lista de Leads",
     errKey: "A chave de API desta extração ainda não foi configurada no servidor. Assim que você enviar a chave, esta tela passa a extrair de verdade.",
     errLimit: "Limite de leads do seu plano foi atingido este mês. Faça upgrade para continuar extraindo.",
     errPlaces: "O provedor de busca recusou a requisição (verifique a chave/faturamento).", errGeneric: "Não foi possível concluir a extração agora.",
@@ -35,7 +35,7 @@ const DICT = {
     popular: "Popular niches", recent: "Recent searches", noRecent: "No searches yet.",
     receive: "What you get", receiveSub: "Each result brings the company's public data.",
     reqNiche: "Enter a niche to search.",
-    okTitle: "Extraction complete", inserted: "new leads", skipped: "duplicates skipped", found: "found", goLeads: "View in Leads list",
+    okTitle: "Extraction complete", inserted: "new leads", skipped: "duplicates skipped", found: "found", clickDetail: "click to view details", goLeads: "View in Leads list",
     errKey: "This extraction's API key isn't configured on the server yet. As soon as you send the key, this screen extracts for real.",
     errLimit: "Your plan's monthly lead limit was reached. Upgrade to keep extracting.",
     errPlaces: "The search provider rejected the request (check key/billing).", errGeneric: "Couldn't complete the extraction right now.",
@@ -49,7 +49,7 @@ const DICT = {
     popular: "Nichos populares", recent: "Búsquedas recientes", noRecent: "Aún no hay búsquedas.",
     receive: "Lo que recibes", receiveSub: "Cada resultado trae los datos públicos de la empresa.",
     reqNiche: "Ingresa un nicho para buscar.",
-    okTitle: "Extracción completa", inserted: "nuevos leads", skipped: "duplicados omitidos", found: "encontrados", goLeads: "Ver en la lista de Leads",
+    okTitle: "Extracción completa", inserted: "nuevos leads", skipped: "duplicados omitidos", found: "encontrados", clickDetail: "haz clic para ver detalles", goLeads: "Ver en la lista de Leads",
     errKey: "La clave de API de esta extracción aún no está configurada en el servidor. En cuanto envíes la clave, esta pantalla extrae de verdad.",
     errLimit: "Se alcanzó el límite mensual de leads de tu plan. Mejora tu plan para seguir extrayendo.",
     errPlaces: "El proveedor de búsqueda rechazó la solicitud (revisa clave/facturación).", errGeneric: "No se pudo completar la extracción ahora.",
@@ -175,7 +175,8 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
           </div>
           {result.preview.length > 0 && (
             <>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ml-muted)", marginBottom: 8 }}>{result.preview.length} {D.found} · {D.clickDetail}</div>
+              <div className="ml-scroll" style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 420, overflowY: "auto" }}>
                 {result.preview.map((p, i) => (
                   <button key={i} onClick={() => openDetail(p)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 11px", borderRadius: 9, background: "var(--ml-grid)", fontSize: 13, border: "1px solid transparent", cursor: "pointer", textAlign: "left", width: "100%" }}
                     onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--ml-primary)")} onMouseLeave={(e) => (e.currentTarget.style.borderColor = "transparent")}>

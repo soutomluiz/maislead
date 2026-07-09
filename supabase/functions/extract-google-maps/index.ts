@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
 
     return json({
       inserted: inserted.length, skipped, found: found.length, cap: cap === Infinity ? null : cap, used: count + inserted.length,
-      preview: rows.slice(0, 8).map((r) => ({ company_name: r.company_name, phone: r.phone, website: r.website, address: r.address, score: r.score })),
+      preview: rows.map((r) => ({ company_name: r.company_name, phone: r.phone, website: r.website, address: r.address, email: r.email, score: r.score })),
     });
   } catch (e) {
     return json({ error: "unexpected", message: String((e as Error).message ?? e) }, 500);
