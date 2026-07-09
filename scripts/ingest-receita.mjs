@@ -131,10 +131,21 @@ async function download(url, dest) {
   if (!res.ok) throw new Error(`download falhou (${res.status}) ${url}`);
   await fs.promises.mkdir(path.dirname(dest), { recursive: true });
   const tmp = dest + ".part";
+  const total = Number(res.headers.get("content-length") || 0);
   await new Promise((resolve, reject) => {
     const ws = fs.createWriteStream(tmp);
-    Readable.fromWeb(res.body).pipe(ws);
-    ws.on("finish", resolve); ws.on("error", reject);
+    const src = Readable.fromWeb(res.body);
+    let recv = 0, lastPct = -1;
+    src.on("data", (c) => {
+      recv += c.length;
+      const mb = Math.floor(recv / 1e6);
+      const pct = total ? Math.floor((recv / total) * 100) : -1;
+      if (pct >= 0 ? pct !== lastPct && pct % 5 === 0 : mb % 50 === 0) { lastPct = pct; process.stdout.write(`   ${pct >= 0 ? pct + "% · " : ""}${mb} MB\r`); }
+    });
+    src.on("error", reject);
+    src.pipe(ws);
+    ws.on("finish", () => { process.stdout.write("\n"); resolve(); });
+    ws.on("error", reject);
   });
   fs.renameSync(tmp, dest);
   return dest;

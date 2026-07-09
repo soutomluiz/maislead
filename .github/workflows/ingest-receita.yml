@@ -1,0 +1,36 @@
+name: Ingestão Receita (recém-abertas)
+
+# Roda sozinho todo mês (dia 15, ~09:00 UTC) — a RF publica o dump na 2ª semana.
+# Também dá pra disparar na mão pela aba "Actions" do GitHub (Run workflow).
+on:
+  schedule:
+    - cron: "0 9 15 * *"
+  workflow_dispatch:
+    inputs:
+      month:
+        description: "Mês específico (YYYY-MM). Vazio = mais recente."
+        required: false
+      days:
+        description: "Janela de dias (padrão 60)."
+        required: false
+        default: "60"
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Instalar dependências
+        run: npm i
+      - name: Rodar ingestão
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RECEITA_MONTH: ${{ github.event.inputs.month }}
+          RECEITA_DAYS: ${{ github.event.inputs.days || '60' }}
+          NODE_OPTIONS: "--max-old-space-size=6144"
+        run: node scripts/ingest-receita.mjs
