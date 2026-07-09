@@ -5,6 +5,7 @@ import { useAuth } from "../AuthContext";
 import { Icon } from "../icons";
 import type { ScreenKey } from "@/i18n/ml";
 import { StagingDetailModal, type StagingCompany, type Badge as BadgeT } from "./StagingDetailModal";
+import { CnaeSelect } from "./CnaeSelect";
 
 const Panel = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
   <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 20, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)", ...style }}>{children}</div>
@@ -65,7 +66,7 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
   const D = DICT[lang];
 
   const [uf, setUf] = useState("");
-  const [cnae, setCnae] = useState("");
+  const [cnaes, setCnaes] = useState<string[]>([]);
   const [days, setDays] = useState<30 | 60>(60);
   const [mei, setMei] = useState<MeiFilter>("all");
   const [onlyEmail, setOnlyEmail] = useState(false);
@@ -84,9 +85,9 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
 
   const PAGE_SIZE = 50;
   const filters = useMemo(() => ({
-    days, uf: uf || undefined, cnae: cnae.trim() || undefined,
+    days, uf: uf || undefined, cnaes: cnaes.length ? cnaes : undefined,
     mei: mei === "all" ? null : mei === "only", onlyEmail: onlyEmail || undefined, q: q.trim() || undefined,
-  }), [days, uf, cnae, mei, onlyEmail, q]);
+  }), [days, uf, cnaes, mei, onlyEmail, q]);
 
   const isDupe = (r: Row) => r.duplicate || added.has(r.cnpj);
 
@@ -151,10 +152,6 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
             </select>
           </div>
           <div>
-            <label style={lbl}>{D.cnae}</label>
-            <input value={cnae} onChange={(e) => setCnae(e.target.value)} placeholder={D.cnaePh} style={{ ...inp, height: 42, padding: "0 12px" }} />
-          </div>
-          <div>
             <label style={lbl}>{D.mei}</label>
             <select value={mei} onChange={(e) => setMei(e.target.value as MeiFilter)} style={{ ...inp, height: 42, padding: "0 12px" }}>
               <option value="all">{D.meiAll}</option>
@@ -166,6 +163,10 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
             <label style={lbl}>{D.q}</label>
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={D.qPh} style={{ ...inp, height: 42, padding: "0 12px" }} />
           </div>
+        </div>
+
+        <div style={{ marginTop: 14 }}>
+          <CnaeSelect value={cnaes} onChange={setCnaes} lang={lang} />
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 16, flexWrap: "wrap" }}>

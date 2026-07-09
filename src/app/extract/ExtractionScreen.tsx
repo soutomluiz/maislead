@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "../LangTheme";
 import { useAuth } from "../AuthContext";
 import { Icon, type IconName } from "../icons";
+import { LeadDrawer } from "../leads/LeadDrawer";
+import { mapLead, type LeadRow, type DbLead } from "../leads/model";
 
 const Panel = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
   <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 18, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)", ...style }}>{children}</div>
@@ -72,6 +74,21 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
   const [recent, setRecent] = useState<SearchRow[]>([]);
   const [result, setResult] = useState<{ inserted: number; skipped: number; found: number; preview: Preview[] } | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [detailLead, setDetailLead] = useState<LeadRow | null>(null);
+  const [detailBusy, setDetailBusy] = useState<string | null>(null);
+
+  // Abre o modal de detalhe completo do lead (busca a linha inteira no banco pelo nome/telefone).
+  async function openDetail(p: Preview) {
+    const acc = auth.account?.id;
+    if (!acc || detailBusy) return;
+    setDetailBusy(p.company_name);
+    try {
+      let qb = supabase.from("leads").select("*").eq("account_id", acc).eq("company_name", p.company_name).order("created_at", { ascending: false }).limit(1);
+      if (p.phone) qb = qb.eq("phone", p.phone);
+      const { data } = await qb;
+      if (data && data[0]) setDetailLead(mapLead(data[0] as DbLead));
+    } finally { setDetailBusy(null); }
+  }
 
   const title = source === "google_maps" ? D.gTitle : D.wTitle;
   const sub = source === "google_maps" ? D.gSub : D.wSub;
@@ -160,10 +177,14 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
             <>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {result.preview.map((p, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 10px", borderRadius: 9, background: "var(--ml-grid)", fontSize: 13 }}>
-                    <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.company_name}</span>
-                    <span style={{ color: "var(--ml-muted)", flexShrink: 0 }}>{p.phone || p.email || p.website || "—"} · <b style={{ color: "var(--ml-primary)" }}>{p.score}</b></span>
-                  </div>
+                  <button key={i} onClick={() => openDetail(p)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 11px", borderRadius: 9, background: "var(--ml-grid)", fontSize: 13, border: "1px solid transparent", cursor: "pointer", textAlign: "left", width: "100%" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--ml-primary)")} onMouseLeave={(e) => (e.currentTarget.style.borderColor = "transparent")}>
+                    <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--ml-text)" }}>{p.company_name}</span>
+                    <span style={{ color: "var(--ml-muted)", flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                      <span>{p.phone || p.email || p.website || "—"} · <b style={{ color: "var(--ml-primary)" }}>{p.score}</b></span>
+                      {detailBusy === p.company_name ? <Icon name="loader" size={13} className="ml-spin" /> : <span style={{ color: "var(--ml-primary)", fontWeight: 700 }}>→</span>}
+                    </span>
+                  </button>
                 ))}
               </div>
               {onGoLeads && <button onClick={onGoLeads} style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 13.5, cursor: "pointer" }}><Icon name="users" size={15} />{D.goLeads}</button>}
@@ -205,6 +226,8 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
           </div>
         </Panel>
       </div>
+
+      <LeadDrawer lead={detailLead} onClose={() => setDetailLead(null)} onChanged={() => { /* preview não muda */ }} />
     </div>
   );
 }

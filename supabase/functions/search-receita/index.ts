@@ -37,8 +37,8 @@ const PORTE: Record<number, string> = { 1: "ME (Microempresa)", 3: "EPP (Pequeno
 const SITU: Record<number, string> = { 1: "Nula", 2: "Ativa", 3: "Suspensa", 4: "Inapta", 8: "Baixada" };
 const fmtDate = (d?: string | null) => (d ? String(d).slice(0, 10) : null);
 
-interface Filters { days?: number; uf?: string; cnae?: string; mei?: boolean | null; onlyEmail?: boolean; q?: string; }
-interface Body { mode?: "search" | "import"; filters?: Filters; page?: number; cnpjs?: string[]; }
+interface Filters { days?: number; uf?: string; cnae?: string; cnaes?: string[]; mei?: boolean | null; onlyEmail?: boolean; q?: string; }
+interface Body { mode?: "search" | "import" | "cnaes"; filters?: Filters; page?: number; cnpjs?: string[]; }
 
 interface Row {
   cnpj: string; cnpj_basico: string; razao_social: string | null; nome_fantasia: string | null;
@@ -61,7 +61,8 @@ function baseQuery(admin: ReturnType<typeof createClient>, f: Filters, forCount 
     .gte("data_abertura", cutoffDate(f.days ?? 60))
     .eq("situacao", 2);
   if (f.uf) q = q.eq("uf", f.uf.toUpperCase());
-  if (f.cnae) q = q.eq("cnae_principal", onlyDigits(f.cnae).padStart(7, "0"));
+  if (f.cnaes && f.cnaes.length) q = q.in("cnae_principal", f.cnaes.map((c) => onlyDigits(c).padStart(7, "0")));
+  else if (f.cnae) q = q.eq("cnae_principal", onlyDigits(f.cnae).padStart(7, "0"));
   if (f.mei === true || f.mei === false) q = q.eq("opcao_mei", f.mei);
   if (f.onlyEmail) q = q.not("email", "is", null);
   if (f.q && f.q.trim()) { const t = f.q.trim().replace(/[%,]/g, ""); q = q.or(`razao_social.ilike.%${t}%,nome_fantasia.ilike.%${t}%`); }
@@ -121,6 +122,12 @@ Deno.serve(async (req) => {
     const quota = (used: number) => ({ used, limit: cap === Infinity ? null : cap, plan, isAdmin });
 
     const { mode = "search", filters = {}, page = 0, cnpjs }: Body = await req.json().catch(() => ({}));
+
+    // ───── MODO CNAES (lista p/ o dropdown) ─────
+    if (mode === "cnaes") {
+      const { data } = await admin.from("rf_cnae").select("codigo, descricao").order("descricao");
+      return json({ cnaes: (data ?? []).map((c: { codigo: string; descricao: string }) => ({ codigo: c.codigo, descricao: titleCase(c.descricao) })) });
+    }
 
     // duplicados = CNPJ já existente na conta
     const { data: existing } = await admin.from("leads").select("cnpj").eq("account_id", accountId).not("cnpj", "is", null);
