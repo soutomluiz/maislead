@@ -5,7 +5,7 @@ import { useLang } from "../LangTheme";
 import { useAuth } from "../AuthContext";
 import { Icon, IconName } from "../icons";
 import { leadsI18n } from "./i18n";
-import { LeadRow, LeadStatus, STATUS_META, TEMP_META, hasVal, waLink, scoreBreakdown, type TechInfo } from "./model";
+import { LeadRow, LeadStatus, STATUS_META, TEMP_META, hasVal, waLink, scoreBreakdown, reputationRisk, type TechInfo } from "./model";
 import { updateLeadStatus, fetchNotes, addNote, LeadNote } from "./useLeads";
 import { TechChips } from "./DetectTechModal";
 import { techOpportunities } from "./techInsights";
@@ -202,6 +202,26 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
               )}
             </div>
 
+            {/* reputação (Google Maps) */}
+            {lead.rating != null && (
+              <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 16, marginBottom: 18 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ml-navtext)" }}>{RD[lang].title}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 15, fontWeight: 800 }}>
+                    <Icon name="spark" size={15} style={{ color: "var(--ml-amber)" }} />
+                    <span style={{ color: reputationRisk(lead) ? "var(--ml-red)" : "var(--ml-text)" }}>{lead.rating.toFixed(1)}</span>
+                    <span style={{ fontSize: 12, color: "var(--ml-muted)", fontWeight: 500 }}>· {lead.reviews ?? 0} {RD[lang].reviews}</span>
+                  </div>
+                </div>
+                {reputationRisk(lead) && (
+                  <div style={{ display: "flex", gap: 8, marginTop: 12, fontSize: 12.5, lineHeight: 1.5, color: "var(--ml-text)", background: "rgba(245,158,11,.08)", border: "1px solid rgba(245,158,11,.22)", borderRadius: 10, padding: "9px 11px" }}>
+                    <span style={{ flexShrink: 0, marginTop: 1, color: "#c07f0d" }}><Icon name="trendUp" size={14} /></span>
+                    <span>{RD[lang].risk}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* tecnologia do site */}
             {canDetectTech && (
               <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 16, marginBottom: 18 }}>
@@ -297,6 +317,12 @@ const EN = {
   pt: { find: "Buscar e-mail no site", searching: "Buscando…", ok: "E-mail encontrado e salvo!", none: "Nenhum e-mail encontrado no site.", fail: "Não foi possível buscar agora." },
   en: { find: "Find email on website", searching: "Searching…", ok: "Email found and saved!", none: "No email found on the website.", fail: "Couldn't search right now." },
   es: { find: "Buscar email en el sitio", searching: "Buscando…", ok: "¡Email encontrado y guardado!", none: "No se encontró email en el sitio.", fail: "No se pudo buscar ahora." },
+};
+
+const RD = {
+  pt: { title: "Reputação (Google)", reviews: "avaliações", risk: "Reputação em risco: a nota baixa afasta clientes. Ofereça gestão de reputação e captação de avaliações positivas." },
+  en: { title: "Reputation (Google)", reviews: "reviews", risk: "Reputation at risk: a low rating drives customers away. Offer reputation management and positive-review generation." },
+  es: { title: "Reputación (Google)", reviews: "reseñas", risk: "Reputación en riesgo: la nota baja aleja clientes. Ofrece gestión de reputación y captación de reseñas positivas." },
 };
 
 const TD = {

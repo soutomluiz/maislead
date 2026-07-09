@@ -5,7 +5,7 @@ import { Icon } from "../icons";
 import { getPerPage, getExportFormat, type ExportFormat } from "../prefs";
 import { leadsI18n } from "./i18n";
 import { useLeads, updateLeadStatus } from "./useLeads";
-import { LeadRow, LeadStatus, STATUS_META, hasVal } from "./model";
+import { LeadRow, LeadStatus, STATUS_META, hasVal, reputationRisk } from "./model";
 import { LeadDrawer } from "./LeadDrawer";
 import { MassEmailModal } from "./MassEmailModal";
 import { ImportCsvModal } from "./ImportCsvModal";
@@ -14,9 +14,9 @@ import { DetectTechModal } from "./DetectTechModal";
 import type { Temperature } from "@/lib/score";
 
 const XT = {
-  pt: { import: "Importar", massEmail: "Enviar E-mail", findEmail: "Buscar E-mails", detectTech: "Detectar Tecnologia", addTag: "Adicionar Tag", total: "Total de Leads", tags: "Tags", loc: "Localização", email: "E-mail", newBadge: "novo", prev: "Anterior", next: "Próximo", contact: "Contato", cAny: "Qualquer contato", cHasEmail: "Com e-mail", cNoEmail: "Sem e-mail", cHasPhone: "Com telefone", cNoPhone: "Sem telefone" },
-  en: { import: "Import", massEmail: "Send Email", findEmail: "Find Emails", detectTech: "Detect Tech", addTag: "Add Tag", total: "Total Leads", tags: "Tags", loc: "Location", email: "Email", newBadge: "new", prev: "Previous", next: "Next", contact: "Contact", cAny: "Any contact", cHasEmail: "Has email", cNoEmail: "No email", cHasPhone: "Has phone", cNoPhone: "No phone" },
-  es: { import: "Importar", massEmail: "Enviar Email", findEmail: "Buscar Emails", detectTech: "Detectar Tecnología", addTag: "Añadir Tag", total: "Total de Leads", tags: "Tags", loc: "Ubicación", email: "Email", newBadge: "nuevo", prev: "Anterior", next: "Siguiente", contact: "Contacto", cAny: "Cualquier contacto", cHasEmail: "Con email", cNoEmail: "Sin email", cHasPhone: "Con teléfono", cNoPhone: "Sin teléfono" },
+  pt: { import: "Importar", massEmail: "Enviar E-mail", findEmail: "Buscar E-mails", detectTech: "Detectar Tecnologia", addTag: "Adicionar Tag", total: "Total de Leads", tags: "Tags", loc: "Localização", email: "E-mail", newBadge: "novo", prev: "Anterior", next: "Próximo", contact: "Contato", cAny: "Qualquer contato", cHasEmail: "Com e-mail", cNoEmail: "Sem e-mail", cHasPhone: "Com telefone", cNoPhone: "Sem telefone", rep: "Reputação", repAll: "Todas", repRisk: "Em risco" },
+  en: { import: "Import", massEmail: "Send Email", findEmail: "Find Emails", detectTech: "Detect Tech", addTag: "Add Tag", total: "Total Leads", tags: "Tags", loc: "Location", email: "Email", newBadge: "new", prev: "Previous", next: "Next", contact: "Contact", cAny: "Any contact", cHasEmail: "Has email", cNoEmail: "No email", cHasPhone: "Has phone", cNoPhone: "No phone", rep: "Reputation", repAll: "All", repRisk: "At risk" },
+  es: { import: "Importar", massEmail: "Enviar Email", findEmail: "Buscar Emails", detectTech: "Detectar Tecnología", addTag: "Añadir Tag", total: "Total de Leads", tags: "Tags", loc: "Ubicación", email: "Email", newBadge: "nuevo", prev: "Anterior", next: "Siguiente", contact: "Contacto", cAny: "Cualquier contacto", cHasEmail: "Con email", cNoEmail: "Sin email", cHasPhone: "Con teléfono", cNoPhone: "Sin teléfono", rep: "Reputación", repAll: "Todas", repRisk: "En riesgo" },
 };
 
 function exportLeads(rows: LeadRow[], format: ExportFormat) {
@@ -59,12 +59,13 @@ export function LeadsScreen() {
   const [fTemp, setFTemp] = useState<Temperature | "all">("all");
   type ContactFilter = "all" | "hasEmail" | "noEmail" | "hasPhone" | "noPhone";
   const [fContact, setFContact] = useState<ContactFilter>("all");
+  const [fRep, setFRep] = useState<"all" | "risk">("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [openLead, setOpenLead] = useState<LeadRow | null>(null);
   const perPage = getPerPage();
   const [page, setPage] = useState(1);
-  useEffect(() => { setPage(1); }, [q, fStatus, fIndustry, fTemp, fContact]);
+  useEffect(() => { setPage(1); }, [q, fStatus, fIndustry, fTemp, fContact, fRep]);
 
   const industries = useMemo(() => Array.from(new Set(leads.map((l) => l.industry).filter(Boolean))) as string[], [leads]);
   // leads que dá pra enriquecer: têm site mas ainda sem e-mail
@@ -83,15 +84,16 @@ export function LeadsScreen() {
         if (fContact === "hasPhone" && !hasPhone) return false;
         if (fContact === "noPhone" && hasPhone) return false;
       }
+      if (fRep === "risk" && !reputationRisk(l)) return false;
       if (term) {
         const hay = `${l.company} ${l.contact ?? ""} ${l.phone ?? ""} ${l.email ?? ""} ${l.location ?? ""}`.toLowerCase();
         if (!hay.includes(term)) return false;
       }
       return true;
     });
-  }, [leads, q, fStatus, fIndustry, fTemp, fContact]);
+  }, [leads, q, fStatus, fIndustry, fTemp, fContact, fRep]);
 
-  const activeFilters = (fStatus !== "all" ? 1 : 0) + (fIndustry !== "all" ? 1 : 0) + (fTemp !== "all" ? 1 : 0) + (fContact !== "all" ? 1 : 0);
+  const activeFilters = (fStatus !== "all" ? 1 : 0) + (fIndustry !== "all" ? 1 : 0) + (fTemp !== "all" ? 1 : 0) + (fContact !== "all" ? 1 : 0) + (fRep !== "all" ? 1 : 0);
   const allOn = filtered.length > 0 && filtered.every((l) => selected.has(l.id));
   const selCount = selected.size;
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
@@ -154,7 +156,8 @@ export function LeadsScreen() {
             <Select value={fIndustry} onChange={setFIndustry} label={L.industry} options={[["all", L.all], ...industries.map((i) => [i, i] as [string, string])]} />
             <Select value={fTemp} onChange={(v) => setFTemp(v as Temperature | "all")} label={L.temperature} options={[["all", L.all], ["hot", L.hot], ["warm", L.warm], ["cool", L.cool]]} />
             <Select value={fContact} onChange={(v) => setFContact(v as ContactFilter)} label={X.contact} options={[["all", X.cAny], ["hasEmail", X.cHasEmail], ["noEmail", X.cNoEmail], ["hasPhone", X.cHasPhone], ["noPhone", X.cNoPhone]]} />
-            <button onClick={() => { setFStatus("all"); setFIndustry("all"); setFTemp("all"); setFContact("all"); }} style={{ height: 40, padding: "0 16px", borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-muted)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{L.clearFilters}</button>
+            <Select value={fRep} onChange={(v) => setFRep(v as "all" | "risk")} label={X.rep} options={[["all", X.repAll], ["risk", X.repRisk]]} />
+            <button onClick={() => { setFStatus("all"); setFIndustry("all"); setFTemp("all"); setFContact("all"); setFRep("all"); }} style={{ height: 40, padding: "0 16px", borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-muted)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{L.clearFilters}</button>
           </div>
         )}
 

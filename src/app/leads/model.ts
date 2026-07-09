@@ -39,6 +39,13 @@ export interface LeadRow {
   source: string | null;
   tags: string[];
   tech: TechInfo | null;
+  rating: number | null;   // nota do Google Maps (0–5)
+  reviews: number | null;  // nº de avaliações
+}
+
+// "Reputação em risco" (Maps Audit grátis): tem nota e ela é baixa (<= 3.5).
+export function reputationRisk(l: { rating: number | null }): boolean {
+  return l.rating != null && l.rating <= 3.5;
 }
 
 export function mapLead(r: DbLead): LeadRow {
@@ -62,6 +69,8 @@ export function mapLead(r: DbLead): LeadRow {
     source: r.source,
     tags: Array.isArray(r.tags) ? (r.tags as string[]) : [],
     tech: ((r as { tech?: TechInfo | null }).tech) ?? null,
+    rating: r.rating != null ? Number(r.rating) : null,
+    reviews: r.user_ratings_total ?? null,
   };
 }
 
