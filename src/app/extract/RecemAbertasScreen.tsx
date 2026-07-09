@@ -4,6 +4,7 @@ import { useLang } from "../LangTheme";
 import { useAuth } from "../AuthContext";
 import { Icon } from "../icons";
 import type { ScreenKey } from "@/i18n/ml";
+import { StagingDetailModal, type StagingCompany, type Badge as BadgeT } from "./StagingDetailModal";
 
 const Panel = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
   <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 20, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)", ...style }}>{children}</div>
@@ -20,7 +21,7 @@ const DICT = {
     quotaLabel: "Plano", quotaMonth: "leads extraídos este mês", quotaOf: "de", unlimited: "ilimitado", willUse: "vão usar", ofQuota: "da sua cota",
     selNew: "Selecionar novos", goLeads: "Ver na lista de Leads", addN: "Adicionar à lista",
     limitHit: "Você atingiu o limite do plano", limitExceed: "Essa seleção passa do seu limite (cabem mais", upgrade: "Fazer upgrade",
-    badgeNew: "novo", badgeExists: "já existe", badgeMei: "MEI", prev: "Anterior", next: "Próximo", page: "Página",
+    badgeNew: "novo", badgeExists: "já existe", badgeMei: "MEI", detail: "Ver detalhe", prev: "Anterior", next: "Próximo", page: "Página",
   },
   en: {
     title: "Newly Opened Companies", sub: "Recently registered companies, straight from the registry",
@@ -32,7 +33,7 @@ const DICT = {
     quotaLabel: "Plan", quotaMonth: "leads extracted this month", quotaOf: "of", unlimited: "unlimited", willUse: "will use", ofQuota: "of your quota",
     selNew: "Select new", goLeads: "View in Leads list", addN: "Add to list",
     limitHit: "You reached the limit of the plan", limitExceed: "This selection exceeds your limit (only", upgrade: "Upgrade",
-    badgeNew: "new", badgeExists: "exists", badgeMei: "MEI", prev: "Previous", next: "Next", page: "Page",
+    badgeNew: "new", badgeExists: "exists", badgeMei: "MEI", detail: "View detail", prev: "Previous", next: "Next", page: "Page",
   },
   es: {
     title: "Empresas Recién Abiertas", sub: "Empresas registradas recientemente, directo del registro",
@@ -44,7 +45,7 @@ const DICT = {
     quotaLabel: "Plan", quotaMonth: "leads extraídos este mes", quotaOf: "de", unlimited: "ilimitado", willUse: "usarán", ofQuota: "de tu cuota",
     selNew: "Seleccionar nuevos", goLeads: "Ver en la lista de Leads", addN: "Añadir a la lista",
     limitHit: "Alcanzaste el límite del plan", limitExceed: "Esta selección supera tu límite (caben", upgrade: "Mejorar plan",
-    badgeNew: "nuevo", badgeExists: "ya existe", badgeMei: "MEI", prev: "Anterior", next: "Siguiente", page: "Página",
+    badgeNew: "nuevo", badgeExists: "ya existe", badgeMei: "MEI", detail: "Ver detalle", prev: "Anterior", next: "Siguiente", page: "Página",
   },
 };
 
@@ -78,6 +79,7 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [added, setAdded] = useState<Set<string>>(new Set());
   const [importing, setImporting] = useState(false);
+  const [drawer, setDrawer] = useState<Row | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   const PAGE_SIZE = 50;
@@ -217,7 +219,7 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
                     <button onClick={() => !dupe && toggle(r.cnpj)} disabled={dupe} aria-label="select" style={{ width: 20, height: 20, flexShrink: 0, borderRadius: 6, border: `1.6px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "var(--ml-primary)" : "transparent", display: "grid", placeItems: "center", cursor: dupe ? "not-allowed" : "pointer", opacity: dupe ? 0.4 : 1, padding: 0 }}>
                       {on && <Icon name="check" size={13} strokeWidth={3} style={{ color: "#fff" }} />}
                     </button>
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <button onClick={() => setDrawer(r)} style={{ flex: 1, minWidth: 0, textAlign: "left", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                         <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ml-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 240 }}>{r.company}</span>
                         <Badge color={dupe ? "var(--ml-muted)" : "#059669"} bg={dupe ? "var(--ml-grid)" : "rgba(16,185,129,.13)"}>{dupe ? D.badgeExists : D.badgeNew}</Badge>
@@ -226,10 +228,11 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
                       <div style={{ fontSize: 12, color: "var(--ml-muted)", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {[r.cnae, [r.municipio, r.uf].filter(Boolean).join("/"), r.abertura].filter(Boolean).join(" · ")}
                       </div>
-                    </div>
+                    </button>
                     <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
                       {r.email && <span style={{ color: "var(--ml-green)", flexShrink: 0 }} title={r.email}><Icon name="mail" size={15} /></span>}
                       <span style={{ fontSize: 12.5, color: "var(--ml-muted)", whiteSpace: "nowrap" }}>{r.phone || "—"}</span>
+                      <button onClick={() => setDrawer(r)} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "var(--ml-primary)", fontWeight: 600, fontSize: 12.5, cursor: "pointer", whiteSpace: "nowrap" }}>{D.detail} <span style={{ fontSize: 14 }}>→</span></button>
                     </div>
                   </div>
                 );
@@ -268,6 +271,23 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
           )}
         </Panel>
       )}
+
+      {drawer && (() => {
+        const dupe = isDupe(drawer);
+        const badges: BadgeT[] = [
+          { label: dupe ? D.badgeExists : D.badgeNew, color: dupe ? "var(--ml-muted)" : "#059669", bg: dupe ? "var(--ml-grid)" : "rgba(16,185,129,.13)" },
+        ];
+        if (drawer.situacao) badges.push({ label: drawer.situacao, color: "#059669", bg: "rgba(16,185,129,.13)" });
+        if (drawer.mei) badges.push({ label: D.badgeMei, color: "#6d5cf5", bg: "rgba(109,92,245,.1)" });
+        const data: StagingCompany = {
+          cnpj: drawer.cnpj, cnpjFmt: drawer.cnpjFmt, company: drawer.company,
+          razao_social: drawer.razao_social, nome_fantasia: drawer.nome_fantasia,
+          cnae: drawer.cnae, porte: drawer.porte, abertura: drawer.abertura, capital: drawer.capital,
+          uf: drawer.uf, municipio: drawer.municipio, mei: drawer.mei,
+          email: drawer.email, phone: drawer.phone,
+        };
+        return <StagingDetailModal data={data} badges={badges} added={dupe} importing={importing} onAdd={() => importCnpjs([drawer.cnpj])} onClose={() => setDrawer(null)} lang={lang} />;
+      })()}
     </div>
   );
 }

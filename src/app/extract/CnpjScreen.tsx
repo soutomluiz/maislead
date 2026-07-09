@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
-import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "../LangTheme";
 import { useAuth } from "../AuthContext";
-import { Icon, type IconName } from "../icons";
+import { Icon } from "../icons";
 import type { ScreenKey } from "@/i18n/ml";
+import { StagingDetailModal, type StagingCompany, type Badge as BadgeT } from "./StagingDetailModal";
 
 const Panel = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
   <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 20, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)", ...style }}>{children}</div>
@@ -76,7 +76,6 @@ const SIT_META: Record<string, { color: string; bg: string }> = {
   suspensa: { color: "#c07f0d", bg: "rgba(245,158,11,.13)" },
   other: { color: "var(--ml-muted)", bg: "var(--ml-grid)" },
 };
-const LOCALE: Record<string, string> = { pt: "pt-BR", en: "en-US", es: "es-ES" };
 
 function onlyDigits(s: string) { return s.replace(/\D/g, ""); }
 function isValidCnpj(c: string): boolean {
@@ -283,7 +282,20 @@ export function CnpjScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => void
         </Panel>
       )}
 
-      {drawer && <DetailDrawer row={drawer} added={isDupe(drawer)} importing={importing} onAdd={() => importCnpjs([drawer.cnpj])} onClose={() => setDrawer(null)} D={D} lang={lang} />}
+      {drawer && (() => {
+        const sm = SIT_META[drawer.situacaoKey] ?? SIT_META.other;
+        const badges: BadgeT[] = [
+          { label: isDupe(drawer) ? D.badgeExists : D.badgeNew, color: isDupe(drawer) ? "var(--ml-muted)" : "#059669", bg: isDupe(drawer) ? "var(--ml-grid)" : "rgba(16,185,129,.13)" },
+          { label: D.sit[drawer.situacaoKey] ?? drawer.situacao, color: sm.color, bg: sm.bg },
+        ];
+        const data: StagingCompany = {
+          cnpj: drawer.cnpj, cnpjFmt: drawer.cnpjFmt, company: drawer.company,
+          razao_social: drawer.razao_social, nome_fantasia: drawer.nome_fantasia,
+          cnae: drawer.cnae, porte: drawer.porte, abertura: drawer.abertura, capital: drawer.capital,
+          municipio: drawer.location, email: drawer.email, phone: drawer.phone, address: drawer.address,
+        };
+        return <StagingDetailModal data={data} badges={badges} added={isDupe(drawer)} importing={importing} onAdd={() => importCnpjs([drawer.cnpj])} onClose={() => setDrawer(null)} lang={lang} />;
+      })()}
     </div>
   );
 }
@@ -309,71 +321,6 @@ function QuotaBar({ quota, selCount, D }: { quota: Quota; selCount: number; D: t
       {!unlimited && selCount > 0 && (
         <div style={{ fontSize: 12, color: "var(--ml-primary)", fontWeight: 600, marginTop: 8 }}>+{selCount} {D.willUse} · {selPct}% {D.ofQuota}</div>
       )}
-    </div>
-  );
-}
-
-function DetailDrawer({ row, added, importing, onAdd, onClose, D, lang }: { row: Row; added: boolean; importing: boolean; onAdd: () => void; onClose: () => void; D: typeof DICT["pt"]; lang: "pt" | "en" | "es" }) {
-  const sm = SIT_META[row.situacaoKey] ?? SIT_META.other;
-  const abertura = row.abertura ? (() => { try { return new Date(row.abertura + "T00:00:00").toLocaleDateString(LOCALE[lang]); } catch { return row.abertura; } })() : "—";
-  const target = (typeof document !== "undefined" && document.querySelector(".ml-root")) as HTMLElement | null;
-  const node = (
-    <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(20,17,40,.5)", backdropFilter: "blur(3px)", zIndex: 76 }} />
-      <aside className="ml-scroll" style={{ position: "fixed", top: 0, right: 0, height: "100vh", width: "min(460px,94vw)", background: "var(--ml-bg)", borderLeft: "1px solid var(--ml-border)", zIndex: 77, boxShadow: "-18px 0 50px rgba(20,17,40,.16)", overflowY: "auto", padding: 22, animation: "mlDrawerIn .3s cubic-bezier(.4,0,.2,1)" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 18, gap: 12 }}>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ml-muted)", textTransform: "uppercase", letterSpacing: 0.6 }}>{D.dReceita}</div>
-            <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.25, marginTop: 4 }}>{row.company}</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 12.5, color: "var(--ml-muted)" }}>{row.cnpjFmt}</span>
-              <Badge color={sm.color} bg={sm.bg}>{D.sit[row.situacaoKey] ?? row.situacao}</Badge>
-            </div>
-          </div>
-          <button onClick={onClose} style={{ width: 34, height: 34, borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-text)", cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name="x" size={17} strokeWidth={2.2} /></button>
-        </div>
-
-        {/* dados */}
-        <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 18, marginBottom: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 14px" }}>
-          <Field label={D.dRazao} value={row.razao_social} span />
-          <Field label={D.dFantasia} value={row.nome_fantasia || "—"} />
-          <Field label={D.dPorte} value={row.porte || "—"} />
-          <Field label={D.dCnae} value={row.cnae || "—"} span />
-          <Field label={D.dAbertura} value={abertura} />
-          <Field label={D.dCapital} value={row.capital || "—"} />
-        </div>
-
-        {/* contato */}
-        <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: "6px 16px", marginBottom: 18 }}>
-          <DrawerContact icon="phone" value={row.phone} />
-          <DrawerContact icon="mail" value={row.email} />
-          <DrawerContact icon="mapPin" value={row.address} />
-        </div>
-
-        <button onClick={onAdd} disabled={added || importing} style={{ width: "100%", height: 48, borderRadius: 13, border: "none", background: added ? "var(--ml-grid)" : "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: added ? "var(--ml-muted)" : "#fff", fontWeight: 700, fontSize: 15, cursor: added || importing ? "default" : "pointer", opacity: importing && !added ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: added ? "none" : "0 8px 18px rgba(109,92,245,.28)" }}>
-          {added ? <><Icon name="check" size={16} />{D.added}</> : importing ? <><Icon name="loader" size={16} className="ml-spin" />{D.adding}</> : <><Icon name="plus" size={16} strokeWidth={2.4} />{D.addN}</>}
-        </button>
-      </aside>
-    </>
-  );
-  return target ? createPortal(node, target) : node;
-}
-
-function Field({ label, value, span }: { label: string; value: string; span?: boolean }) {
-  return (
-    <div style={{ gridColumn: span ? "1 / -1" : undefined, minWidth: 0 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ml-muted)", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 13.5, color: "var(--ml-text)", fontWeight: 600, lineHeight: 1.4 }}>{value}</div>
-    </div>
-  );
-}
-
-function DrawerContact({ icon, value }: { icon: IconName; value: string | null }) {
-  const present = !!(value && value.trim() && value.trim() !== "—");
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 2px", fontSize: 13.5 }}>
-      <span style={{ color: present ? "var(--ml-primary)" : "var(--ml-muted)", flexShrink: 0 }}><Icon name={icon} size={16} /></span>
-      <span style={{ color: present ? "var(--ml-text)" : "var(--ml-muted)", overflow: "hidden", textOverflow: "ellipsis" }}>{present ? value : "—"}</span>
     </div>
   );
 }

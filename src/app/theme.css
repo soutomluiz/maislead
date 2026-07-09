@@ -65,3 +65,4 @@
 @keyframes mlSpin { to { transform: rotate(360deg); } }
 .ml-spin { animation: mlSpin .8s linear infinite; }
 @keyframes mlDrawerIn { from { transform: translateX(105%); } to { transform: translateX(0); } }
+@keyframes mlModalIn { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }

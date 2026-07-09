@@ -1,6 +1,6 @@
 import { useEffect, useState, CSSProperties } from "react";
-import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { CenterModal } from "../CenterModal";
 import { useLang } from "../LangTheme";
 import { useAuth } from "../AuthContext";
 import { Icon, IconName } from "../icons";
@@ -16,7 +16,6 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
   const { lang } = useLang();
   const { account } = useAuth();
   const L = leadsI18n[lang];
-  const open = !!lead;
 
   const [status, setStatus] = useState<LeadStatus>("new");
   const [notes, setNotes] = useState<LeadNote[]>([]);
@@ -115,13 +114,10 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
     { label: L.pNiche, on: bd.niche > 0, pts: bd.niche },
   ] : [];
 
-  const target = (typeof document !== "undefined" && document.querySelector(".ml-root")) as HTMLElement | null;
-  const node = (
-    <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(20,17,40,.5)", backdropFilter: open ? "blur(3px)" : "none", zIndex: 50, transition: "opacity .28s", opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none" }} />
-      <aside className="ml-scroll" style={{ position: "fixed", top: 0, right: 0, height: "100vh", width: "min(480px,94vw)", background: "var(--ml-bg)", borderLeft: "1px solid var(--ml-border)", zIndex: 51, boxShadow: "-18px 0 50px rgba(20,17,40,.16)", transition: "transform .32s cubic-bezier(.4,0,.2,1)", transform: open ? "translateX(0)" : "translateX(105%)", overflowY: "auto", padding: 22 }}>
-        {lead && (
-          <>
+  if (!lead) return null;
+  return (
+    <CenterModal onClose={onClose} width={520}>
+      <div style={{ padding: 24 }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 18 }}>
               <div style={{ display: "flex", gap: 14 }}>
                 <div style={{ width: 54, height: 54, borderRadius: 15, background: "linear-gradient(135deg,#6d5cf5,#9d7bff)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 19, flexShrink: 0 }}>{initials}</div>
@@ -266,12 +262,9 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
                 ))}
               </div>
             </div>
-          </>
-        )}
-      </aside>
-    </>
+      </div>
+    </CenterModal>
   );
-  return target ? createPortal(node, target) : node;
 }
 
 function ContactRow({ icon, value }: { icon: IconName; value: string | null }) {
