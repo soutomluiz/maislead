@@ -50,8 +50,9 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
     try {
       const { data, error } = await supabase.functions.invoke("enrich-emails", { body: { leadIds: [lead.id] } });
       if (error || data?.error) { setEnrichMsg(EN[lang].fail); return; }
-      if ((data.enriched ?? 0) > 0 && data.sample?.[0]?.email) {
-        setEmailOverride(data.sample[0].email);
+      const foundEmail = data.results?.[0]?.email ?? null;
+      if (((data.found ?? data.enriched) ?? 0) > 0 && foundEmail) {
+        setEmailOverride(foundEmail);
         onChanged();
       } else {
         setEnrichMsg(EN[lang].none);
@@ -117,8 +118,8 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
 
   if (!lead) return null;
   return (
-    <CenterModal onClose={onClose} width={520}>
-      <div style={{ padding: 24 }}>
+    <CenterModal onClose={onClose} width={780}>
+      <div style={{ padding: 26 }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 18 }}>
               <div style={{ display: "flex", gap: 14 }}>
                 <div style={{ width: 54, height: 54, borderRadius: 15, background: "linear-gradient(135deg,#6d5cf5,#9d7bff)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 19, flexShrink: 0 }}>{initials}</div>
@@ -141,6 +142,8 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
               })}
             </div>
 
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 18, alignItems: "start" }}>
+              <div>
             {/* score + breakdown */}
             <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 18, marginBottom: 18 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
@@ -203,6 +206,9 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
               )}
             </div>
 
+              </div>
+
+              <div>
             {/* reputação (Google Maps) */}
             {lead.rating != null && (
               <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 16, marginBottom: 18 }}>
@@ -260,6 +266,8 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
 
             {/* IA de abordagem */}
             <PitchPanel leadId={lead.id} lang={lang} />
+              </div>
+            </div>
 
             {/* ações */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 20 }}>

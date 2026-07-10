@@ -35,6 +35,26 @@ export async function updateLeadStatus(ids: string[], status: LeadStatus, accoun
   }
 }
 
+// Adiciona uma tag a 1+ leads (sem duplicar) e registra na timeline.
+export async function addTagToLeads(ids: string[], tag: string, accountId?: string | null) {
+  const t = tag.trim();
+  if (!t || !ids.length) return;
+  const { data: rows, error } = await supabase.from("leads").select("id, tags").in("id", ids);
+  if (error) throw error;
+  const changed: string[] = [];
+  await Promise.all((rows ?? []).map((r) => {
+    const cur = Array.isArray(r.tags) ? (r.tags as string[]) : [];
+    if (cur.includes(t)) return Promise.resolve();
+    changed.push(r.id as string);
+    return supabase.from("leads").update({ tags: [...cur, t] }).eq("id", r.id);
+  }));
+  if (accountId && changed.length) {
+    await supabase.from("lead_events").insert(
+      changed.map((lead_id) => ({ lead_id, account_id: accountId, type: "tag_added", payload: { tag: t } }))
+    );
+  }
+}
+
 export interface LeadNote { id: string; body: string; created_at: string; }
 
 export async function fetchNotes(leadId: string): Promise<LeadNote[]> {

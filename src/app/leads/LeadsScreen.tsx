@@ -11,6 +11,7 @@ import { MassEmailModal } from "./MassEmailModal";
 import { ImportCsvModal } from "./ImportCsvModal";
 import { EnrichEmailsModal } from "./EnrichEmailsModal";
 import { DetectTechModal } from "./DetectTechModal";
+import { AddTagModal } from "./AddTagModal";
 import type { Temperature } from "@/lib/score";
 
 const XT = {
@@ -52,6 +53,8 @@ export function LeadsScreen() {
   const [enrichIds, setEnrichIds] = useState<string[]>([]);
   const [techOpen, setTechOpen] = useState(false);
   const [techIds, setTechIds] = useState<string[]>([]);
+  const [tagOpen, setTagOpen] = useState(false);
+  const [tagIds, setTagIds] = useState<string[]>([]);
 
   const [q, setQ] = useState("");
   const [fStatus, setFStatus] = useState<LeadStatus | "all">("all");
@@ -173,7 +176,7 @@ export function LeadsScreen() {
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#6d5cf5"; e.currentTarget.style.color = "#6d5cf5"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--ml-border)"; e.currentTarget.style.color = "var(--ml-text)"; }}><Icon name="cpu" size={15} /> {X.detectTech}</button>
             <button onClick={() => setEmailOpen(true)} style={bulkOutline}><Icon name="mail" size={15} /> {X.massEmail}</button>
-            <button style={bulkOutline}><Icon name="tag" size={14} /> {X.addTag}</button>
+            <button onClick={() => { setTagIds([...selected]); setTagOpen(true); }} style={bulkOutline}><Icon name="tag" size={14} /> {X.addTag}</button>
             <button onClick={() => exportLeads(leads.filter((l) => selected.has(l.id)), getExportFormat())} style={bulkOutline}><Icon name="download" size={14} /> {L.exportCsv}</button>
             {(["new", "qualified", "converted"] as LeadStatus[]).map((s) => (
               <button key={s} onClick={() => bulkStatus(s)} style={{ ...bulkOutline, color: STATUS_META[s].color, borderColor: "var(--ml-border)" }}>{L[s]}</button>
@@ -265,6 +268,7 @@ export function LeadsScreen() {
       {enrichOpen && <EnrichEmailsModal leadIds={enrichIds} onDone={refetch} onClose={() => setEnrichOpen(false)} />}
       {techOpen && <DetectTechModal leadIds={techIds} onDone={refetch} onClose={() => setTechOpen(false)} />}
       {importOpen && <ImportCsvModal accountId={account?.id} userId={session?.user?.id} existing={leads.map((l) => ({ phone: l.phone, website: l.website }))} onDone={refetch} onClose={() => setImportOpen(false)} />}
+      {tagOpen && <AddTagModal leadIds={tagIds} onDone={() => { setSelected(new Set()); refetch(); }} onClose={() => setTagOpen(false)} />}
     </div>
   );
 }

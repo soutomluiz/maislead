@@ -16,6 +16,7 @@ export function Topbar({ screen }: { screen: ScreenKey }) {
   const role = profile?.account_role ?? "admin";
   const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
   const initials = name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+  const avatarUrl = profile?.avatar_url ?? null;
 
   const iconBtn: CSSProperties = { width: 40, height: 40, borderRadius: 11, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-muted)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" };
 
@@ -52,7 +53,9 @@ export function Topbar({ screen }: { screen: ScreenKey }) {
           style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "4px 10px 4px 4px", borderRadius: 30, border: "none", background: "transparent", transition: ".15s" }}
           onMouseEnter={(e) => { e.currentTarget.style.background = "var(--ml-hover)"; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}>
-          <span style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg,#6d5cf5,#9d7bff)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>{initials}</span>
+          <span style={{ width: 38, height: 38, borderRadius: "50%", overflow: "hidden", background: "linear-gradient(135deg,#6d5cf5,#9d7bff)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
+            {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials}
+          </span>
           <span style={{ textAlign: "left", lineHeight: 1.2 }}>
             <span style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--ml-text)", maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
             <span style={{ display: "block", fontSize: 11, color: "var(--ml-muted)" }}>{roleLabel}</span>

@@ -1,6 +1,7 @@
 import { useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { useLang } from "../LangTheme";
 import { Icon } from "../icons";
 import { scoreOf } from "@/lib/score";
@@ -108,7 +109,7 @@ export function ImportCsvModal({ accountId, userId, existing, onDone, onClose }:
     const seenPhones = new Set(existing.map((e) => normPhone(e.phone ?? undefined)).filter(Boolean));
     const seenSites = new Set(existing.map((e) => normSite(e.website ?? undefined)).filter(Boolean));
 
-    const toInsert: Record<string, unknown>[] = [];
+    const toInsert: TablesInsert<"leads">[] = [];
     let dup = 0, errCount = 0;
     for (let i = 1; i < rows.length; i++) {
       const r = rows[i];
