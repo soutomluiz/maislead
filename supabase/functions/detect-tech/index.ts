@@ -154,6 +154,13 @@ Deno.serve(async (req) => {
     const accountId = prof?.account_id;
     if (!accountId) return json({ error: "no_account" }, 400);
 
+    // gate: detecção de tecnologia é Pro+
+    const { data: gAcc } = await admin.from("accounts").select("plan").eq("id", accountId).single();
+    const { data: gRoles } = await admin.from("user_roles").select("role").eq("user_id", u.user.id);
+    const gIsAdmin = (gRoles ?? []).some((r: { role: string }) => r.role === "admin");
+    const gTier = ({ free: 0, starter: 0, pro: 1, business: 2 } as Record<string, number>)[(gAcc?.plan ?? "starter").toLowerCase()] ?? 0;
+    if (!gIsAdmin && gTier < 1) return json({ error: "feature_gated", message: "A detecção de tecnologia está disponível nos planos Pro e Business." }, 402);
+
     const { leadIds, limit, redetect }: Body = await req.json().catch(() => ({}));
     const cap = Math.min(Math.max(1, limit ?? 40), 40);
 

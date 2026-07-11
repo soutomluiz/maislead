@@ -254,6 +254,13 @@ Deno.serve(async (req) => {
     const accountId = prof?.account_id;
     if (!accountId) return json({ error: "no_account" }, 400);
 
+    // gate: pitch de IA é exclusivo do Business (custa tokens de IA por uso)
+    const { data: gAcc } = await admin.from("accounts").select("plan").eq("id", accountId).single();
+    const { data: gRoles } = await admin.from("user_roles").select("role").eq("user_id", u.user.id);
+    const gIsAdmin = (gRoles ?? []).some((r: { role: string }) => r.role === "admin");
+    const gTier = ({ free: 0, starter: 0, pro: 1, business: 2 } as Record<string, number>)[(gAcc?.plan ?? "starter").toLowerCase()] ?? 0;
+    if (!gIsAdmin && gTier < 2) return json({ error: "feature_gated", message: "O pitch de IA é exclusivo do plano Business." }, 402);
+
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const lang = (["pt", "en", "es"].includes(String(body.lang)) ? body.lang : "pt") as string;
 

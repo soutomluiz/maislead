@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Icon } from "../icons";
+import { usePlan, upsellText } from "../plan";
 
 // IA de Abordagem — gera 3 mensagens de prospecção personalizadas a partir dos sinais do lead
 // (tecnologia do site, reputação no Google, recém-aberta, CNAE…) via edge function generate-pitch
@@ -38,6 +39,8 @@ const TIPO_META: Record<Lang, Record<Opcao["tipo"], { label: string; color: stri
 export function PitchPanel({ leadId, signals, lang }: { leadId?: string; signals?: PitchInlineSignals; lang: Lang }) {
   const D = DICT[lang];
   const TM = TIPO_META[lang];
+  const { can } = usePlan();
+  const locked = !can("pitch");
   const [loading, setLoading] = useState(false);
   const [opcoes, setOpcoes] = useState<Opcao[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -79,13 +82,22 @@ export function PitchPanel({ leadId, signals, lang }: { leadId?: string; signals
           <span style={{ color: "var(--ml-primary)" }}><Icon name="spark" size={15} /></span>
           <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ml-navtext)" }}>{D.title}</div>
         </div>
-        <button onClick={generate} disabled={loading} style={miniBtn(loading)}>
-          {loading ? <Icon name="loader" size={13} className="ml-spin" /> : <Icon name={opcoes ? "refresh" : "chat"} size={13} />}
-          {loading ? D.loading : opcoes ? D.again : D.gen}
-        </button>
+        {locked ? (
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(109,92,245,.1)", padding: "7px 12px", borderRadius: 9 }}>
+            <Icon name="crown" size={13} /> Business
+          </span>
+        ) : (
+          <button onClick={generate} disabled={loading} style={miniBtn(loading)}>
+            {loading ? <Icon name="loader" size={13} className="ml-spin" /> : <Icon name={opcoes ? "refresh" : "chat"} size={13} />}
+            {loading ? D.loading : opcoes ? D.again : D.gen}
+          </button>
+        )}
       </div>
 
-      {!opcoes && !loading && !err && (
+      {locked && (
+        <div style={{ fontSize: 12.5, color: "var(--ml-muted)", marginTop: 10, lineHeight: 1.5 }}>{upsellText("pitch", lang)}</div>
+      )}
+      {!locked && !opcoes && !loading && !err && (
         <div style={{ fontSize: 12.5, color: "var(--ml-muted)", marginTop: 10, lineHeight: 1.5 }}>{D.sub}</div>
       )}
 

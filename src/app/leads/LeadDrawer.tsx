@@ -10,12 +10,14 @@ import { updateLeadStatus, fetchNotes, addNote, LeadNote } from "./useLeads";
 import { TechChips } from "./DetectTechModal";
 import { techOpportunities } from "./techInsights";
 import { PitchPanel } from "./PitchPanel";
+import { usePlan, upsellText, minPlanLabel, type Feature } from "../plan";
 
 const STATUSES: LeadStatus[] = ["new", "qualified", "converted"];
 
 export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null; onClose: () => void; onChanged: () => void }) {
   const { lang } = useLang();
   const { account } = useAuth();
+  const { can } = usePlan();
   const L = leadsI18n[lang];
 
   const [status, setStatus] = useState<LeadStatus>("new");
@@ -178,6 +180,8 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--ml-green)", background: "rgba(16,185,129,.1)", padding: "9px 12px", borderRadius: 10 }}>
                     <Icon name="check" size={14} /> {EN[lang].ok}
                   </div>
+                ) : !can("enrich") ? (
+                  <LockPill feature="enrich" lang={lang} full />
                 ) : (
                   <>
                     <button onClick={runEnrich} disabled={enriching} style={{ display: "flex", alignItems: "center", gap: 7, width: "100%", justifyContent: "center", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--ml-primary)", background: "rgba(109,92,245,.08)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 13, cursor: enriching ? "default" : "pointer" }}>
@@ -193,9 +197,11 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
             <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 16, marginBottom: 18 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: verify ? 12 : 0 }}>
                 <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ml-navtext)" }}>{VDICT[lang].title}</div>
+                {can("verify") ? (
                 <button onClick={runVerify} disabled={verifying} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 9, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 12.5, cursor: verifying ? "default" : "pointer" }}>
                   {verifying ? <Icon name="loader" size={13} className="ml-spin" /> : <Icon name="check" size={13} />}{VDICT[lang].run}
                 </button>
+                ) : <LockPill feature="verify" lang={lang} />}
               </div>
               {verify && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -234,9 +240,11 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
               <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: 16, marginBottom: 18 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: shownTech ? 12 : 0 }}>
                   <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ml-navtext)" }}>{TD[lang].title}</div>
+                  {can("detectTech") ? (
                   <button onClick={runDetectTech} disabled={detecting} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 9, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 12.5, cursor: detecting ? "default" : "pointer" }}>
                     {detecting ? <Icon name="loader" size={13} className="ml-spin" /> : <Icon name="cpu" size={13} />}{shownTech ? TD[lang].again : TD[lang].run}
                   </button>
+                  ) : <LockPill feature="detectTech" lang={lang} />}
                 </div>
                 {shownTech && <TechChips tech={shownTech} noStack={TD[lang].none} noPixelLabel={TD[lang].noPixel} lang={lang} />}
                 {shownTech && (() => {
@@ -296,6 +304,18 @@ export function LeadDrawer({ lead, onClose, onChanged }: { lead: LeadRow | null;
             </div>
       </div>
     </CenterModal>
+  );
+}
+
+function LockPill({ feature, lang, full }: { feature: Feature; lang: "pt" | "en" | "es"; full?: boolean }) {
+  const label = minPlanLabel(feature);
+  return (
+    <span
+      title={upsellText(feature, lang)}
+      style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(109,92,245,.1)", padding: "7px 12px", borderRadius: 9, width: full ? "100%" : undefined, cursor: "help" }}
+    >
+      <Icon name={label === "Business" ? "crown" : "lock"} size={13} /> {label}
+    </span>
   );
 }
 

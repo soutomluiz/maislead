@@ -12,6 +12,7 @@ import { ImportCsvModal } from "./ImportCsvModal";
 import { EnrichEmailsModal } from "./EnrichEmailsModal";
 import { DetectTechModal } from "./DetectTechModal";
 import { AddTagModal } from "./AddTagModal";
+import { usePlan, upsellText, minPlanLabel, type Feature } from "../plan";
 import type { Temperature } from "@/lib/score";
 
 const XT = {
@@ -55,6 +56,9 @@ export function LeadsScreen() {
   const [techIds, setTechIds] = useState<string[]>([]);
   const [tagOpen, setTagOpen] = useState(false);
   const [tagIds, setTagIds] = useState<string[]>([]);
+  const { can } = usePlan();
+  const [gated, setGated] = useState<Feature | null>(null);
+  const gate = (f: Feature, action: () => void) => () => (can(f) ? action() : setGated(f));
 
   const [q, setQ] = useState("");
   const [fStatus, setFStatus] = useState<LeadStatus | "all">("all");
@@ -169,19 +173,27 @@ export function LeadsScreen() {
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 20px", borderBottom: "1px solid var(--ml-border)", background: "rgba(109,92,245,.07)", flexWrap: "wrap" }}>
             <span style={{ fontSize: 13.5, fontWeight: 700, color: "#6d5cf5" }}>{selCount} {selCount === 1 ? L.selectedOne : L.selected}</span>
             <span style={{ flex: 1 }} />
-            <button onClick={() => { setEnrichIds([...selected]); setEnrichOpen(true); }} style={{ ...bulkOutline, fontWeight: 700 }}
+            <button onClick={gate("enrich", () => { setEnrichIds([...selected]); setEnrichOpen(true); })} style={{ ...bulkOutline, fontWeight: 700 }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#6d5cf5"; e.currentTarget.style.color = "#6d5cf5"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--ml-border)"; e.currentTarget.style.color = "var(--ml-text)"; }}><Icon name="search" size={15} /> {X.findEmail}</button>
-            <button onClick={() => { setTechIds([...selected]); setTechOpen(true); }} style={{ ...bulkOutline, fontWeight: 700 }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--ml-border)"; e.currentTarget.style.color = "var(--ml-text)"; }}><Icon name="search" size={15} /> {X.findEmail}{!can("enrich") && <Icon name="lock" size={12} />}</button>
+            <button onClick={gate("detectTech", () => { setTechIds([...selected]); setTechOpen(true); })} style={{ ...bulkOutline, fontWeight: 700 }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#6d5cf5"; e.currentTarget.style.color = "#6d5cf5"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--ml-border)"; e.currentTarget.style.color = "var(--ml-text)"; }}><Icon name="cpu" size={15} /> {X.detectTech}</button>
-            <button onClick={() => setEmailOpen(true)} style={bulkOutline}><Icon name="mail" size={15} /> {X.massEmail}</button>
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--ml-border)"; e.currentTarget.style.color = "var(--ml-text)"; }}><Icon name="cpu" size={15} /> {X.detectTech}{!can("detectTech") && <Icon name="lock" size={12} />}</button>
+            <button onClick={gate("massEmail", () => setEmailOpen(true))} style={bulkOutline}><Icon name="mail" size={15} /> {X.massEmail}{!can("massEmail") && <Icon name="lock" size={12} />}</button>
             <button onClick={() => { setTagIds([...selected]); setTagOpen(true); }} style={bulkOutline}><Icon name="tag" size={14} /> {X.addTag}</button>
             <button onClick={() => exportLeads(leads.filter((l) => selected.has(l.id)), getExportFormat())} style={bulkOutline}><Icon name="download" size={14} /> {L.exportCsv}</button>
             {(["new", "qualified", "converted"] as LeadStatus[]).map((s) => (
               <button key={s} onClick={() => bulkStatus(s)} style={{ ...bulkOutline, color: STATUS_META[s].color, borderColor: "var(--ml-border)" }}>{L[s]}</button>
             ))}
             <button onClick={() => setSelected(new Set())} title={L.clearSel} style={{ height: 38, width: 38, border: "1px solid var(--ml-border)", borderRadius: 10, background: "var(--ml-card)", color: "var(--ml-muted)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><Icon name="x" size={15} strokeWidth={2.2} /></button>
+          </div>
+        )}
+
+        {gated && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 20px", borderBottom: "1px solid var(--ml-border)", background: "rgba(109,92,245,.06)" }}>
+            <Icon name={minPlanLabel(gated) === "Business" ? "crown" : "lock"} size={15} style={{ color: "var(--ml-primary)", flexShrink: 0 }} />
+            <span style={{ fontSize: 13, color: "var(--ml-text)", flex: 1 }}>{upsellText(gated, lang)}</span>
+            <button onClick={() => setGated(null)} style={{ border: "none", background: "transparent", color: "var(--ml-muted)", cursor: "pointer", display: "flex" }}><Icon name="x" size={15} strokeWidth={2.2} /></button>
           </div>
         )}
 
