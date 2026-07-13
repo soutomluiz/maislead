@@ -16,7 +16,10 @@ import { IntegrationsScreen } from "./IntegrationsScreen";
 import type { ScreenKey } from "@/i18n/ml";
 
 export function AppShell() {
-  const [screen, setScreen] = useState<ScreenKey>("dashboard");
+  // Deep-link da landing: ?plan=pro|business abre direto na tela de Assinatura.
+  const [screen, setScreen] = useState<ScreenKey>(() => {
+    try { return new URLSearchParams(window.location.search).get("plan") ? "sub" : "dashboard"; } catch { return "dashboard"; }
+  });
 
   return (
     <div style={{ position: "relative", display: "flex", height: "100vh", width: "100%", overflow: "hidden", background: "var(--ml-bg)", color: "var(--ml-text)" }}>

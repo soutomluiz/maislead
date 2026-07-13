@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLang } from "./LangTheme";
 import { useAuth } from "./AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,12 +68,31 @@ export function SubScreen() {
   const [busy, setBusy] = useState<PlanKey | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  async function subscribe(plan: PlanKey) {
+  // Deep-link da landing: ?plan=pro|business&interval=monthly|annual → abre o checkout direto.
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (autoRan.current) return;
+    autoRan.current = true;
+    try {
+      const q = new URLSearchParams(window.location.search);
+      const p = q.get("plan");
+      const iv = q.get("interval") === "annual" ? "annual" : "monthly";
+      if (iv === "annual") setAnnual(true);
+      if (p === "pro" || p === "business") {
+        window.history.replaceState({}, "", window.location.pathname);
+        subscribe(p as PlanKey, iv);
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function subscribe(plan: PlanKey, intervalOverride?: "monthly" | "annual") {
     if (plan === "starter" || busy) return;
     setBusy(plan); setErr(null);
     try {
+      const interval = intervalOverride ?? (annual ? "annual" : "monthly");
       const { data, error } = await supabase.functions.invoke("stripe-checkout", {
-        body: { plan, interval: annual ? "annual" : "monthly", origin: window.location.origin },
+        body: { plan, interval, origin: window.location.origin },
       });
       let code: string | null = data?.error ?? null;
       if (error) {
