@@ -1,5 +1,6 @@
-// Cria uma sessão de Checkout do Stripe para o plano escolhido.
-// Secrets: STRIPE_SECRET_KEY, STRIPE_PRICE_PRO, STRIPE_PRICE_BUSINESS.
+// Cria uma sessão de Checkout do Stripe para o plano escolhido (mensal ou anual).
+// Secrets: STRIPE_SECRET_KEY, STRIPE_PRICE_PRO, STRIPE_PRICE_BUSINESS,
+//          STRIPE_PRICE_PRO_ANNUAL, STRIPE_PRICE_BUSINESS_ANNUAL.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const CORS = {
@@ -9,7 +10,13 @@ const CORS = {
 };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
-const PRICE_ENV: Record<string, string> = { pro: "STRIPE_PRICE_PRO", business: "STRIPE_PRICE_BUSINESS" };
+// (plano, intervalo) -> nome do secret com o price id
+const PRICE_ENV: Record<string, string> = {
+  "pro:monthly": "STRIPE_PRICE_PRO",
+  "pro:annual": "STRIPE_PRICE_PRO_ANNUAL",
+  "business:monthly": "STRIPE_PRICE_BUSINESS",
+  "business:annual": "STRIPE_PRICE_BUSINESS_ANNUAL",
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -17,9 +24,11 @@ Deno.serve(async (req) => {
     const SK = Deno.env.get("STRIPE_SECRET_KEY");
     if (!SK) return json({ error: "missing_api_key", message: "Configure o secret STRIPE_SECRET_KEY." }, 400);
 
-    const { plan, origin } = await req.json().catch(() => ({}));
-    const priceId = Deno.env.get(PRICE_ENV[plan] ?? "");
-    if (!priceId) return json({ error: "missing_price", message: `Configure o secret ${PRICE_ENV[plan] ?? "STRIPE_PRICE_*"}.` }, 400);
+    const { plan, interval, origin } = await req.json().catch(() => ({}));
+    const iv = interval === "annual" ? "annual" : "monthly";
+    const envName = PRICE_ENV[`${plan}:${iv}`] ?? "";
+    const priceId = Deno.env.get(envName);
+    if (!priceId) return json({ error: "missing_price", message: `Configure o secret ${envName || "STRIPE_PRICE_*"}.` }, 400);
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { autoRefreshToken: false, persistSession: false } });
     const authTok = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -42,6 +51,7 @@ Deno.serve(async (req) => {
     params.set("client_reference_id", accountId);
     params.set("metadata[account_id]", accountId);
     params.set("metadata[plan]", plan);
+    params.set("metadata[interval]", iv);
     if (acc?.stripe_customer_id) params.set("customer", acc.stripe_customer_id);
     else if (email) params.set("customer_email", email);
 
