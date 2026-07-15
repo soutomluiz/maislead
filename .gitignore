@@ -28,6 +28,9 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Build cache do TypeScript
+*.tsbuildinfo
+
 # Local junk
 arquivos.txt
 result.txt
