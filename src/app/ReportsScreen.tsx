@@ -108,7 +108,7 @@ export function ReportsScreen() {
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {tabs.map(([k, lbl, icon]) => {
             const on = tab === k;
-            return <button key={k} onClick={() => setTab(k)} style={{ height: 40, padding: "0 16px", display: "flex", alignItems: "center", gap: 8, borderRadius: 11, fontSize: 13.5, fontWeight: 600, cursor: "pointer", border: `1px solid ${on ? "#6d5cf5" : "var(--ml-border)"}`, background: on ? "#6d5cf5" : "var(--ml-card)", color: on ? "#fff" : "var(--ml-text)" }}><Icon name={icon} size={15} />{lbl}</button>;
+            return <button key={k} onClick={() => setTab(k)} style={{ height: 40, padding: "0 16px", display: "flex", alignItems: "center", gap: 8, borderRadius: 11, fontSize: 13.5, fontWeight: 600, cursor: "pointer", border: `1px solid ${on ? "#4c2ee0" : "var(--ml-border)"}`, background: on ? "#4c2ee0" : "var(--ml-card)", color: on ? "#fff" : "var(--ml-text)" }}><Icon name={icon} size={15} />{lbl}</button>;
           })}
         </div>
         <div style={{ display: "flex", gap: 10 }}>

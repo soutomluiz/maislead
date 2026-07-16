@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
       email: mail,
       password: String(password),
       email_confirm: true,
-      user_metadata: { full_name: String(name ?? "").trim() },
+      user_metadata: { full_name: String(name ?? "").trim(), company_name: String(company ?? "").trim() },
     });
     if (ce || !created?.user) {
       const msg = ce?.message ?? "";
@@ -62,8 +62,10 @@ Deno.serve(async (req) => {
       accountId = prof?.account_id ?? null;
       if (!accountId) await new Promise((r) => setTimeout(r, 200));
     }
-    if (accountId && String(company ?? "").trim()) {
-      await admin.from("accounts").update({ name: String(company).trim() }).eq("id", accountId);
+    if (String(company ?? "").trim()) {
+      // empresa vira o nome da conta E o company_name do perfil (fonte do {minhaEmpresa} no WhatsApp)
+      if (accountId) await admin.from("accounts").update({ name: String(company).trim() }).eq("id", accountId);
+      await admin.from("profiles").update({ company_name: String(company).trim() }).eq("id", userId);
     }
 
     // cria a Stripe Checkout Session do price exato

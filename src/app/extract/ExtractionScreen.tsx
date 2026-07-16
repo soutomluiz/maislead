@@ -123,7 +123,7 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
       {/* card de busca */}
       <Panel style={{ padding: 32, borderRadius: 22 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 24 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 15, background: source === "google_maps" ? "rgba(109,92,245,.12)" : "rgba(16,185,129,.14)", color: source === "google_maps" ? "var(--ml-primary)" : "var(--ml-green)", display: "grid", placeItems: "center" }}><Icon name={source === "google_maps" ? "mapPin" : "globe"} size={24} /></div>
+          <div style={{ width: 52, height: 52, borderRadius: 15, background: source === "google_maps" ? "rgba(76,46,224,.12)" : "rgba(16,185,129,.14)", color: source === "google_maps" ? "var(--ml-primary)" : "var(--ml-green)", display: "grid", placeItems: "center" }}><Icon name={source === "google_maps" ? "mapPin" : "globe"} size={24} /></div>
           <div>
             <div style={{ fontSize: 19, fontWeight: 800 }}>{title}</div>
             <div style={{ fontSize: 13.5, color: "var(--ml-muted)" }}>{sub}</div>
@@ -141,7 +141,7 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
           </div>
         </div>
 
-        <button onClick={run} disabled={busy} style={{ width: "100%", height: 50, marginTop: 22, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1, boxShadow: "0 10px 24px rgba(109,92,245,.32)" }}>
+        <button onClick={run} disabled={busy} style={{ width: "100%", height: 50, marginTop: 22, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1, boxShadow: "0 10px 24px rgba(76,46,224,.32)" }}>
           {busy ? <Icon name="loader" size={17} className="ml-spin" /> : <Icon name="search" size={17} />}{busy ? D.searching : D.search}
         </button>
 
@@ -208,7 +208,7 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
                     <div style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.query}</div>
                     {s.location && <div style={{ fontSize: 11.5, color: "var(--ml-muted)" }}>{s.location}</div>}
                   </span>
-                  <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(109,92,245,.12)", padding: "3px 9px", borderRadius: 20 }}>{s.count} leads</span>
+                  <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(76,46,224,.12)", padding: "3px 9px", borderRadius: 20 }}>{s.count} leads</span>
                 </button>
               ))}
             </div>
@@ -235,4 +235,4 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
 
 const lbl: CSSProperties = { display: "block", fontSize: 12.5, fontWeight: 600, color: "var(--ml-navtext)", marginBottom: 7 };
 const inp: CSSProperties = { width: "100%", height: 48, padding: "0 14px", borderRadius: 12, border: "1px solid var(--ml-border)", background: "var(--ml-input)", color: "var(--ml-text)", fontSize: 14, outline: "none" };
-const chip = (on: boolean): CSSProperties => ({ display: "flex", alignItems: "center", gap: 7, padding: "8px 13px", borderRadius: 20, border: `1px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "rgba(109,92,245,.06)" : "var(--ml-card)", color: on ? "var(--ml-primary)" : "var(--ml-text)", fontSize: 13, fontWeight: 600, cursor: "pointer" });
+const chip = (on: boolean): CSSProperties => ({ display: "flex", alignItems: "center", gap: 7, padding: "8px 13px", borderRadius: 20, border: `1px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "rgba(76,46,224,.06)" : "var(--ml-card)", color: on ? "var(--ml-primary)" : "var(--ml-text)", fontSize: 13, fontWeight: 600, cursor: "pointer" });

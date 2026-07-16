@@ -137,7 +137,7 @@ export function SubScreen() {
           const isCurrent = current === key;
           const isPro = key === "pro";
           return (
-            <div key={key} style={{ position: "relative", background: "var(--ml-card)", border: `1.5px solid ${isPro ? "var(--ml-primary)" : "var(--ml-border)"}`, borderRadius: 20, padding: 24, boxShadow: isPro ? "0 12px 32px rgba(109,92,245,.14)" : "0 1px 3px rgba(30,25,60,.04)" }}>
+            <div key={key} style={{ position: "relative", background: "var(--ml-card)", border: `1.5px solid ${isPro ? "var(--ml-primary)" : "var(--ml-border)"}`, borderRadius: 20, padding: 24, boxShadow: isPro ? "0 12px 32px rgba(76,46,224,.14)" : "0 1px 3px rgba(30,25,60,.04)" }}>
               {isPro && (
                 <span style={{ position: "absolute", top: -11, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 800, color: "#fff", background: "var(--ml-primary)", padding: "4px 12px", borderRadius: 20, letterSpacing: ".04em", textTransform: "uppercase" }}>{D.mostPopular}</span>
               )}

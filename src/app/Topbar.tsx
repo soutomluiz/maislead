@@ -21,9 +21,9 @@ export function Topbar({ screen }: { screen: ScreenKey }) {
   const iconBtn: CSSProperties = { width: 40, height: 40, borderRadius: 11, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-muted)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" };
 
   const langBtn = (l: Lang, mid: boolean): CSSProperties => ({
-    width: 42, border: "none", background: lang === l ? "rgba(109,92,245,.1)" : "transparent",
+    width: 42, border: "none", background: lang === l ? "rgba(76,46,224,.1)" : "transparent",
     borderLeft: mid ? "1px solid var(--ml-border)" : undefined, borderRight: mid ? "1px solid var(--ml-border)" : undefined,
-    fontSize: 12, fontWeight: 700, cursor: "pointer", color: lang === l ? "#6d5cf5" : "var(--ml-muted)",
+    fontSize: 12, fontWeight: 700, cursor: "pointer", color: lang === l ? "#4c2ee0" : "var(--ml-muted)",
   });
 
   return (
@@ -43,7 +43,7 @@ export function Topbar({ screen }: { screen: ScreenKey }) {
 
         {/* Tema */}
         <button style={iconBtn} onClick={toggle} title={t.common.theme}
-          onMouseEnter={(e) => { e.currentTarget.style.color = "#6d5cf5"; }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "#4c2ee0"; }}
           onMouseLeave={(e) => { e.currentTarget.style.color = "var(--ml-muted)"; }}>
           <Icon name={dark ? "sun" : "moon"} size={18} />
         </button>
@@ -53,7 +53,7 @@ export function Topbar({ screen }: { screen: ScreenKey }) {
           style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "4px 10px 4px 4px", borderRadius: 30, border: "none", background: "transparent", transition: ".15s" }}
           onMouseEnter={(e) => { e.currentTarget.style.background = "var(--ml-hover)"; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}>
-          <span style={{ width: 38, height: 38, borderRadius: "50%", overflow: "hidden", background: "linear-gradient(135deg,#6d5cf5,#9d7bff)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
+          <span style={{ width: 38, height: 38, borderRadius: "50%", overflow: "hidden", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
             {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials}
           </span>
           <span style={{ textAlign: "left", lineHeight: 1.2 }}>

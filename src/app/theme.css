@@ -1,8 +1,8 @@
 /* maisLEAD — tokens de tema (fiéis ao maisLEAD.dc.html / DESIGN-SPEC.md) */
 .ml-root {
-  --ml-primary: #6d5cf5;
-  --ml-primary-2: #8b6bff;
-  --ml-primary-3: #9d7bff;
+  --ml-primary: #4c2ee0;
+  --ml-primary-2: #6d4bff;
+  --ml-primary-3: #6d4bff;
   --ml-pink: #ec4899;
   --ml-bg: #f4f5fb;
   --ml-card: #ffffff;
@@ -42,8 +42,8 @@
 
 /* Focus glow roxo em todos os inputs (DESIGN-SPEC §9.4) */
 .ml-root input:focus, .ml-root select:focus, .ml-root textarea:focus {
-  border-color: #6d5cf5 !important;
-  box-shadow: 0 0 0 3px rgba(109,92,245,.14);
+  border-color: #4c2ee0 !important;
+  box-shadow: 0 0 0 3px rgba(76,46,224,.14);
 }
 
 /* Scrollbar custom (DESIGN-SPEC §9.6) */
@@ -66,3 +66,4 @@
 .ml-spin { animation: mlSpin .8s linear infinite; }
 @keyframes mlDrawerIn { from { transform: translateX(105%); } to { transform: translateX(0); } }
 @keyframes mlModalIn { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes mlFuPulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }

@@ -90,7 +90,7 @@ export function MassEmailModal({ leadIds, onClose }: { leadIds: string[]; onClos
             <label style={lbl}>{D.template}</label>
             <div style={{ display: "flex", gap: 7, marginBottom: 14, flexWrap: "wrap" }}>
               {(["intro", "followup", "proposal"] as TplKey[]).map((k) => (
-                <button key={k} onClick={() => pickTemplate(k)} style={{ padding: "7px 14px", borderRadius: 20, border: `1px solid ${tpl === k ? "var(--ml-primary)" : "var(--ml-border)"}`, background: tpl === k ? "rgba(109,92,245,.12)" : "var(--ml-card)", color: tpl === k ? "var(--ml-primary)" : "var(--ml-navtext)", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>{D.templates[k].name}</button>
+                <button key={k} onClick={() => pickTemplate(k)} style={{ padding: "7px 14px", borderRadius: 20, border: `1px solid ${tpl === k ? "var(--ml-primary)" : "var(--ml-border)"}`, background: tpl === k ? "rgba(76,46,224,.12)" : "var(--ml-card)", color: tpl === k ? "var(--ml-primary)" : "var(--ml-navtext)", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>{D.templates[k].name}</button>
               ))}
             </div>
 

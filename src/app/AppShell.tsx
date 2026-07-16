@@ -11,6 +11,8 @@ import { ReportsScreen } from "./ReportsScreen";
 import { SettingsScreen } from "./SettingsScreen";
 import { ExtractionScreen } from "./extract/ExtractionScreen";
 import { EmpresasScreen } from "./extract/EmpresasScreen";
+import { CrmScreen } from "./crm/CrmScreen";
+import { AgendaScreen } from "./crm/AgendaScreen";
 import { SubScreen } from "./SubScreen";
 import { IntegrationsScreen } from "./IntegrationsScreen";
 import type { ScreenKey } from "@/i18n/ml";
@@ -32,6 +34,8 @@ export function AppShell() {
             : screen === "manual" ? <ManualScreen />
             : screen === "gplaces" ? <ExtractionScreen source="google_maps" fn="extract-google-maps" onGoLeads={() => setScreen("leadslist")} />
             : screen === "cnpj" ? <EmpresasScreen onNavigate={setScreen} />
+            : screen === "crm" ? <CrmScreen onNavigate={setScreen} />
+            : screen === "agenda" ? <AgendaScreen />
             : screen === "score" ? <ScoreScreen />
             : screen === "timeline" ? <TimelineScreen />
             : screen === "reports" ? <ReportsScreen />

@@ -23,6 +23,8 @@ export function Sidebar({ active, onNavigate }: { active: ScreenKey; onNavigate:
       { id: "leadslist", icon: "users", label: nav.leads, level: "top" },
       { id: "score", icon: "award", label: nav.score, level: "sub" },
       { id: "timeline", icon: "clock", label: nav.timeline, level: "sub" },
+      { id: "crm", icon: "trendUp", label: nav.crm, level: "top" },
+      { id: "agenda", icon: "timer", label: nav.agenda, level: "top" },
       { id: "reports", icon: "chart", label: nav.reports, level: "top" },
       { id: "integrations", icon: "plug", label: nav.integrations, level: "top" },
       { id: "sub", icon: "crown", label: nav.sub, level: "top" },
@@ -34,11 +36,11 @@ export function Sidebar({ active, onNavigate }: { active: ScreenKey; onNavigate:
     <aside className="ml-scroll" style={{ width: 264, flexShrink: 0, height: "100%", display: "flex", flexDirection: "column", background: "var(--ml-sidebar)", borderRight: "1px solid var(--ml-border)", padding: "22px 16px 18px", overflowY: "auto" }}>
       {/* Logo */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 8px 22px" }}>
-        <div style={{ width: 38, height: 38, borderRadius: 11, background: "linear-gradient(135deg,#6d5cf5,#9d7bff)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", boxShadow: "0 6px 16px rgba(109,92,245,.35)" }}>
+        <div style={{ width: 38, height: 38, borderRadius: 11, background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", boxShadow: "0 6px 16px rgba(76,46,224,.35)" }}>
           <Icon name="plus" size={20} strokeWidth={2.4} />
         </div>
         <div style={{ lineHeight: 1 }}>
-          <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-.02em" }}>mais<span style={{ color: "#6d5cf5" }}>LEAD</span></div>
+          <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-.02em" }}>mais<span style={{ color: "#4c2ee0" }}>LEAD</span></div>
           <div style={{ fontSize: 10, fontWeight: 600, color: "var(--ml-muted)", letterSpacing: ".14em", marginTop: 3 }}>PROSPECÇÃO</div>
         </div>
       </div>
@@ -58,8 +60,8 @@ export function Sidebar({ active, onNavigate }: { active: ScreenKey; onNavigate:
                 padding: sub ? "9px 12px 9px 30px" : "11px 12px",
                 borderRadius: sub ? 11 : 12, cursor: "pointer", width: "100%", border: "none", textAlign: "left",
                 fontSize: sub ? 13.5 : 14, fontWeight: 500, transition: ".15s",
-                background: on ? "rgba(109,92,245,.12)" : "transparent",
-                color: on ? "#6d5cf5" : "var(--ml-navtext)",
+                background: on ? "rgba(76,46,224,.12)" : "transparent",
+                color: on ? "#4c2ee0" : "var(--ml-navtext)",
               };
               return (
                 <button key={`${si}-${ii}`} style={style} onClick={() => onNavigate(it.id)}

@@ -20,11 +20,11 @@ const DICT = {
 };
 
 const META: Record<string, { icon: IconName; color: string; bg: string }> = {
-  created: { icon: "plus", color: "var(--ml-primary)", bg: "rgba(109,92,245,.12)" },
+  created: { icon: "plus", color: "var(--ml-primary)", bg: "rgba(76,46,224,.12)" },
   status_changed: { icon: "check", color: "var(--ml-amber)", bg: "rgba(245,158,11,.14)" },
   note_added: { icon: "award", color: "var(--ml-green)", bg: "rgba(16,185,129,.14)" },
   verified: { icon: "check", color: "var(--ml-blue)", bg: "rgba(59,130,246,.14)" },
-  email_sent: { icon: "mail", color: "var(--ml-primary)", bg: "rgba(109,92,245,.12)" },
+  email_sent: { icon: "mail", color: "var(--ml-primary)", bg: "rgba(76,46,224,.12)" },
 };
 
 const domain = (w?: string | null) => { if (!w) return null; try { return new URL(w.startsWith("http") ? w : `https://${w}`).hostname.replace(/^www\./, ""); } catch { return w; } };

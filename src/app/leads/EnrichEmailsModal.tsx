@@ -101,7 +101,7 @@ export function EnrichEmailsModal({ leadIds, onDone, onClose }: { leadIds: strin
           {busy && (
             <div>
               <div style={{ height: 8, borderRadius: 20, background: "var(--ml-grid)", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${Math.round(progress * 100)}%`, borderRadius: 20, background: "linear-gradient(90deg,#6d5cf5,#8b6bff)", transition: "width .3s" }} />
+                <div style={{ height: "100%", width: `${Math.round(progress * 100)}%`, borderRadius: 20, background: "linear-gradient(90deg,#4c2ee0,#6d4bff)", transition: "width .3s" }} />
               </div>
               <div style={{ fontSize: 12.5, color: "var(--ml-muted)", marginTop: 10, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <span>{D.searching} {live.done}/{live.total} {D.analyzed}</span>
@@ -124,7 +124,7 @@ export function EnrichEmailsModal({ leadIds, onDone, onClose }: { leadIds: strin
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 22 }}>
                 <StatCard value={String(stats.found)} label={D.statFound} color="#059669" />
                 <StatCard value={String(stats.processed)} label={D.statProcessed} />
-                <StatCard value={`${stats.rate}%`} label={D.statRate} color="#6d5cf5" />
+                <StatCard value={`${stats.rate}%`} label={D.statRate} color="#4c2ee0" />
               </div>
 
               {foundList.length > 0 && (
@@ -164,7 +164,7 @@ export function EnrichEmailsModal({ leadIds, onDone, onClose }: { leadIds: strin
           )}
 
           {!busy && (
-            <button onClick={onClose} style={{ width: "100%", height: 48, marginTop: 22, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", boxShadow: "0 6px 14px rgba(109,92,245,.25)" }}>{D.close}</button>
+            <button onClick={onClose} style={{ width: "100%", height: 48, marginTop: 22, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", boxShadow: "0 6px 14px rgba(76,46,224,.25)" }}>{D.close}</button>
           )}
         </div>
       </div>

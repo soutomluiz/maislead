@@ -56,7 +56,7 @@ export function AddTagModal({ leadIds, onClose, onDone }: { leadIds: string[]; o
         <div style={{ fontSize: 12, color: "var(--ml-muted)", margin: "16px 0 8px", fontWeight: 600 }}>{t.suggest}</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {SUGGESTIONS.map((s) => (
-            <button key={s} onClick={() => setTag(s)} style={{ padding: "6px 13px", borderRadius: 20, border: `1px solid ${tag === s ? "var(--ml-primary)" : "var(--ml-border)"}`, background: tag === s ? "rgba(109,92,245,.12)" : "var(--ml-card)", color: tag === s ? "var(--ml-primary)" : "var(--ml-navtext)", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>{s}</button>
+            <button key={s} onClick={() => setTag(s)} style={{ padding: "6px 13px", borderRadius: 20, border: `1px solid ${tag === s ? "var(--ml-primary)" : "var(--ml-border)"}`, background: tag === s ? "rgba(76,46,224,.12)" : "var(--ml-card)", color: tag === s ? "var(--ml-primary)" : "var(--ml-navtext)", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>{s}</button>
           ))}
         </div>
 

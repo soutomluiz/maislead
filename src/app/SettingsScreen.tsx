@@ -55,7 +55,7 @@ export function SettingsScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => 
           </div>
         </div>
 
-        <button onClick={apply} style={{ width: "100%", height: 48, marginTop: 22, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", boxShadow: "0 10px 24px rgba(109,92,245,.3)" }}>
+        <button onClick={apply} style={{ width: "100%", height: 48, marginTop: 22, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", boxShadow: "0 10px 24px rgba(76,46,224,.3)" }}>
           {saved ? <Icon name="check" size={17} /> : null}{saved ? D.saved : D.apply}
         </button>
       </div>
@@ -80,7 +80,7 @@ function Toggle<T extends string | boolean>({ options, value, onChange }: { opti
         const v = o[0]; const lblTxt = o[1]; const icon = o[2] as IconName | undefined;
         const on = value === v;
         return (
-          <button key={String(v)} onClick={() => onChange(v)} style={{ flex: 1, height: 46, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 12, border: `1px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "rgba(109,92,245,.1)" : "var(--ml-card)", color: on ? "var(--ml-primary)" : "var(--ml-navtext)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          <button key={String(v)} onClick={() => onChange(v)} style={{ flex: 1, height: 46, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 12, border: `1px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "rgba(76,46,224,.1)" : "var(--ml-card)", color: on ? "var(--ml-primary)" : "var(--ml-navtext)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             {icon && <Icon name={icon} size={14} />}{lblTxt}
           </button>
         );

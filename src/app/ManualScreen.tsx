@@ -75,7 +75,7 @@ export function ManualScreen() {
 
         {msg && <div style={{ marginTop: 14, fontSize: 13.5, color: msg.ok ? "var(--ml-green)" : "var(--ml-red)", background: msg.ok ? "rgba(16,185,129,.12)" : "rgba(239,68,68,.1)", padding: "10px 12px", borderRadius: 10 }}>{msg.text}</div>}
 
-        <button type="submit" disabled={busy} style={{ width: "100%", height: 50, marginTop: 26, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1, boxShadow: "0 10px 24px rgba(109,92,245,.32)" }}>
+        <button type="submit" disabled={busy} style={{ width: "100%", height: 50, marginTop: 26, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1, boxShadow: "0 10px 24px rgba(76,46,224,.32)" }}>
           {busy ? <Icon name="loader" size={18} className="ml-spin" /> : <Icon name="plus" size={18} strokeWidth={2.2} />}
           {D.save}
         </button>

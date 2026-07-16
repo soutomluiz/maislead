@@ -22,7 +22,7 @@ const PROVIDERS: Provider[] = [
   { id: "zapier", name: "Zapier", sub: "5000+ apps", color: "#ff4a00", initials: "Zp", group: "auto" },
   { id: "make", name: "Make", sub: "Automação visual", color: "#6d00cc", initials: "Mk", group: "auto" },
   { id: "n8n", name: "n8n", sub: "Open-source", color: "#ea4b71", initials: "n8", group: "auto" },
-  { id: "webhook", name: "Webhook", sub: "Endpoint custom", color: "#6d5cf5", initials: "{}", group: "auto" },
+  { id: "webhook", name: "Webhook", sub: "Endpoint custom", color: "#4c2ee0", initials: "{}", group: "auto" },
 ];
 
 const DICT = {
@@ -87,7 +87,7 @@ export function IntegrationsScreen() {
   return (
     <div className="ml-fade" style={{ display: "flex", flexDirection: "column", gap: 22 }}>
       {/* banner */}
-      <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(120deg,#6d5cf5,#9d7bff)", borderRadius: 20, padding: "26px 28px", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap", boxShadow: "0 12px 30px rgba(109,92,245,.25)" }}>
+      <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(120deg,#4c2ee0,#6d4bff)", borderRadius: 20, padding: "26px 28px", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap", boxShadow: "0 12px 30px rgba(76,46,224,.25)" }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800 }}>{D.header}</div>
           <div style={{ fontSize: 13.5, opacity: 0.92, marginTop: 4, maxWidth: 520 }}>{D.headerSub}</div>
@@ -114,7 +114,7 @@ export function IntegrationsScreen() {
                     </div>
                     {on && <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "var(--ml-green)", background: "rgba(16,185,129,.12)", padding: "3px 8px", borderRadius: 20 }}><Icon name="check" size={11} />{D.connected}</span>}
                   </div>
-                  <button onClick={() => setOpen(p)} style={{ width: "100%", height: 40, marginTop: 0, borderRadius: 11, border: on ? "1px solid var(--ml-border)" : "none", background: on ? "var(--ml-card)" : "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: on ? "var(--ml-green)" : "#fff", fontWeight: 700, fontSize: 13.5, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+                  <button onClick={() => setOpen(p)} style={{ width: "100%", height: 40, marginTop: 0, borderRadius: 11, border: on ? "1px solid var(--ml-border)" : "none", background: on ? "var(--ml-card)" : "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: on ? "var(--ml-green)" : "#fff", fontWeight: 700, fontSize: 13.5, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
                     {on ? D.manage : D.connect}
                   </button>
                 </div>

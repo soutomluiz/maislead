@@ -130,7 +130,7 @@ export function LeadsScreen() {
       {/* 4 mini-KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 14, marginBottom: 18 }}>
         <MiniKpi label={X.total} value={leads.length} color="var(--ml-text)" />
-        <MiniKpi label={L.new} value={kNew} color="#6d5cf5" />
+        <MiniKpi label={L.new} value={kNew} color="#4c2ee0" />
         <MiniKpi label={L.qualified} value={kQual} color="#f59e0b" />
         <MiniKpi label={L.converted} value={kConv} color="#10b981" />
       </div>
@@ -170,14 +170,14 @@ export function LeadsScreen() {
 
         {/* Barra de seleção */}
         {selCount > 0 && (
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 20px", borderBottom: "1px solid var(--ml-border)", background: "rgba(109,92,245,.07)", flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13.5, fontWeight: 700, color: "#6d5cf5" }}>{selCount} {selCount === 1 ? L.selectedOne : L.selected}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 20px", borderBottom: "1px solid var(--ml-border)", background: "rgba(76,46,224,.07)", flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13.5, fontWeight: 700, color: "#4c2ee0" }}>{selCount} {selCount === 1 ? L.selectedOne : L.selected}</span>
             <span style={{ flex: 1 }} />
             <button onClick={gate("enrich", () => { setEnrichIds([...selected]); setEnrichOpen(true); })} style={{ ...bulkOutline, fontWeight: 700 }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#6d5cf5"; e.currentTarget.style.color = "#6d5cf5"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#4c2ee0"; e.currentTarget.style.color = "#4c2ee0"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--ml-border)"; e.currentTarget.style.color = "var(--ml-text)"; }}><Icon name="search" size={15} /> {X.findEmail}{!can("enrich") && <Icon name="lock" size={12} />}</button>
             <button onClick={gate("detectTech", () => { setTechIds([...selected]); setTechOpen(true); })} style={{ ...bulkOutline, fontWeight: 700 }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#6d5cf5"; e.currentTarget.style.color = "#6d5cf5"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#4c2ee0"; e.currentTarget.style.color = "#4c2ee0"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--ml-border)"; e.currentTarget.style.color = "var(--ml-text)"; }}><Icon name="cpu" size={15} /> {X.detectTech}{!can("detectTech") && <Icon name="lock" size={12} />}</button>
             <button onClick={gate("massEmail", () => setEmailOpen(true))} style={bulkOutline}><Icon name="mail" size={15} /> {X.massEmail}{!can("massEmail") && <Icon name="lock" size={12} />}</button>
             <button onClick={() => { setTagIds([...selected]); setTagOpen(true); }} style={bulkOutline}><Icon name="tag" size={14} /> {X.addTag}</button>
@@ -190,7 +190,7 @@ export function LeadsScreen() {
         )}
 
         {gated && (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 20px", borderBottom: "1px solid var(--ml-border)", background: "rgba(109,92,245,.06)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 20px", borderBottom: "1px solid var(--ml-border)", background: "rgba(76,46,224,.06)" }}>
             <Icon name={minPlanLabel(gated) === "Business" ? "crown" : "lock"} size={15} style={{ color: "var(--ml-primary)", flexShrink: 0 }} />
             <span style={{ fontSize: 13, color: "var(--ml-text)", flex: 1 }}>{upsellText(gated, lang)}</span>
             <button onClick={() => setGated(null)} style={{ border: "none", background: "transparent", color: "var(--ml-muted)", cursor: "pointer", display: "flex" }}><Icon name="x" size={15} strokeWidth={2.2} /></button>
@@ -219,7 +219,7 @@ export function LeadsScreen() {
                 const sm = STATUS_META[l.status];
                 const tags = l.tags.length ? l.tags : [L[l.temp]];
                 return (
-                  <tr key={l.id} onClick={() => setOpenLead(l)} style={{ borderTop: "1px solid var(--ml-border)", cursor: "pointer", background: on ? "rgba(109,92,245,.05)" : "transparent", transition: "background .1s" }}
+                  <tr key={l.id} onClick={() => setOpenLead(l)} style={{ borderTop: "1px solid var(--ml-border)", cursor: "pointer", background: on ? "rgba(76,46,224,.05)" : "transparent", transition: "background .1s" }}
                     onMouseEnter={(e) => { if (!on) e.currentTarget.style.background = "var(--ml-hover)"; }}
                     onMouseLeave={(e) => { if (!on) e.currentTarget.style.background = "transparent"; }}>
                     <td style={{ ...tdBase, padding: "15px 12px 15px 20px" }} onClick={(e) => { e.stopPropagation(); toggle(l.id); }}><Check on={on} onClick={() => {}} /></td>
@@ -239,13 +239,13 @@ export function LeadsScreen() {
                     <td style={tdBase}>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                         {tags.slice(0, 2).map((tg, i) => (
-                          <span key={i} style={{ fontSize: 11.5, fontWeight: 600, color: "#6d5cf5", background: "rgba(109,92,245,.1)", padding: "4px 10px", borderRadius: 20 }}>{tg}</span>
+                          <span key={i} style={{ fontSize: 11.5, fontWeight: 600, color: "#4c2ee0", background: "rgba(76,46,224,.1)", padding: "4px 10px", borderRadius: 20 }}>{tg}</span>
                         ))}
                       </div>
                     </td>
                     <td style={{ ...tdBase, padding: "15px 20px", textAlign: "right" }} onClick={(e) => { e.stopPropagation(); setOpenLead(l); }}>
                       <button style={{ width: 32, height: 32, borderRadius: 9, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-muted)", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
-                        onMouseEnter={(e) => { e.currentTarget.style.color = "#6d5cf5"; e.currentTarget.style.borderColor = "#6d5cf5"; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = "#4c2ee0"; e.currentTarget.style.borderColor = "#4c2ee0"; }}
                         onMouseLeave={(e) => { e.currentTarget.style.color = "var(--ml-muted)"; e.currentTarget.style.borderColor = "var(--ml-border)"; }}>
                         <Icon name="dots" size={15} />
                       </button>
@@ -288,8 +288,8 @@ export function LeadsScreen() {
 function OutlineBtn({ children, icon, onClick, active }: { children: React.ReactNode; icon: Parameters<typeof Icon>[0]["name"]; onClick: () => void; active?: boolean }) {
   return (
     <button onClick={onClick}
-      style={{ height: 42, padding: "0 16px", borderRadius: 11, border: "1px solid var(--ml-border)", background: active ? "rgba(109,92,245,.1)" : "var(--ml-card)", color: active ? "#6d5cf5" : "var(--ml-text)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
-      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#6d5cf5"; e.currentTarget.style.color = "#6d5cf5"; }}
+      style={{ height: 42, padding: "0 16px", borderRadius: 11, border: "1px solid var(--ml-border)", background: active ? "rgba(76,46,224,.1)" : "var(--ml-card)", color: active ? "#4c2ee0" : "var(--ml-text)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#4c2ee0"; e.currentTarget.style.color = "#4c2ee0"; }}
       onMouseLeave={(e) => { if (!active) { e.currentTarget.style.borderColor = "var(--ml-border)"; e.currentTarget.style.color = "var(--ml-text)"; } }}>
       <Icon name={icon} size={15} /> {children}
     </button>
@@ -317,7 +317,7 @@ function EmailCell({ email, isNew, badge }: { email: string | null; isNew: boole
 
 function Check({ on, onClick }: { on: boolean; onClick: () => void }) {
   return (
-    <span onClick={onClick} style={{ width: 20, height: 20, borderRadius: 6, display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", border: `1px solid ${on ? "#6d5cf5" : "var(--ml-border)"}`, background: on ? "#6d5cf5" : "var(--ml-card)", color: "#fff" }}>
+    <span onClick={onClick} style={{ width: 20, height: 20, borderRadius: 6, display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", border: `1px solid ${on ? "#4c2ee0" : "var(--ml-border)"}`, background: on ? "#4c2ee0" : "var(--ml-card)", color: "#fff" }}>
       {on && <Icon name="check" size={12} strokeWidth={2.6} />}
     </span>
   );
@@ -354,10 +354,10 @@ function pageWindow(cur: number, total: number): number[] {
   return out;
 }
 
-const primaryBtn: CSSProperties = { height: 42, padding: "0 16px", border: "none", borderRadius: 11, background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 6px 14px rgba(109,92,245,.25)" };
-const bulkPrimary: CSSProperties = { height: 38, padding: "0 15px", border: "none", borderRadius: 10, background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 7, boxShadow: "0 5px 12px rgba(109,92,245,.25)" };
+const primaryBtn: CSSProperties = { height: 42, padding: "0 16px", border: "none", borderRadius: 11, background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 6px 14px rgba(76,46,224,.25)" };
+const bulkPrimary: CSSProperties = { height: 38, padding: "0 15px", border: "none", borderRadius: 10, background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 7, boxShadow: "0 5px 12px rgba(76,46,224,.25)" };
 const bulkOutline: CSSProperties = { height: 38, padding: "0 15px", border: "1px solid var(--ml-border)", borderRadius: 10, background: "var(--ml-card)", color: "var(--ml-text)", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 7 };
 const pagerBtn = (disabled: boolean): CSSProperties => ({ height: 34, padding: "0 12px", borderRadius: 9, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: disabled ? "var(--ml-muted)" : "var(--ml-text)", fontSize: 13, fontWeight: 600, cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1 });
-const numBtn = (active: boolean): CSSProperties => ({ minWidth: 34, height: 34, borderRadius: 9, border: active ? "none" : "1px solid var(--ml-border)", background: active ? "#6d5cf5" : "var(--ml-card)", color: active ? "#fff" : "var(--ml-text)", fontSize: 13, fontWeight: 700, cursor: "pointer" });
+const numBtn = (active: boolean): CSSProperties => ({ minWidth: 34, height: 34, borderRadius: 9, border: active ? "none" : "1px solid var(--ml-border)", background: active ? "#4c2ee0" : "var(--ml-card)", color: active ? "#fff" : "var(--ml-text)", fontSize: 13, fontWeight: 700, cursor: "pointer" });
 const thBase: CSSProperties = { padding: "14px 12px", fontSize: 11.5, fontWeight: 700, color: "var(--ml-muted)", textTransform: "uppercase", letterSpacing: 0.4 };
 const tdBase: CSSProperties = { padding: "15px 12px", verticalAlign: "middle" };

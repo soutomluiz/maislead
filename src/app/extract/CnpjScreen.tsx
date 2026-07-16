@@ -171,7 +171,7 @@ export function CnpjScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => void
       {/* card de busca */}
       <Panel style={{ padding: 32, borderRadius: 22 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 24 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 15, background: "rgba(109,92,245,.12)", color: "var(--ml-primary)", display: "grid", placeItems: "center" }}><Icon name="building" size={24} /></div>
+          <div style={{ width: 52, height: 52, borderRadius: 15, background: "rgba(76,46,224,.12)", color: "var(--ml-primary)", display: "grid", placeItems: "center" }}><Icon name="building" size={24} /></div>
           <div>
             <div style={{ fontSize: 19, fontWeight: 800 }}>{D.title}</div>
             <div style={{ fontSize: 13.5, color: "var(--ml-muted)" }}>{D.sub}</div>
@@ -189,7 +189,7 @@ export function CnpjScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => void
             onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ml-red)")} onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ml-muted)")}><Icon name="x" size={13} strokeWidth={2.2} />{D.clear}</button>}
         </div>
 
-        <button onClick={runLookup} disabled={busy} style={{ width: "100%", height: 50, marginTop: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1, boxShadow: "0 10px 24px rgba(109,92,245,.32)" }}>
+        <button onClick={runLookup} disabled={busy} style={{ width: "100%", height: 50, marginTop: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1, boxShadow: "0 10px 24px rgba(76,46,224,.32)" }}>
           {busy ? <Icon name="loader" size={17} className="ml-spin" /> : <Icon name="search" size={17} />}{busy ? D.searching : D.search}
         </button>
 
@@ -234,7 +234,7 @@ export function CnpjScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => void
                 const on = selected.has(r.cnpj);
                 const sm = SIT_META[r.situacaoKey] ?? SIT_META.other;
                 return (
-                  <div key={r.cnpj} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 12px", borderRadius: 12, border: "1px solid var(--ml-border)", background: on ? "rgba(109,92,245,.05)" : "var(--ml-card)", transition: ".12s" }}>
+                  <div key={r.cnpj} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 12px", borderRadius: 12, border: "1px solid var(--ml-border)", background: on ? "rgba(76,46,224,.05)" : "var(--ml-card)", transition: ".12s" }}>
                     {/* checkbox */}
                     <button onClick={() => !dupe && toggle(r.cnpj)} disabled={dupe} aria-label="select" style={{ width: 20, height: 20, flexShrink: 0, borderRadius: 6, border: `1.6px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "var(--ml-primary)" : "transparent", display: "grid", placeItems: "center", cursor: dupe ? "not-allowed" : "pointer", opacity: dupe ? 0.4 : 1, padding: 0 }}>
                       {on && <Icon name="check" size={13} strokeWidth={3} style={{ color: "#fff" }} />}
@@ -274,7 +274,7 @@ export function CnpjScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => void
               <button onClick={selectNew} disabled={newCount === 0} style={{ ...ghostBtn, opacity: newCount === 0 ? 0.5 : 1, cursor: newCount === 0 ? "default" : "pointer" }}>{D.selNew}</button>
               <button onClick={() => onNavigate?.("leadslist")} style={ghostBtn}><Icon name="users" size={15} />{D.goLeads}</button>
               <button onClick={() => importCnpjs([...selected])} disabled={selCount === 0 || exceeds || importing}
-                style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, height: 44, padding: "0 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 14, cursor: selCount === 0 || exceeds || importing ? "default" : "pointer", opacity: selCount === 0 || exceeds || importing ? 0.55 : 1, boxShadow: "0 8px 18px rgba(109,92,245,.28)" }}>
+                style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, height: 44, padding: "0 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 14, cursor: selCount === 0 || exceeds || importing ? "default" : "pointer", opacity: selCount === 0 || exceeds || importing ? 0.55 : 1, boxShadow: "0 8px 18px rgba(76,46,224,.28)" }}>
                 {importing ? <Icon name="loader" size={16} className="ml-spin" /> : <Icon name="plus" size={16} strokeWidth={2.4} />}{D.addN} ({selCount})
               </button>
             </div>
@@ -304,7 +304,7 @@ function QuotaBar({ quota, selCount, D }: { quota: Quota; selCount: number; D: t
   const unlimited = quota.limit == null;
   const pct = unlimited ? 0 : Math.min(100, (quota.used / quota.limit!) * 100);
   const projPct = unlimited ? 0 : Math.min(100, ((quota.used + selCount) / quota.limit!) * 100);
-  const band = pct >= 90 ? "#dc2626" : pct >= 70 ? "#f59e0b" : "#6d5cf5";
+  const band = pct >= 90 ? "#dc2626" : pct >= 70 ? "#f59e0b" : "#4c2ee0";
   const selPct = unlimited || selCount === 0 ? 0 : Math.round((selCount / quota.limit!) * 100);
   return (
     <div style={{ background: "var(--ml-hover)", border: "1px solid var(--ml-border)", borderRadius: 13, padding: "13px 15px", marginBottom: 16 }}>
@@ -314,7 +314,7 @@ function QuotaBar({ quota, selCount, D }: { quota: Quota; selCount: number; D: t
       </div>
       {!unlimited && (
         <div style={{ height: 8, borderRadius: 20, background: "var(--ml-grid)", overflow: "hidden", position: "relative" }}>
-          {selCount > 0 && <div style={{ position: "absolute", inset: 0, width: `${projPct}%`, background: "rgba(109,92,245,.28)", borderRadius: 20 }} />}
+          {selCount > 0 && <div style={{ position: "absolute", inset: 0, width: `${projPct}%`, background: "rgba(76,46,224,.28)", borderRadius: 20 }} />}
           <div style={{ position: "absolute", inset: 0, width: `${pct}%`, background: band, borderRadius: 20, transition: "width .3s" }} />
         </div>
       )}

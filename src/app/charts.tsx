@@ -59,17 +59,17 @@ export function AreaChart({ series, labels, emptyText }: { series: [string, numb
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 250, overflow: "visible" }}>
       <defs>
         <linearGradient id="mlArea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#6d5cf5" stopOpacity="0.28" />
-          <stop offset="100%" stopColor="#6d5cf5" stopOpacity="0" />
+          <stop offset="0%" stopColor="#4c2ee0" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#4c2ee0" stopOpacity="0" />
         </linearGradient>
       </defs>
       <g stroke="var(--ml-grid)" strokeWidth={1}>
         {gridYs.map((gy) => <line key={gy} x1={0} y1={gy} x2={W} y2={gy} />)}
       </g>
       <path d={area} fill="url(#mlArea)" />
-      <path d={line} fill="none" stroke="#6d5cf5" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"
+      <path d={line} fill="none" stroke="#4c2ee0" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"
         strokeDasharray={1400} style={{ animation: "drawLine 1.4s ease forwards" }} />
-      <circle cx={last[0]} cy={last[1]} r={5} fill="#6d5cf5" stroke="var(--ml-card)" strokeWidth={2.5} />
+      <circle cx={last[0]} cy={last[1]} r={5} fill="#4c2ee0" stroke="var(--ml-card)" strokeWidth={2.5} />
       <g fill="var(--ml-muted)" fontSize={11} textAnchor="middle">
         {labelIdx.map((i) => <text key={i} x={x(i)} y={H - 18}>{fmt(series[i][0])}</text>)}
       </g>
@@ -150,7 +150,7 @@ export const MONTHS: Record<string, string[]> = {
 
 /** Gradientes de preenchimento das barras (roxo / azul / verde) */
 export const BAR_GRADIENTS = [
-  "linear-gradient(90deg,#6d5cf5,#9d7bff)",
+  "linear-gradient(90deg,#4c2ee0,#6d4bff)",
   "linear-gradient(90deg,#3b82f6,#60a5fa)",
   "linear-gradient(90deg,#10b981,#34d399)",
   "linear-gradient(90deg,#f59e0b,#fbbf24)",

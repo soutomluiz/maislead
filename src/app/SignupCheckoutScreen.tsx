@@ -73,6 +73,7 @@ export function SignupCheckoutScreen() {
     if (busy) return;
     setErr(null);
     if (!name.trim()) return setErr("Informe seu nome.");
+    if (!company.trim()) return setErr("Informe o nome da sua empresa.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr(ERRORS.invalid_email);
     if (strength < 3) return setErr(ERRORS.weak_password);
     setBusy(true);
@@ -98,14 +99,14 @@ export function SignupCheckoutScreen() {
     <div style={{ fontFamily: "'Plus Jakarta Sans',system-ui,sans-serif", minHeight: "100vh", display: "flex", background: "#f4f5fb", color: "#211d3b" }}>
       <style>{`
         @keyframes scFloatUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-        .sc-input:focus{border-color:#6d5cf5 !important;box-shadow:0 0 0 3px rgba(109,92,245,.14) !important;}
+        .sc-input:focus{border-color:#4c2ee0 !important;box-shadow:0 0 0 3px rgba(76,46,224,.14) !important;}
         .sc-input::placeholder{color:#a6a3c0;}
         @media(max-width:880px){ .sc-wrap{flex-direction:column;} .sc-left{width:100% !important;max-width:none !important;} }
       `}</style>
 
       <div className="sc-wrap" style={{ display: "flex", width: "100%", minHeight: "100vh" }}>
         {/* ============ ESQUERDA: RESUMO DO PLANO ============ */}
-        <div className="sc-left" style={{ width: "44%", maxWidth: 560, background: "linear-gradient(160deg,#2a2350 0%,#4a3aa0 52%,#6d5cf5 100%)", color: "#fff", padding: "48px 52px", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+        <div className="sc-left" style={{ width: "44%", maxWidth: 560, background: "linear-gradient(160deg,#2a2350 0%,#4a3aa0 52%,#4c2ee0 100%)", color: "#fff", padding: "48px 52px", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -120, right: -120, width: 360, height: 360, borderRadius: "50%", background: "rgba(255,255,255,.06)" }} />
           <div style={{ position: "absolute", bottom: -90, left: -70, width: 260, height: 260, borderRadius: "50%", background: "rgba(255,255,255,.05)" }} />
 
@@ -170,7 +171,7 @@ export function SignupCheckoutScreen() {
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 40px" }}>
           <div style={{ width: "100%", maxWidth: 420, animation: "scFloatUp .5s ease both" }}>
             <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-.02em" }}>Crie sua conta</div>
-            <div style={{ fontSize: 14.5, color: "#6f6c88", marginTop: 6 }}>Comece a prospectar em minutos. Já tem conta? <a href={window.location.origin} style={{ fontWeight: 700, color: "#6d5cf5", textDecoration: "none" }}>Entrar</a></div>
+            <div style={{ fontSize: 14.5, color: "#6f6c88", marginTop: 6 }}>Comece a prospectar em minutos. Já tem conta? <a href={window.location.origin} style={{ fontWeight: 700, color: "#4c2ee0", textDecoration: "none" }}>Entrar</a></div>
 
             <button onClick={googleSignup} style={{ width: "100%", height: 50, marginTop: 26, border: "1px solid #e4e2f0", borderRadius: 13, background: "#fff", color: "#211d3b", fontSize: 14.5, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 11, transition: ".15s" }}>
               <svg width="19" height="19" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" /><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z" /></svg>
@@ -187,9 +188,15 @@ export function SignupCheckoutScreen() {
               <Field label="Nome completo" icon={<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />} extraIcon={<circle cx="12" cy="7" r="4" />}>
                 <input className="sc-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome" style={inputStyle} />
               </Field>
-              <Field label="Empresa" icon={<path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4" />}>
-                <input className="sc-input" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Nome da sua empresa" style={inputStyle} />
-              </Field>
+              <div>
+                <label style={labelStyle}>Empresa<span style={{ color: "#f43f5e" }}> *</span>
+                  <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "#f43f5e", background: "rgba(244,63,94,.1)", padding: "2px 7px", borderRadius: 20 }}>obrigatório</span>
+                </label>
+                <div style={{ position: "relative" }}>
+                  <span style={iconWrap}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a6a3c0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4" /></svg></span>
+                  <input className="sc-input" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Nome da sua empresa" style={{ ...inputStyle, border: `1px solid ${company.trim() ? "#e4e2f0" : "#f43f5e"}` }} />
+                </div>
+              </div>
               <Field label="E-mail de trabalho" icon={<><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 6-10 7L2 6" /></>}>
                 <input className="sc-input" value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="voce@empresa.com" style={inputStyle} />
               </Field>
@@ -212,7 +219,7 @@ export function SignupCheckoutScreen() {
 
             {err && <div style={{ marginTop: 16, fontSize: 13, color: "#f43f5e", fontWeight: 600, lineHeight: 1.5 }}>{err}</div>}
 
-            <button onClick={submit} disabled={busy} style={{ width: "100%", height: 52, marginTop: 24, border: "none", borderRadius: 14, background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: busy ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 9, boxShadow: "0 10px 24px rgba(109,92,245,.32)", opacity: busy ? 0.8 : 1 }}>
+            <button onClick={submit} disabled={busy || !company.trim()} style={{ width: "100%", height: 52, marginTop: 24, border: "none", borderRadius: 14, background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: busy || !company.trim() ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 9, boxShadow: "0 10px 24px rgba(76,46,224,.32)", opacity: busy || !company.trim() ? 0.8 : 1 }}>
               {busy ? "Processando…" : "Ir para o pagamento"}
               {!busy && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>}
             </button>
@@ -222,7 +229,7 @@ export function SignupCheckoutScreen() {
               Seus dados são protegidos. Cobrança processada pela Stripe.
             </div>
 
-            <div style={{ fontSize: 12, color: "#a6a3c0", textAlign: "center", marginTop: 18, lineHeight: 1.6 }}>Ao continuar, você concorda com os <a href="https://maislead.com/termos.html" style={{ fontWeight: 600, color: "#6d5cf5", textDecoration: "none" }}>Termos</a> e a <a href="https://maislead.com/privacidade.html" style={{ fontWeight: 600, color: "#6d5cf5", textDecoration: "none" }}>Política de Privacidade</a>.</div>
+            <div style={{ fontSize: 12, color: "#a6a3c0", textAlign: "center", marginTop: 18, lineHeight: 1.6 }}>Ao continuar, você concorda com os <a href="https://maislead.com/termos.html" style={{ fontWeight: 600, color: "#4c2ee0", textDecoration: "none" }}>Termos</a> e a <a href="https://maislead.com/privacidade.html" style={{ fontWeight: 600, color: "#4c2ee0", textDecoration: "none" }}>Política de Privacidade</a>.</div>
           </div>
         </div>
       </div>

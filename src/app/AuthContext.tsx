@@ -13,7 +13,7 @@ interface AuthCtx {
   account: Account | null;
   refresh: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signUp: (name: string, email: string, password: string) => Promise<{ error?: string; needsConfirm?: boolean }>;
+  signUp: (name: string, email: string, password: string, company?: string) => Promise<{ error?: string; needsConfirm?: boolean }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error?: string }>;
 }
@@ -67,11 +67,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return error ? { error: error.message } : {};
   };
 
-  const signUp: AuthCtx["signUp"] = async (name, email, password) => {
+  const signUp: AuthCtx["signUp"] = async (name, email, password, company) => {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { full_name: name.trim() } },
+      options: { data: { full_name: name.trim(), company_name: (company ?? "").trim() } },
     });
     if (error) return { error: error.message };
     // Se a confirmação de e-mail estiver ligada, não há sessão ainda.

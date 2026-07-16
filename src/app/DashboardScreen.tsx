@@ -1,9 +1,12 @@
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLang } from "./LangTheme";
+import { useAuth } from "./AuthContext";
 import { Icon } from "./icons";
 import { useLeads } from "./leads/useLeads";
 import { LeadStatus, STATUS_META } from "./leads/model";
 import { Card, Kpi, AreaChart, Donut, Bars, MONTHS, BAR_GRADIENTS } from "./charts";
+import { FunnelCard } from "./crm/FunnelCard";
+import { computeFunnel, fetchAppointments } from "./crm/data";
 
 const DICT = {
   pt: { total: "Total de leads", recent: "Recentes", conv: "Taxa de conversão", email: "Com e-mail", phone: "Com telefone", website: "Com website", overTime: "Leads ao longo do tempo", byStatus: "Por status", bySource: "Por origem", byIndustry: "Por indústria", registered: "cadastrados", last30: "últimos 30 dias", ofContacts: "dos contatos", converted: "convertidos", noData: "Sem dados ainda", new: "Novo", qualified: "Qualificado", convertedS: "Convertido", google_maps: "Google Maps", website_src: "Websites", manual: "Manual", import: "Importado", leadsW: "Leads" },
@@ -15,8 +18,19 @@ const nonEmpty = (v?: string | null) => typeof v === "string" && v.trim() !== ""
 
 export function DashboardScreen() {
   const { lang } = useLang();
+  const { account } = useAuth();
   const D = DICT[lang];
   const { leads, loading, error } = useLeads();
+
+  // "Agendados" no funil = leads com pelo menos 1 agendamento.
+  const [scheduledIds, setScheduledIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (!account?.id) return;
+    fetchAppointments(account.id)
+      .then((appts) => setScheduledIds(new Set(appts.map((a) => a.lead_id).filter((id): id is string => !!id))))
+      .catch(() => { /* ignore */ });
+  }, [account?.id]);
+  const funnel = useMemo(() => computeFunnel(leads, scheduledIds), [leads, scheduledIds]);
 
   const agg = useMemo(() => {
     const total = leads.length;
@@ -54,14 +68,17 @@ export function DashboardScreen() {
 
   return (
     <div className="ml-fade" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      {/* Funil de conversão (topo, acima dos KPIs) */}
+      <FunnelCard counts={funnel} />
+
       {/* 6 KPIs — 3 colunas × 2 linhas (DESIGN-SPEC §3.1) */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 18 }}>
-        <Kpi label={D.total} value={String(agg.total)} sub={D.registered} icon="users" color="#6d5cf5" tint="rgba(109,92,245,.12)" />
+        <Kpi label={D.total} value={String(agg.total)} sub={D.registered} icon="users" color="#4c2ee0" tint="rgba(76,46,224,.12)" />
         <Kpi label={D.recent} value={String(agg.recent)} sub={D.last30} icon="clock" color="#f59e0b" tint="rgba(245,158,11,.14)" />
         <Kpi label={D.conv} value={convFmt} sub={D.converted} icon="trendUp" color="#ec4899" tint="rgba(236,72,153,.13)" />
         <Kpi label={D.email} value={String(agg.withEmail)} sub={accent(pct(agg.withEmail), "#3b82f6")} icon="mail" color="#3b82f6" tint="rgba(59,130,246,.13)" />
         <Kpi label={D.phone} value={String(agg.withPhone)} sub={accent(pct(agg.withPhone), "#10b981")} icon="phone" color="#10b981" tint="rgba(16,185,129,.14)" />
-        <Kpi label={D.website} value={String(agg.withWebsite)} sub={accent(pct(agg.withWebsite), "#6d5cf5")} icon="globe" color="#6d5cf5" tint="rgba(109,92,245,.12)" />
+        <Kpi label={D.website} value={String(agg.withWebsite)} sub={accent(pct(agg.withWebsite), "#4c2ee0")} icon="globe" color="#4c2ee0" tint="rgba(76,46,224,.12)" />
       </div>
 
       {/* Área + Donut */}

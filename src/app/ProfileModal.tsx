@@ -6,16 +6,16 @@ import { useAuth } from "./AuthContext";
 import { Icon } from "./icons";
 
 const DICT = {
-  pt: { name: "Nome completo", email: "E-mail", phone: "Telefone", location: "Localização", bio: "Biografia", bioPh: "Conte um pouco sobre você...", save: "Salvar Alterações", saved: "Perfil atualizado!", err: "Erro ao salvar", cancel: "Cancelar", leads: "Leads", withPhone: "Com telefone", plan: "Plano", lifetime: "Vitalício", adminBadge: "Plano Admin" },
-  en: { name: "Full name", email: "Email", phone: "Phone", location: "Location", bio: "Bio", bioPh: "Tell us a bit about you...", save: "Save Changes", saved: "Profile updated!", err: "Error saving", cancel: "Cancel", leads: "Leads", withPhone: "With phone", plan: "Plan", lifetime: "Lifetime", adminBadge: "Admin Plan" },
-  es: { name: "Nombre completo", email: "Email", phone: "Teléfono", location: "Ubicación", bio: "Biografía", bioPh: "Cuéntanos un poco sobre ti...", save: "Guardar Cambios", saved: "¡Perfil actualizado!", err: "Error al guardar", cancel: "Cancelar", leads: "Leads", withPhone: "Con teléfono", plan: "Plan", lifetime: "Vitalicio", adminBadge: "Plan Admin" },
+  pt: { name: "Nome completo", company: "Empresa", required: "obrigatório", companyPh: "Nome da sua empresa", email: "E-mail", phone: "Telefone", location: "Localização", bio: "Biografia", bioPh: "Conte um pouco sobre você...", save: "Salvar Alterações", saved: "Perfil atualizado!", err: "Erro ao salvar", cancel: "Cancelar", leads: "Leads", withPhone: "Com telefone", plan: "Plano", lifetime: "Vitalício", adminBadge: "Plano Admin" },
+  en: { name: "Full name", company: "Company", required: "required", companyPh: "Your company name", email: "Email", phone: "Phone", location: "Location", bio: "Bio", bioPh: "Tell us a bit about you...", save: "Save Changes", saved: "Profile updated!", err: "Error saving", cancel: "Cancel", leads: "Leads", withPhone: "With phone", plan: "Plan", lifetime: "Lifetime", adminBadge: "Admin Plan" },
+  es: { name: "Nombre completo", company: "Empresa", required: "obligatorio", companyPh: "Nombre de tu empresa", email: "Email", phone: "Teléfono", location: "Ubicación", bio: "Biografía", bioPh: "Cuéntanos un poco sobre ti...", save: "Guardar Cambios", saved: "¡Perfil actualizado!", err: "Error al guardar", cancel: "Cancelar", leads: "Leads", withPhone: "Con teléfono", plan: "Plan", lifetime: "Vitalicio", adminBadge: "Plan Admin" },
 };
 
 export function ProfileModal({ onClose }: { onClose: () => void }) {
   const { lang } = useLang();
   const { profile, account, session, refresh } = useAuth();
   const D = DICT[lang];
-  const [f, setF] = useState({ full_name: "", phone: "", location: "", bio: "" });
+  const [f, setF] = useState({ full_name: "", company_name: "", phone: "", location: "", bio: "" });
   const [avatar, setAvatar] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -30,9 +30,11 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
   const initials = name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 
   useEffect(() => {
-    setF({ full_name: profile?.full_name ?? "", phone: profile?.phone ?? "", location: profile?.location ?? "", bio: profile?.bio ?? "" });
+    setF({ full_name: profile?.full_name ?? "", company_name: (profile as { company_name?: string | null })?.company_name ?? "", phone: profile?.phone ?? "", location: profile?.location ?? "", bio: profile?.bio ?? "" });
     setAvatar(profile?.avatar_url ?? null);
   }, [profile]);
+
+  const companyEmpty = !f.company_name.trim();
 
   useEffect(() => {
     if (!account?.id) return;
@@ -65,11 +67,11 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
   }
 
   async function save() {
-    if (!profile?.id) return;
+    if (!profile?.id || companyEmpty) return;
     setBusy(true); setMsg(null);
     try {
       const { error } = await supabase.from("profiles").update({
-        full_name: f.full_name.trim() || null, phone: f.phone.trim() || null, location: f.location.trim() || null, bio: f.bio.trim() || null,
+        full_name: f.full_name.trim() || null, company_name: f.company_name.trim(), phone: f.phone.trim() || null, location: f.location.trim() || null, bio: f.bio.trim() || null,
       }).eq("id", profile.id);
       if (error) throw error;
       await refresh();
@@ -102,11 +104,19 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 12 }}>
             <div style={{ fontSize: 20, fontWeight: 800 }}>{name}</div>
-            {isAdmin && <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(109,92,245,.12)", padding: "4px 10px", borderRadius: 20 }}><Icon name="crown" size={13} />{D.adminBadge}</span>}
+            {isAdmin && <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(76,46,224,.12)", padding: "4px 10px", borderRadius: 20 }}><Icon name="crown" size={13} />{D.adminBadge}</span>}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 20 }}>
             <Field label={D.name} value={f.full_name} onChange={set("full_name")} />
+            <div>
+              <label style={lbl}>
+                {D.company}<span style={{ color: "var(--ml-red)" }}> *</span>
+                <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "var(--ml-red)", background: "rgba(239,68,68,.1)", padding: "2px 7px", borderRadius: 20, textTransform: "none", letterSpacing: 0 }}>{D.required}</span>
+              </label>
+              <input value={f.company_name} onChange={set("company_name")} placeholder={D.companyPh}
+                style={{ ...inp, border: `1px solid ${companyEmpty ? "var(--ml-red)" : "var(--ml-border)"}` }} />
+            </div>
             <div>
               <label style={lbl}>{D.email}</label>
               <input value={session?.user?.email ?? ""} disabled style={{ ...inp, opacity: 0.6, cursor: "not-allowed" }} />
@@ -134,7 +144,7 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
         {/* footer */}
         <div style={{ position: "sticky", bottom: 0, display: "flex", gap: 10, justifyContent: "flex-end", padding: 18, borderTop: "1px solid var(--ml-border)", background: "var(--ml-card)" }}>
           <button onClick={onClose} disabled={busy} style={{ padding: "11px 20px", borderRadius: 11, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-navtext)", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>{D.cancel}</button>
-          <button onClick={save} disabled={busy} style={{ display: "flex", alignItems: "center", gap: 7, padding: "11px 22px", borderRadius: 11, border: "none", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", fontWeight: 700, fontSize: 14, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1 }}>{busy ? <Icon name="loader" size={15} className="ml-spin" /> : <Icon name="check" size={15} />}{D.save}</button>
+          <button onClick={save} disabled={busy || companyEmpty} style={{ display: "flex", alignItems: "center", gap: 7, padding: "11px 22px", borderRadius: 11, border: "none", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", fontWeight: 700, fontSize: 14, cursor: busy || companyEmpty ? "not-allowed" : "pointer", opacity: busy || companyEmpty ? 0.6 : 1 }}>{busy ? <Icon name="loader" size={15} className="ml-spin" /> : <Icon name="check" size={15} />}{D.save}</button>
         </div>
       </aside>
     </>,

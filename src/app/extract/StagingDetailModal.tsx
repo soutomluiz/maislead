@@ -85,7 +85,7 @@ export function StagingDetailModal({ data, badges, added, importing, onAdd, onCl
         {/* dados completos via BrasilAPI (grátis, sob demanda) */}
         <div style={{ marginBottom: 18 }}>
           {!deep && (
-            <button onClick={loadDeep} disabled={loadingDeep} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%", padding: "11px 14px", borderRadius: 12, border: "1px solid var(--ml-primary)", background: "rgba(109,92,245,.08)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 13.5, cursor: loadingDeep ? "default" : "pointer" }}>
+            <button onClick={loadDeep} disabled={loadingDeep} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%", padding: "11px 14px", borderRadius: 12, border: "1px solid var(--ml-primary)", background: "rgba(76,46,224,.08)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 13.5, cursor: loadingDeep ? "default" : "pointer" }}>
               {loadingDeep ? <Icon name="loader" size={15} className="ml-spin" /> : <Icon name="users" size={15} />}{loadingDeep ? D.deepLoad : D.deep}
             </button>
           )}
@@ -106,7 +106,7 @@ export function StagingDetailModal({ data, badges, added, importing, onAdd, onCl
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {socios.map((s, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                        <span style={{ width: 26, height: 26, borderRadius: 8, background: "rgba(109,92,245,.12)", color: "var(--ml-primary)", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name="user" size={14} /></span>
+                        <span style={{ width: 26, height: 26, borderRadius: 8, background: "rgba(76,46,224,.12)", color: "var(--ml-primary)", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name="user" size={14} /></span>
                         <span style={{ minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{toTitle(s.nome_socio)}</div>
                           {s.qualificacao_socio && <div style={{ fontSize: 11.5, color: "var(--ml-muted)" }}>{toTitle(s.qualificacao_socio)}</div>}
@@ -144,7 +144,7 @@ export function StagingDetailModal({ data, badges, added, importing, onAdd, onCl
           phone: data.phone,
         }} />
 
-        <button onClick={onAdd} disabled={added || importing} style={{ width: "100%", height: 48, borderRadius: 13, border: "none", background: added ? "var(--ml-grid)" : "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: added ? "var(--ml-muted)" : "#fff", fontWeight: 700, fontSize: 15, cursor: added || importing ? "default" : "pointer", opacity: importing && !added ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: added ? "none" : "0 8px 18px rgba(109,92,245,.28)" }}>
+        <button onClick={onAdd} disabled={added || importing} style={{ width: "100%", height: 48, borderRadius: 13, border: "none", background: added ? "var(--ml-grid)" : "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: added ? "var(--ml-muted)" : "#fff", fontWeight: 700, fontSize: 15, cursor: added || importing ? "default" : "pointer", opacity: importing && !added ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: added ? "none" : "0 8px 18px rgba(76,46,224,.28)" }}>
           {added ? <><Icon name="check" size={16} />{D.added}</> : importing ? <><Icon name="loader" size={16} className="ml-spin" />{D.adding}</> : <><Icon name="plus" size={16} strokeWidth={2.4} />{D.add}</>}
         </button>
       </div>

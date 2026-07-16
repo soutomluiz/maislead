@@ -31,9 +31,9 @@ const DICT: Record<Lang, Record<string, string>> = {
 };
 
 const TIPO_META: Record<Lang, Record<Opcao["tipo"], { label: string; color: string; bg: string }>> = {
-  pt: { direta: { label: "Direta", color: "var(--ml-blue)", bg: "rgba(59,130,246,.12)" }, dor: { label: "Dor / Ajuda", color: "var(--ml-amber)", bg: "rgba(245,158,11,.14)" }, formal: { label: "Formal", color: "var(--ml-primary)", bg: "rgba(109,92,245,.12)" } },
-  en: { direta: { label: "Direct", color: "var(--ml-blue)", bg: "rgba(59,130,246,.12)" }, dor: { label: "Pain / Help", color: "var(--ml-amber)", bg: "rgba(245,158,11,.14)" }, formal: { label: "Formal", color: "var(--ml-primary)", bg: "rgba(109,92,245,.12)" } },
-  es: { direta: { label: "Directa", color: "var(--ml-blue)", bg: "rgba(59,130,246,.12)" }, dor: { label: "Dolor / Ayuda", color: "var(--ml-amber)", bg: "rgba(245,158,11,.14)" }, formal: { label: "Formal", color: "var(--ml-primary)", bg: "rgba(109,92,245,.12)" } },
+  pt: { direta: { label: "Direta", color: "var(--ml-blue)", bg: "rgba(59,130,246,.12)" }, dor: { label: "Dor / Ajuda", color: "var(--ml-amber)", bg: "rgba(245,158,11,.14)" }, formal: { label: "Formal", color: "var(--ml-primary)", bg: "rgba(76,46,224,.12)" } },
+  en: { direta: { label: "Direct", color: "var(--ml-blue)", bg: "rgba(59,130,246,.12)" }, dor: { label: "Pain / Help", color: "var(--ml-amber)", bg: "rgba(245,158,11,.14)" }, formal: { label: "Formal", color: "var(--ml-primary)", bg: "rgba(76,46,224,.12)" } },
+  es: { direta: { label: "Directa", color: "var(--ml-blue)", bg: "rgba(59,130,246,.12)" }, dor: { label: "Dolor / Ayuda", color: "var(--ml-amber)", bg: "rgba(245,158,11,.14)" }, formal: { label: "Formal", color: "var(--ml-primary)", bg: "rgba(76,46,224,.12)" } },
 };
 
 export function PitchPanel({ leadId, signals, lang }: { leadId?: string; signals?: PitchInlineSignals; lang: Lang }) {
@@ -83,7 +83,7 @@ export function PitchPanel({ leadId, signals, lang }: { leadId?: string; signals
           <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ml-navtext)" }}>{D.title}</div>
         </div>
         {locked ? (
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(109,92,245,.1)", padding: "7px 12px", borderRadius: 9 }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(76,46,224,.1)", padding: "7px 12px", borderRadius: 9 }}>
             <Icon name="crown" size={13} /> Business
           </span>
         ) : (
@@ -130,5 +130,5 @@ export function PitchPanel({ leadId, signals, lang }: { leadId?: string; signals
 }
 
 function miniBtn(loading: boolean): CSSProperties {
-  return { display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 9, border: "1px solid var(--ml-primary)", background: "rgba(109,92,245,.08)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 12.5, cursor: loading ? "default" : "pointer", whiteSpace: "nowrap" };
+  return { display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 9, border: "1px solid var(--ml-primary)", background: "rgba(76,46,224,.08)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 12.5, cursor: loading ? "default" : "pointer", whiteSpace: "nowrap" };
 }

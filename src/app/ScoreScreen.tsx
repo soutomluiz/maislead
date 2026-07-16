@@ -34,7 +34,7 @@ export function ScoreScreen() {
       <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
         {filters.map(([k, lbl]) => {
           const on = filter === k;
-          return <button key={k} onClick={() => setFilter(k)} style={{ height: 38, padding: "0 16px", borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 7, border: `1px solid ${on ? "#6d5cf5" : "var(--ml-border)"}`, background: on ? "#6d5cf5" : "var(--ml-card)", color: on ? "#fff" : "var(--ml-text)" }}>
+          return <button key={k} onClick={() => setFilter(k)} style={{ height: 38, padding: "0 16px", borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 7, border: `1px solid ${on ? "#4c2ee0" : "var(--ml-border)"}`, background: on ? "#4c2ee0" : "var(--ml-card)", color: on ? "#fff" : "var(--ml-text)" }}>
             {k !== "all" && <span style={{ width: 8, height: 8, borderRadius: "50%", background: on ? "#fff" : DOT[k] }} />}{lbl}
           </button>;
         })}
@@ -46,7 +46,7 @@ export function ScoreScreen() {
             const tm = TEMP_META[l.temp];
             return (
               <div key={l.id} onClick={() => setOpen(l)} style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 18, padding: 20, cursor: "pointer", boxShadow: "0 1px 3px rgba(30,25,60,.04)", transition: ".15s" }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 12px 26px rgba(109,92,245,.14)"; e.currentTarget.style.borderColor = "#c9bffb"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 12px 26px rgba(76,46,224,.14)"; e.currentTarget.style.borderColor = "#c9bffb"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 1px 3px rgba(30,25,60,.04)"; e.currentTarget.style.borderColor = "var(--ml-border)"; }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>

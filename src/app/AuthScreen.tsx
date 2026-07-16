@@ -10,6 +10,7 @@ export function AuthScreen() {
   const { signIn, signUp, resetPassword } = useAuth();
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
+  const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -28,7 +29,8 @@ export function AuthScreen() {
         const r = await signIn(email, password);
         if (r.error) setErr(r.error);
       } else if (mode === "signup") {
-        const r = await signUp(name, email, password);
+        if (!company.trim()) { setErr(a.company + " — " + a.required); return; }
+        const r = await signUp(name, email, password, company);
         if (r.error) setErr(r.error);
         else if (r.needsConfirm) { setOk(a.checkEmail); setMode("signin"); }
       } else {
@@ -52,7 +54,7 @@ export function AuthScreen() {
       <div style={{ width: "100%", maxWidth: 400 }}>
         {/* brand */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 22 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 15, background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", display: "grid", placeItems: "center", color: "#fff", boxShadow: "0 10px 24px rgba(109,92,245,.35)" }}>
+          <div style={{ width: 52, height: 52, borderRadius: 15, background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", display: "grid", placeItems: "center", color: "#fff", boxShadow: "0 10px 24px rgba(76,46,224,.35)" }}>
             <Icon name="spark" size={26} />
           </div>
           <div style={{ fontSize: 22, fontWeight: 800, marginTop: 12, letterSpacing: -0.4 }}>{a.brand}</div>
@@ -69,6 +71,15 @@ export function AuthScreen() {
                 <label style={label}>{a.name}</label>
                 <span style={iconWrap}><Icon name="user" size={16} /></span>
                 <input style={field} value={name} onChange={(e) => setName(e.target.value)} placeholder={a.name} autoComplete="name" />
+              </div>
+            )}
+            {mode === "signup" && (
+              <div style={{ position: "relative", marginBottom: 14 }}>
+                <label style={label}>{a.company}<span style={{ color: "var(--ml-red)" }}> *</span>
+                  <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "var(--ml-red)", background: "rgba(239,68,68,.1)", padding: "2px 7px", borderRadius: 20 }}>{a.required}</span>
+                </label>
+                <span style={iconWrap}><Icon name="building" size={16} /></span>
+                <input style={{ ...field, border: `1px solid ${company.trim() ? "var(--ml-border)" : "var(--ml-red)"}` }} value={company} onChange={(e) => setCompany(e.target.value)} placeholder={a.companyPh} autoComplete="organization" />
               </div>
             )}
             <div style={{ position: "relative", marginBottom: 14 }}>
@@ -90,7 +101,7 @@ export function AuthScreen() {
             {err && <div style={{ fontSize: 13, color: "var(--ml-red)", background: "rgba(239,68,68,.1)", padding: "9px 12px", borderRadius: 10, marginBottom: 12 }}>{err}</div>}
             {ok && <div style={{ fontSize: 13, color: "var(--ml-green)", background: "rgba(16,185,129,.12)", padding: "9px 12px", borderRadius: 10, marginBottom: 12 }}>{ok}</div>}
 
-            <button type="submit" disabled={busy} style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", fontWeight: 700, fontSize: 14.5, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 18px rgba(109,92,245,.28)" }}>
+            <button type="submit" disabled={busy || (mode === "signup" && !company.trim())} style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", fontWeight: 700, fontSize: 14.5, cursor: busy || (mode === "signup" && !company.trim()) ? "not-allowed" : "pointer", opacity: busy || (mode === "signup" && !company.trim()) ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 18px rgba(76,46,224,.28)" }}>
               {busy && <Icon name="loader" size={16} className="ml-spin" />}
               {mode === "signin" ? a.signIn : mode === "signup" ? a.signUp : a.sendReset}
             </button>

@@ -156,7 +156,7 @@ export function LookalikeScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) =>
       {/* card sementes */}
       <Panel style={{ padding: 28, borderRadius: 22 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 15, background: "rgba(109,92,245,.12)", color: "var(--ml-primary)", display: "grid", placeItems: "center" }}><Icon name="users" size={24} /></div>
+          <div style={{ width: 52, height: 52, borderRadius: 15, background: "rgba(76,46,224,.12)", color: "var(--ml-primary)", display: "grid", placeItems: "center" }}><Icon name="users" size={24} /></div>
           <div>
             <div style={{ fontSize: 19, fontWeight: 800 }}>{D.title}</div>
             <div style={{ fontSize: 13.5, color: "var(--ml-muted)" }}>{D.sub}</div>
@@ -167,7 +167,7 @@ export function LookalikeScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) =>
         <textarea value={seeds} onChange={(e) => { setSeeds(e.target.value); setPatternErr(null); }} placeholder={D.seedPh} rows={3}
           style={{ ...inp, height: 96, padding: "12px 14px", lineHeight: 1.7, resize: "vertical", fontFamily: "inherit" }} />
 
-        <button onClick={analyze} disabled={analyzing} style={{ width: "100%", height: 48, marginTop: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: analyzing ? "default" : "pointer", opacity: analyzing ? 0.7 : 1, boxShadow: "0 10px 24px rgba(109,92,245,.32)" }}>
+        <button onClick={analyze} disabled={analyzing} style={{ width: "100%", height: 48, marginTop: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: analyzing ? "default" : "pointer", opacity: analyzing ? 0.7 : 1, boxShadow: "0 10px 24px rgba(76,46,224,.32)" }}>
           {analyzing ? <Icon name="loader" size={17} className="ml-spin" /> : <Icon name="spark" size={17} />}{analyzing ? D.analyzing : D.analyze}
         </button>
 
@@ -184,7 +184,7 @@ export function LookalikeScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) =>
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--ml-muted)", marginBottom: 6 }}>{D.cnaeLbl}</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {pattern.cnaes.map((c) => <Badge key={c.codigo} color="#6d5cf5" bg="rgba(109,92,245,.1)">{c.descricao}</Badge>)}
+              {pattern.cnaes.map((c) => <Badge key={c.codigo} color="#4c2ee0" bg="rgba(76,46,224,.1)">{c.descricao}</Badge>)}
             </div>
           </div>
           <div style={{ marginBottom: 16 }}>
@@ -202,7 +202,7 @@ export function LookalikeScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) =>
                 {UFS.map((u) => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
-            <button onClick={() => runSearch(0)} disabled={busy} style={{ flex: 1, minWidth: 180, height: 46, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 14.5, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1, boxShadow: "0 8px 18px rgba(109,92,245,.28)" }}>
+            <button onClick={() => runSearch(0)} disabled={busy} style={{ flex: 1, minWidth: 180, height: 46, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 14.5, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1, boxShadow: "0 8px 18px rgba(76,46,224,.28)" }}>
               {busy ? <Icon name="loader" size={16} className="ml-spin" /> : <Icon name="search" size={16} />}{busy ? D.searching : D.search}
             </button>
           </div>
@@ -227,7 +227,7 @@ export function LookalikeScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) =>
                 const dupe = isDupe(r);
                 const on = selected.has(r.cnpj);
                 return (
-                  <div key={r.cnpj} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 12px", borderRadius: 12, border: "1px solid var(--ml-border)", background: on ? "rgba(109,92,245,.05)" : "var(--ml-card)" }}>
+                  <div key={r.cnpj} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 12px", borderRadius: 12, border: "1px solid var(--ml-border)", background: on ? "rgba(76,46,224,.05)" : "var(--ml-card)" }}>
                     <button onClick={() => !dupe && toggle(r.cnpj)} disabled={dupe} aria-label="select" style={{ width: 20, height: 20, flexShrink: 0, borderRadius: 6, border: `1.6px solid ${on ? "var(--ml-primary)" : "var(--ml-border)"}`, background: on ? "var(--ml-primary)" : "transparent", display: "grid", placeItems: "center", cursor: dupe ? "not-allowed" : "pointer", opacity: dupe ? 0.4 : 1, padding: 0 }}>
                       {on && <Icon name="check" size={13} strokeWidth={3} style={{ color: "#fff" }} />}
                     </button>
@@ -235,7 +235,7 @@ export function LookalikeScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) =>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                         <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ml-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 240 }}>{r.company}</span>
                         <Badge color={dupe ? "var(--ml-muted)" : "#059669"} bg={dupe ? "var(--ml-grid)" : "rgba(16,185,129,.13)"}>{dupe ? D.badgeExists : D.badgeNew}</Badge>
-                        {r.mei && <Badge color="#6d5cf5" bg="rgba(109,92,245,.1)">{D.badgeMei}</Badge>}
+                        {r.mei && <Badge color="#4c2ee0" bg="rgba(76,46,224,.1)">{D.badgeMei}</Badge>}
                       </div>
                       <div style={{ fontSize: 12, color: "var(--ml-muted)", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {[r.cnae, [r.municipio, r.uf].filter(Boolean).join("/"), r.abertura].filter(Boolean).join(" · ")}
@@ -273,7 +273,7 @@ export function LookalikeScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) =>
               <button onClick={selectNew} style={ghostBtn}>{D.selNew}</button>
               <button onClick={() => onNavigate?.("leadslist")} style={ghostBtn}><Icon name="users" size={15} />{D.goLeads}</button>
               <button onClick={() => importCnpjs([...selected])} disabled={selCount === 0 || exceeds || importing}
-                style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, height: 44, padding: "0 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6d5cf5,#8b6bff)", color: "#fff", fontWeight: 700, fontSize: 14, cursor: selCount === 0 || exceeds || importing ? "default" : "pointer", opacity: selCount === 0 || exceeds || importing ? 0.55 : 1, boxShadow: "0 8px 18px rgba(109,92,245,.28)" }}>
+                style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, height: 44, padding: "0 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 14, cursor: selCount === 0 || exceeds || importing ? "default" : "pointer", opacity: selCount === 0 || exceeds || importing ? 0.55 : 1, boxShadow: "0 8px 18px rgba(76,46,224,.28)" }}>
                 {importing ? <Icon name="loader" size={16} className="ml-spin" /> : <Icon name="plus" size={16} strokeWidth={2.4} />}{D.addN} ({selCount})
               </button>
             </div>
@@ -285,7 +285,7 @@ export function LookalikeScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) =>
         const dupe = isDupe(drawer);
         const badges: BadgeT[] = [{ label: dupe ? D.badgeExists : D.badgeNew, color: dupe ? "var(--ml-muted)" : "#059669", bg: dupe ? "var(--ml-grid)" : "rgba(16,185,129,.13)" }];
         if (drawer.situacao) badges.push({ label: drawer.situacao, color: "#059669", bg: "rgba(16,185,129,.13)" });
-        if (drawer.mei) badges.push({ label: D.badgeMei, color: "#6d5cf5", bg: "rgba(109,92,245,.1)" });
+        if (drawer.mei) badges.push({ label: D.badgeMei, color: "#4c2ee0", bg: "rgba(76,46,224,.1)" });
         const data: StagingCompany = {
           cnpj: drawer.cnpj, cnpjFmt: drawer.cnpjFmt, company: drawer.company, razao_social: drawer.razao_social, nome_fantasia: drawer.nome_fantasia,
           cnae: drawer.cnae, porte: drawer.porte, abertura: drawer.abertura, capital: drawer.capital, uf: drawer.uf, municipio: drawer.municipio, mei: drawer.mei, email: drawer.email, phone: drawer.phone,
@@ -303,7 +303,7 @@ function QuotaBar({ quota, selCount, D }: { quota: Quota; selCount: number; D: t
   const unlimited = quota.limit == null;
   const pct = unlimited ? 0 : Math.min(100, (quota.used / quota.limit!) * 100);
   const projPct = unlimited ? 0 : Math.min(100, ((quota.used + selCount) / quota.limit!) * 100);
-  const band = pct >= 90 ? "#dc2626" : pct >= 70 ? "#f59e0b" : "#6d5cf5";
+  const band = pct >= 90 ? "#dc2626" : pct >= 70 ? "#f59e0b" : "#4c2ee0";
   const selPct = unlimited || selCount === 0 ? 0 : Math.round((selCount / quota.limit!) * 100);
   return (
     <div style={{ background: "var(--ml-hover)", border: "1px solid var(--ml-border)", borderRadius: 13, padding: "13px 15px", marginBottom: 16 }}>
@@ -313,7 +313,7 @@ function QuotaBar({ quota, selCount, D }: { quota: Quota; selCount: number; D: t
       </div>
       {!unlimited && (
         <div style={{ height: 8, borderRadius: 20, background: "var(--ml-grid)", overflow: "hidden", position: "relative" }}>
-          {selCount > 0 && <div style={{ position: "absolute", inset: 0, width: `${projPct}%`, background: "rgba(109,92,245,.28)", borderRadius: 20 }} />}
+          {selCount > 0 && <div style={{ position: "absolute", inset: 0, width: `${projPct}%`, background: "rgba(76,46,224,.28)", borderRadius: 20 }} />}
           <div style={{ position: "absolute", inset: 0, width: `${pct}%`, background: band, borderRadius: 20, transition: "width .3s" }} />
         </div>
       )}

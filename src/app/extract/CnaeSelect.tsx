@@ -53,7 +53,7 @@ export function CnaeSelect({ value, onChange, lang }: { value: string[]; onChang
       <label style={lbl}>{lang === "pt" ? "Atividade (CNAE)" : lang === "en" ? "Activity (CNAE)" : "Actividad (CNAE)"}{value.length > 0 ? ` · ${value.length} ${D.selected}` : ""}</label>
       <div onClick={() => setOpen(true)} style={{ minHeight: 42, display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", padding: "6px 10px", borderRadius: 12, border: "1px solid var(--ml-border)", background: "var(--ml-input)", cursor: "text" }}>
         {value.map((code) => (
-          <span key={code} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "var(--ml-primary)", background: "rgba(109,92,245,.12)", padding: "3px 6px 3px 9px", borderRadius: 16, maxWidth: 240 }}>
+          <span key={code} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "var(--ml-primary)", background: "rgba(76,46,224,.12)", padding: "3px 6px 3px 9px", borderRadius: 16, maxWidth: 240 }}>
             <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{byCode.get(code) ?? code}</span>
             <button onClick={(e) => { e.stopPropagation(); remove(code); }} style={{ display: "grid", placeItems: "center", background: "none", border: "none", color: "var(--ml-primary)", cursor: "pointer", padding: 0, flexShrink: 0 }}><Icon name="x" size={12} strokeWidth={2.6} /></button>
           </span>
