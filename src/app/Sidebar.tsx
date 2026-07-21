@@ -79,7 +79,7 @@ export function Sidebar({ active, onNavigate }: { active: ScreenKey; onNavigate:
       {/* Footer */}
       <div style={{ marginTop: 14, padding: "14px 12px 4px", borderTop: "1px solid var(--ml-border)", display: "flex", flexDirection: "column", gap: 9, fontSize: 12, color: "var(--ml-muted)" }}>
         <a href="tel:+16784495498" style={{ display: "flex", alignItems: "center", gap: 9, color: "inherit", textDecoration: "none" }}><Icon name="chat" size={14} /> +1 (678) 449-5498</a>
-        <a href="mailto:contato@maislead.com.br" style={{ display: "flex", alignItems: "center", gap: 9, color: "inherit", textDecoration: "none" }}><Icon name="mail" size={14} /> contato@maislead.com.br</a>
+        <a href="mailto:contato@maislead.com" style={{ display: "flex", alignItems: "center", gap: 9, color: "inherit", textDecoration: "none" }}><Icon name="mail" size={14} /> contato@maislead.com</a>
         <div style={{ display: "flex", alignItems: "center", gap: 9, opacity: 0.75 }}><Icon name="clock" size={14} /> Versão 2.0.0</div>
       </div>
     </aside>
