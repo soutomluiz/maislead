@@ -5,6 +5,7 @@ import { useAuth } from "../AuthContext";
 import { Icon, type IconName } from "../icons";
 import { LeadDrawer } from "../leads/LeadDrawer";
 import { mapLead, type LeadRow, type DbLead } from "../leads/model";
+import { CityAutocomplete, type CitySelection } from "./CityAutocomplete";
 
 const Panel = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
   <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 18, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)", ...style }}>{children}</div>
@@ -70,6 +71,9 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
   const D = DICT[lang];
   const [niche, setNiche] = useState("");
   const [location, setLocation] = useState("");
+  // Cidade selecionada no autocomplete (guarda o bbox pronto pro Overture).
+  // Por enquanto só fica no estado — a busca atual continua mandando `location` string.
+  const [citySelection, setCitySelection] = useState<CitySelection | null>(null);
   const [busy, setBusy] = useState(false);
   const [recent, setRecent] = useState<SearchRow[]>([]);
   const [result, setResult] = useState<{ inserted: number; skipped: number; found: number; preview: Preview[] } | null>(null);
@@ -101,17 +105,71 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
   }
   useEffect(() => { loadRecent(); /* eslint-disable-next-line */ }, [auth.account?.id, source]);
 
+  // Fluxo antigo: Google Places (extract-google-maps ou o `fn` da prop). Popula result/err.
+  async function runGooglePlaces() {
+    const { data, error } = await supabase.functions.invoke(fn, { body: { niche: niche.trim(), location: location.trim() || null } });
+    let code: string | null = data?.error ?? null;
+    if (error) { code = "errGeneric"; try { const body = await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.(); code = body?.error ?? code; } catch { /* ignore */ } }
+    if (code) { setErr(code === "missing_api_key" ? D.errKey : code === "limit_reached" ? D.errLimit : code === "places_error" || code === "cse_error" ? D.errPlaces : D.errGeneric); return; }
+    setResult({ inserted: data.inserted ?? 0, skipped: data.skipped ?? 0, found: data.found ?? 0, preview: data.preview ?? [] });
+    await Promise.all([loadRecent(), refresh()]);
+  }
+
+  // Deriva city/region/country do label da cidade selecionada ("Biguaçu, Santa Catarina, Brasil").
+  // region/country são best-effort (o bbox é o filtro real); country vira ISO quando reconhecido.
+  function deriveCityParts(sel: CitySelection) {
+    const parts = sel.label.split(",").map((s) => s.trim()).filter(Boolean);
+    const city = parts[0] || location.trim();
+    const region = parts.length >= 3 ? parts[1] : undefined;
+    const rawCountry = parts[parts.length - 1] || "";
+    const country = /bra[sz]il/i.test(rawCountry) ? "BR" : (rawCountry || undefined);
+    return { city, region, country };
+  }
+
+  // Nova fonte: Overture Maps (grátis, com cache). A v2 salva os leads na tabela
+  // `leads` e responde no MESMO formato da extract-google-maps (inserted/skipped/
+  // found/source/cap/used/preview). Retornos:
+  //   "ok"       -> trouxe resultados, UI já atualizada (não cai pro Google)
+  //   "handled"  -> cota estourada (402): erro já exibido, NÃO cair pro Google
+  //   "fallback" -> zero resultados ou erro não-cota: cair pro Google Places
+  async function runOverture(sel: CitySelection): Promise<"ok" | "handled" | "fallback"> {
+    const { city, region, country } = deriveCityParts(sel);
+    const { data, error } = await supabase.functions.invoke("search-overture", { body: { niche: niche.trim(), bbox: sel.bbox, city, region, country } });
+
+    // Extrai o código de erro (mesma leitura de context que o Google usa).
+    let code: string | null = data?.error ?? null;
+    if (error) { code = "errGeneric"; try { const body = await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.(); code = body?.error ?? code; } catch { /* ignore */ } }
+
+    // Cota estourada: mostra o MESMO aviso do Google e NÃO cai pro Google (senão fura a cota).
+    if (code === "limit_reached") { setErr(D.errLimit); return "handled"; }
+    // Qualquer outro erro (overture_failed, insert_failed, unexpected…): cai pro Google pra não travar o usuário.
+    if (code) { console.warn("[maisLEAD] search-overture erro — fallback Google Places:", code); return "fallback"; }
+
+    const found: number = data?.found ?? 0;
+    console.log(`[maisLEAD] Overture source=${data?.source ?? "?"} inserted=${data?.inserted ?? 0} skipped=${data?.skipped ?? 0} found=${found}`);
+    // Sem cobertura no Overture pra essa cidade+nicho: cai pro Google.
+    if (found === 0) return "fallback";
+
+    // Resposta idêntica ao Google → mesmo tratamento: contadores + preview prontos + reload.
+    setResult({ inserted: data.inserted ?? 0, skipped: data.skipped ?? 0, found, preview: data.preview ?? [] });
+    await Promise.all([loadRecent(), refresh()]);
+    return "ok";
+  }
+
   async function run() {
     setErr(null); setResult(null);
     if (!niche.trim()) { setErr(D.reqNiche); return; }
     setBusy(true);
     try {
-      const { data, error } = await supabase.functions.invoke(fn, { body: { niche: niche.trim(), location: location.trim() || null } });
-      let code: string | null = data?.error ?? null;
-      if (error) { code = "errGeneric"; try { const body = await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.(); code = body?.error ?? code; } catch { /* ignore */ } }
-      if (code) { setErr(code === "missing_api_key" ? D.errKey : code === "limit_reached" ? D.errLimit : code === "places_error" || code === "cse_error" ? D.errPlaces : D.errGeneric); return; }
-      setResult({ inserted: data.inserted ?? 0, skipped: data.skipped ?? 0, found: data.found ?? 0, preview: data.preview ?? [] });
-      await Promise.all([loadRecent(), refresh()]);
+      // Overture primeiro: só no Google Places e quando há bbox da cidade selecionada.
+      if (source === "google_maps" && citySelection?.bbox) {
+        const outcome = await runOverture(citySelection);
+        if (outcome === "fallback") await runGooglePlaces();
+        // "ok" e "handled" encerram aqui (resultado ou aviso de cota já exibidos).
+      } else {
+        // Sem bbox (cidade digitada mas não selecionada) ou modo websites: fluxo atual.
+        await runGooglePlaces();
+      }
     } catch { setErr(D.errGeneric); }
     finally { setBusy(false); }
   }
@@ -135,10 +193,16 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
             <label style={lbl}>{D.niche}</label>
             <input value={niche} onChange={(e) => setNiche(e.target.value)} placeholder={D.nichePh} style={inp} onKeyDown={(e) => e.key === "Enter" && run()} />
           </div>
-          <div>
-            <label style={lbl}>{D.location}</label>
-            <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder={D.locPh} style={inp} onKeyDown={(e) => e.key === "Enter" && run()} />
-          </div>
+          <CityAutocomplete
+            value={location}
+            onTextChange={(t) => { setLocation(t); if (citySelection) setCitySelection(null); }}
+            onSelect={(sel) => { setCitySelection(sel); setLocation(sel.label); }}
+            label={D.location}
+            placeholder={D.locPh}
+            labelStyle={lbl}
+            inputStyle={inp}
+            onEnter={run}
+          />
         </div>
 
         <button onClick={run} disabled={busy} style={{ width: "100%", height: 50, marginTop: 22, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, borderRadius: 13, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1, boxShadow: "0 10px 24px rgba(76,46,224,.32)" }}>
