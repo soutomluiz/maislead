@@ -179,7 +179,8 @@ export function LeadsScreen() {
             <button onClick={gate("detectTech", () => { setTechIds([...selected]); setTechOpen(true); })} style={{ ...bulkOutline, fontWeight: 700 }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#4c2ee0"; e.currentTarget.style.color = "#4c2ee0"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--ml-border)"; e.currentTarget.style.color = "var(--ml-text)"; }}><Icon name="cpu" size={15} /> {X.detectTech}{!can("detectTech") && <Icon name="lock" size={12} />}</button>
-            <button onClick={gate("massEmail", () => setEmailOpen(true))} style={bulkOutline}><Icon name="mail" size={15} /> {X.massEmail}{!can("massEmail") && <Icon name="lock" size={12} />}</button>
+            {/* E-mail em massa desativado até a v3 (ver TODO.md). UI escondida; modal/edge function preservados. */}
+            {/* <button onClick={gate("massEmail", () => setEmailOpen(true))} style={bulkOutline}><Icon name="mail" size={15} /> {X.massEmail}{!can("massEmail") && <Icon name="lock" size={12} />}</button> */}
             <button onClick={() => { setTagIds([...selected]); setTagOpen(true); }} style={bulkOutline}><Icon name="tag" size={14} /> {X.addTag}</button>
             <button onClick={() => exportLeads(leads.filter((l) => selected.has(l.id)), getExportFormat())} style={bulkOutline}><Icon name="download" size={14} /> {L.exportCsv}</button>
             {(["new", "qualified", "converted"] as LeadStatus[]).map((s) => (
@@ -276,7 +277,8 @@ export function LeadsScreen() {
       </div>
 
       <LeadDrawer lead={openLead} onClose={() => setOpenLead(null)} onChanged={refetch} />
-      {emailOpen && <MassEmailModal leadIds={[...selected]} onClose={() => setEmailOpen(false)} />}
+      {/* E-mail em massa desativado até a v3 — modal preservado, só não montado. */}
+      {/* {emailOpen && <MassEmailModal leadIds={[...selected]} onClose={() => setEmailOpen(false)} />} */}
       {enrichOpen && <EnrichEmailsModal leadIds={enrichIds} onDone={refetch} onClose={() => setEnrichOpen(false)} />}
       {techOpen && <DetectTechModal leadIds={techIds} onDone={refetch} onClose={() => setTechOpen(false)} />}
       {importOpen && <ImportCsvModal accountId={account?.id} userId={session?.user?.id} existing={leads.map((l) => ({ phone: l.phone, website: l.website }))} onDone={refetch} onClose={() => setImportOpen(false)} />}

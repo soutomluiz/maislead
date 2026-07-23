@@ -22,3 +22,26 @@ Lista curta de coisas pra fazer depois do lançamento. Foco atual: **lançar**.
   4. Só então merge no `main`.
 - **NÃO rodar** `npm audit fix --force` direto no main (instala major sem teste).
 - Registrado em 2026-07-21.
+
+## Recursos desativados (voltam em versão futura)
+
+### [ ] Reativar E-mail em massa (templates) — planejado pra v3
+- **Status:** DESATIVADO em 2026-07-23. A UI de disparo foi escondida e a feature saiu da
+  descrição dos planos e do gating, pra **não vender algo que não existe ainda**.
+- **Por quê desativamos:** faltam os secrets de envio configurados; melhor esconder do que
+  entregar um botão que falha.
+- **O que foi mexido (tudo reversível, nada deletado):**
+  - `src/app/leads/LeadsScreen.tsx` — botão "Enviar E-mail" e o mount do `MassEmailModal`
+    **comentados** (procurar por "v3"). O componente `MassEmailModal.tsx` continua no repo.
+  - `src/app/plan.ts` — `massEmail` removido de `Feature` e `FEATURE_MIN`.
+  - `src/app/SubScreen.tsx` — item "E-mail em massa + templates" removido das feats do plano Pro (pt/en/es).
+  - `supabase/functions/send-emails/index.ts` — guard no topo: retorna `403 feature_disabled`
+    enquanto o secret `EMAILS_ENABLED` não for `"true"`. **Código do envio preservado** abaixo do guard.
+    (deploy: v15)
+- **Como RELIGAR (v3):**
+  1. Configurar os secrets no Supabase: **`RESEND_API_KEY`**, **`RESEND_FROM`** (remetente verificado)
+     e **`EMAILS_ENABLED=true`**.
+  2. Descomentar o botão + o mount do modal em `LeadsScreen.tsx` (marcados com "v3").
+  3. Voltar `massEmail` em `plan.ts` (`Feature` + `FEATURE_MIN: { massEmail: 1 }`).
+  4. Voltar a feat "E-mail em massa + templates" nas feats do Pro em `SubScreen.tsx` (pt/en/es).
+  5. Testar disparo logado numa conta Pro/Business antes de anunciar.

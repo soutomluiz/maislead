@@ -20,7 +20,7 @@ const DICT = {
     mostPopular: "Mais popular",
     plans: {
       starter: { name: "Starter", tag: "Para quem está começando", feats: ["50 leads por mês", "Google Places + Empresas", "Pontuação de leads", "Dashboard e relatórios", "Exportação CSV"] },
-      pro: { name: "Pro", tag: "Para times de vendas em crescimento", feats: ["2.000 leads por mês", "Verificação de dados", "Enriquecimento de e-mails", "Detecção de tecnologia", "E-mail em massa + templates", "Integração com CRMs"] },
+      pro: { name: "Pro", tag: "Para times de vendas em crescimento", feats: ["2.000 leads por mês", "Verificação de dados", "Enriquecimento de e-mails", "Detecção de tecnologia", "Integração com CRMs"] },
       business: { name: "Business", tag: "Para operações de alto volume", feats: ["5.000 leads por mês", "Tudo do Pro", "Pitch de IA (abordagem)", "Suporte prioritário"] },
     },
   },
@@ -33,7 +33,7 @@ const DICT = {
     mostPopular: "Most popular",
     plans: {
       starter: { name: "Starter", tag: "For those getting started", feats: ["50 leads per month", "Google Places + Companies", "Lead scoring", "Dashboard and reports", "CSV export"] },
-      pro: { name: "Pro", tag: "For growing sales teams", feats: ["2,000 leads per month", "Data verification", "Email enrichment", "Tech detection", "Mass email + templates", "CRM integration"] },
+      pro: { name: "Pro", tag: "For growing sales teams", feats: ["2,000 leads per month", "Data verification", "Email enrichment", "Tech detection", "CRM integration"] },
       business: { name: "Business", tag: "For high-volume operations", feats: ["5,000 leads per month", "Everything in Pro", "AI pitch (outreach)", "Priority support"] },
     },
   },
@@ -46,7 +46,7 @@ const DICT = {
     mostPopular: "Más popular",
     plans: {
       starter: { name: "Starter", tag: "Para quienes empiezan", feats: ["50 leads por mes", "Google Places + Empresas", "Puntuación de leads", "Panel e informes", "Exportación CSV"] },
-      pro: { name: "Pro", tag: "Para equipos en crecimiento", feats: ["2.000 leads por mes", "Verificación de datos", "Enriquecimiento de emails", "Detección de tecnología", "Email masivo + plantillas", "Integración con CRMs"] },
+      pro: { name: "Pro", tag: "Para equipos en crecimiento", feats: ["2.000 leads por mes", "Verificación de datos", "Enriquecimiento de emails", "Detección de tecnología", "Integración con CRMs"] },
       business: { name: "Business", tag: "Para alto volumen", feats: ["5.000 leads por mes", "Todo de Pro", "Pitch de IA (contacto)", "Soporte prioritario"] },
     },
   },

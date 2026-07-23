@@ -2,7 +2,8 @@ import { useAuth } from "./AuthContext";
 
 // Gating de features por plano. A trava REAL é no servidor (edge functions retornam
 // feature_gated 402); aqui é a camada de UX: mostra cadeado e evita a chamada.
-export type Feature = "verify" | "enrich" | "detectTech" | "massEmail" | "pitch";
+// massEmail (e-mail em massa) removido do gating até a v3 — ver TODO.md.
+export type Feature = "verify" | "enrich" | "detectTech" | "pitch";
 
 const TIER: Record<string, number> = { free: 0, starter: 0, pro: 1, business: 2 };
 
@@ -11,7 +12,6 @@ export const FEATURE_MIN: Record<Feature, number> = {
   verify: 1,
   enrich: 1,
   detectTech: 1,
-  massEmail: 1,
   pitch: 2,
 };
 

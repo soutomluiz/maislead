@@ -21,6 +21,11 @@ function fill(tpl: string, lead: { company_name?: string; location?: string; ind
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
+    // Recurso de e-mail em massa DESATIVADO até a v3 (ver TODO.md). Código preservado.
+    // Para religar: definir o secret EMAILS_ENABLED=true (+ RESEND_API_KEY e RESEND_FROM).
+    if (Deno.env.get("EMAILS_ENABLED") !== "true") {
+      return json({ error: "feature_disabled", message: "E-mail em massa está temporariamente desativado." }, 403);
+    }
     const KEY = Deno.env.get("RESEND_API_KEY");
     if (!KEY) return json({ error: "missing_api_key", message: "Configure o secret RESEND_API_KEY (e RESEND_FROM)." }, 400);
     const FROM = Deno.env.get("RESEND_FROM") ?? "onboarding@resend.dev";
