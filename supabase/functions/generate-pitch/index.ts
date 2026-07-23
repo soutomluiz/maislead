@@ -15,6 +15,7 @@
 // pela própria API), então `opcoes` sempre tem o formato certo.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import Anthropic from "npm:@anthropic-ai/sdk@0.68.0";
+import { planAllows } from "../_shared/plans.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -258,8 +259,7 @@ Deno.serve(async (req) => {
     const { data: gAcc } = await admin.from("accounts").select("plan").eq("id", accountId).single();
     const { data: gRoles } = await admin.from("user_roles").select("role").eq("user_id", u.user.id);
     const gIsAdmin = (gRoles ?? []).some((r: { role: string }) => r.role === "admin");
-    const gTier = ({ free: 0, starter: 0, pro: 1, business: 2 } as Record<string, number>)[(gAcc?.plan ?? "starter").toLowerCase()] ?? 0;
-    if (!gIsAdmin && gTier < 2) return json({ error: "feature_gated", message: "O pitch de IA é exclusivo do plano Business." }, 402);
+    if (!gIsAdmin && !planAllows(gAcc?.plan, "pitch")) return json({ error: "feature_gated", message: "O pitch de IA é exclusivo do plano Business." }, 402);
 
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const lang = (["pt", "en", "es"].includes(String(body.lang)) ? body.lang : "pt") as string;

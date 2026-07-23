@@ -2,26 +2,53 @@ import { useAuth } from "./AuthContext";
 
 // Gating de features por plano. A trava REAL é no servidor (edge functions retornam
 // feature_gated 402); aqui é a camada de UX: mostra cadeado e evita a chamada.
+// Espelha supabase/functions/_shared/plans.ts — manter os dois em sincronia.
 // massEmail (e-mail em massa) removido do gating até a v3 — ver TODO.md.
 export type Feature = "verify" | "enrich" | "detectTech" | "pitch";
 
-const TIER: Record<string, number> = { free: 0, starter: 0, pro: 1, business: 2 };
+// free 0 · starter 1 (pago) · pro 2 · business 3
+const TIER: Record<string, number> = { free: 0, starter: 1, pro: 2, business: 3 };
 
-// tier mínimo exigido por feature (1 = Pro, 2 = Business)
+// tier mínimo exigido por feature (1 = Starter, 2 = Pro, 3 = Business)
 export const FEATURE_MIN: Record<Feature, number> = {
   verify: 1,
-  enrich: 1,
-  detectTech: 1,
-  pitch: 2,
+  enrich: 2,
+  detectTech: 2,
+  pitch: 3,
+};
+
+// cota mensal de leads por plano (espelha PLAN_CAPS do backend)
+export const PLAN_CAPS: Record<string, number> = {
+  free: 100,
+  starter: 500,
+  pro: 2500,
+  business: 6000,
+};
+
+export const PLAN_LABEL: Record<string, string> = {
+  free: "Free",
+  starter: "Starter",
+  pro: "Pro",
+  business: "Business",
 };
 
 export function planTier(plan?: string | null): number {
-  return TIER[(plan ?? "starter").toLowerCase()] ?? 0;
+  return TIER[(plan ?? "free").toLowerCase()] ?? 0;
+}
+
+export function planCap(plan?: string | null): number {
+  return PLAN_CAPS[(plan ?? "free").toLowerCase()] ?? PLAN_CAPS.free;
+}
+
+export function planLabel(plan?: string | null): string {
+  const k = (plan ?? "free").toLowerCase();
+  return PLAN_LABEL[k] ?? (k.charAt(0).toUpperCase() + k.slice(1));
 }
 
 // nome do plano mínimo que libera a feature (para a mensagem de upsell)
 export function minPlanLabel(feature: Feature): string {
-  return FEATURE_MIN[feature] >= 2 ? "Business" : "Pro";
+  const min = FEATURE_MIN[feature];
+  return min >= 3 ? "Business" : min >= 2 ? "Pro" : "Starter";
 }
 
 const UPSELL = {
@@ -37,8 +64,11 @@ export function upsellText(feature: Feature, lang: "pt" | "en" | "es"): string {
 // hook: lê o plano da conta e diz o que pode/não pode
 export function usePlan() {
   const { account } = useAuth();
-  const plan = (account?.plan ?? "starter").toLowerCase();
+  const plan = (account?.plan ?? "free").toLowerCase();
   const tier = planTier(plan);
   const can = (f: Feature) => tier >= FEATURE_MIN[f];
-  return { plan, tier, can };
+  // cota do mês: usado / limite (null = ilimitado não se aplica aqui, admin é tratado no backend)
+  const used = account?.extraction_count_month ?? 0;
+  const cap = planCap(plan);
+  return { plan, tier, can, used, cap, remaining: Math.max(0, cap - used), label: planLabel(plan) };
 }

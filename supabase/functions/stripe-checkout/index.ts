@@ -1,6 +1,8 @@
 // Cria uma sessão de Checkout do Stripe para o plano escolhido (mensal ou anual).
-// Secrets: STRIPE_SECRET_KEY, STRIPE_PRICE_PRO, STRIPE_PRICE_BUSINESS,
-//          STRIPE_PRICE_PRO_ANNUAL, STRIPE_PRICE_BUSINESS_ANNUAL.
+// Secrets: STRIPE_SECRET_KEY, STRIPE_PRICE_STARTER, STRIPE_PRICE_PRO, STRIPE_PRICE_BUSINESS,
+//          STRIPE_PRICE_STARTER_ANNUAL, STRIPE_PRICE_PRO_ANNUAL, STRIPE_PRICE_BUSINESS_ANNUAL.
+// Se o price do Starter ainda não estiver criado no Stripe, a função responde
+// missing_price (400) e a tela mostra "pagamento não configurado" — não quebra.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const CORS = {
@@ -12,6 +14,8 @@ const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { sta
 
 // (plano, intervalo) -> nome do secret com o price id
 const PRICE_ENV: Record<string, string> = {
+  "starter:monthly": "STRIPE_PRICE_STARTER",
+  "starter:annual": "STRIPE_PRICE_STARTER_ANNUAL",
   "pro:monthly": "STRIPE_PRICE_PRO",
   "pro:annual": "STRIPE_PRICE_PRO_ANNUAL",
   "business:monthly": "STRIPE_PRICE_BUSINESS",

@@ -9,6 +9,8 @@ const CORS = {
 };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
+// Cap diário de e-mails (não é a cota de leads — ver _shared/plans.ts).
+// Recurso desativado até a v3; mantido aqui pra quando religar.
 const DAILY_CAP: Record<string, number> = { free: 0, starter: 0, pro: 500, business: 5000 };
 
 function fill(tpl: string, lead: { company_name?: string; location?: string; industry?: string }): string {

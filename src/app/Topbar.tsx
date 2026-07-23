@@ -3,18 +3,20 @@ import { useLang, useTheme } from "./LangTheme";
 import { useAuth } from "./AuthContext";
 import { Icon } from "./icons";
 import { ProfileModal } from "./ProfileModal";
+import { planLabel } from "./plan";
 import type { Lang, ScreenKey } from "@/i18n/ml";
 
 export function Topbar({ screen }: { screen: ScreenKey }) {
   const { t, lang, setLang } = useLang();
   const { dark, toggle } = useTheme();
-  const { profile, session, signOut } = useAuth();
+  const { profile, session, account, signOut } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
 
   const titleArr = t.titles[screen] ?? t.titles.dashboard;
   const name = profile?.full_name || session?.user?.email?.split("@")[0] || "—";
-  const role = profile?.account_role ?? "admin";
-  const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
+  // Embaixo do nome mostramos o PLANO da conta (Free/Starter/Pro/Business).
+  // Antes aparecia o account_role ("Admin"), que confundia clientes comuns.
+  const subLabel = planLabel(account?.plan);
   const initials = name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
   const avatarUrl = profile?.avatar_url ?? null;
 
@@ -58,7 +60,7 @@ export function Topbar({ screen }: { screen: ScreenKey }) {
           </span>
           <span style={{ textAlign: "left", lineHeight: 1.2 }}>
             <span style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--ml-text)", maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
-            <span style={{ display: "block", fontSize: 11, color: "var(--ml-muted)" }}>{roleLabel}</span>
+            <span style={{ display: "block", fontSize: 11, color: "var(--ml-muted)" }}>{subLabel}</span>
           </span>
         </button>
 

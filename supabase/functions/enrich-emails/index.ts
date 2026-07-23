@@ -3,6 +3,7 @@
 // (home + páginas de contato, decodificando ofuscação Cloudflare/entidades),
 // escolhe o melhor e-mail, atualiza o lead e recalcula o score (+25 do e-mail).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { planAllows } from "../_shared/plans.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -135,8 +136,7 @@ Deno.serve(async (req) => {
     const { data: gAcc } = await admin.from("accounts").select("plan").eq("id", accountId).single();
     const { data: gRoles } = await admin.from("user_roles").select("role").eq("user_id", u.user.id);
     const gIsAdmin = (gRoles ?? []).some((r: { role: string }) => r.role === "admin");
-    const gTier = ({ free: 0, starter: 0, pro: 1, business: 2 } as Record<string, number>)[(gAcc?.plan ?? "starter").toLowerCase()] ?? 0;
-    if (!gIsAdmin && gTier < 1) return json({ error: "feature_gated", message: "O enriquecimento de e-mails está disponível nos planos Pro e Business." }, 402);
+    if (!gIsAdmin && !planAllows(gAcc?.plan, "enrich")) return json({ error: "feature_gated", message: "O enriquecimento de e-mails está disponível nos planos Pro e Business." }, 402);
 
     const { leadIds, limit }: Body = await req.json().catch(() => ({}));
     const cap = Math.min(Math.max(1, limit ?? 40), 40);

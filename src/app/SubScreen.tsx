@@ -4,11 +4,12 @@ import { useAuth } from "./AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Icon } from "./icons";
 
-// Tela de Assinatura: escolhe plano (Free/Pro/Business), mensal ou anual, e abre o
-// Checkout do Stripe (edge function stripe-checkout). Enquanto os secrets do Stripe
+// Tela de Assinatura: escolhe plano (Free/Starter/Pro/Business), mensal ou anual, e abre
+// o Checkout do Stripe (edge function stripe-checkout). Enquanto os secrets do Stripe
 // não estão configurados, mostra uma mensagem amigável em vez de quebrar.
+// Cotas espelham PLAN_CAPS (plan.ts / _shared/plans.ts): 100 / 500 / 2.500 / 6.000.
 
-type PlanKey = "starter" | "pro" | "business";
+type PlanKey = "free" | "starter" | "pro" | "business";
 
 const DICT = {
   pt: {
@@ -19,9 +20,10 @@ const DICT = {
     errGen: "Não foi possível abrir o checkout agora. Tente de novo.",
     mostPopular: "Mais popular",
     plans: {
-      starter: { name: "Starter", tag: "Para quem está começando", feats: ["50 leads por mês", "Google Places + Empresas", "Pontuação de leads", "Dashboard e relatórios", "Exportação CSV"] },
-      pro: { name: "Pro", tag: "Para times de vendas em crescimento", feats: ["2.000 leads por mês", "Verificação de dados", "Enriquecimento de e-mails", "Detecção de tecnologia", "Integração com CRMs"] },
-      business: { name: "Business", tag: "Para operações de alto volume", feats: ["5.000 leads por mês", "Tudo do Pro", "Pitch de IA (abordagem)", "Suporte prioritário"] },
+      free: { name: "Free", tag: "Para experimentar sem compromisso", feats: ["100 leads por mês", "Google Places + Empresas", "Pontuação de leads", "Dashboard e relatórios", "Exportação CSV"] },
+      starter: { name: "Starter", tag: "Para quem está começando", feats: ["500 leads por mês", "Tudo do Free", "Verificação de dados", "CRM e agendamentos", "Suporte por e-mail"] },
+      pro: { name: "Pro", tag: "Para times de vendas em crescimento", feats: ["2.500 leads por mês", "Tudo do Starter", "Enriquecimento de e-mails", "Detecção de tecnologia", "Integração com CRMs"] },
+      business: { name: "Business", tag: "Para operações de alto volume", feats: ["6.000 leads por mês", "Tudo do Pro", "Pitch de IA (abordagem)", "Suporte prioritário"] },
     },
   },
   en: {
@@ -32,9 +34,10 @@ const DICT = {
     errGen: "Couldn't open checkout right now. Try again.",
     mostPopular: "Most popular",
     plans: {
-      starter: { name: "Starter", tag: "For those getting started", feats: ["50 leads per month", "Google Places + Companies", "Lead scoring", "Dashboard and reports", "CSV export"] },
-      pro: { name: "Pro", tag: "For growing sales teams", feats: ["2,000 leads per month", "Data verification", "Email enrichment", "Tech detection", "CRM integration"] },
-      business: { name: "Business", tag: "For high-volume operations", feats: ["5,000 leads per month", "Everything in Pro", "AI pitch (outreach)", "Priority support"] },
+      free: { name: "Free", tag: "To try it with no commitment", feats: ["100 leads per month", "Google Places + Companies", "Lead scoring", "Dashboard and reports", "CSV export"] },
+      starter: { name: "Starter", tag: "For those getting started", feats: ["500 leads per month", "Everything in Free", "Data verification", "CRM and scheduling", "Email support"] },
+      pro: { name: "Pro", tag: "For growing sales teams", feats: ["2,500 leads per month", "Everything in Starter", "Email enrichment", "Tech detection", "CRM integration"] },
+      business: { name: "Business", tag: "For high-volume operations", feats: ["6,000 leads per month", "Everything in Pro", "AI pitch (outreach)", "Priority support"] },
     },
   },
   es: {
@@ -45,16 +48,18 @@ const DICT = {
     errGen: "No se pudo abrir el checkout ahora. Inténtalo de nuevo.",
     mostPopular: "Más popular",
     plans: {
-      starter: { name: "Starter", tag: "Para quienes empiezan", feats: ["50 leads por mes", "Google Places + Empresas", "Puntuación de leads", "Panel e informes", "Exportación CSV"] },
-      pro: { name: "Pro", tag: "Para equipos en crecimiento", feats: ["2.000 leads por mes", "Verificación de datos", "Enriquecimiento de emails", "Detección de tecnología", "Integración con CRMs"] },
-      business: { name: "Business", tag: "Para alto volumen", feats: ["5.000 leads por mes", "Todo de Pro", "Pitch de IA (contacto)", "Soporte prioritario"] },
+      free: { name: "Free", tag: "Para probar sin compromiso", feats: ["100 leads por mes", "Google Places + Empresas", "Puntuación de leads", "Panel e informes", "Exportación CSV"] },
+      starter: { name: "Starter", tag: "Para quienes empiezan", feats: ["500 leads por mes", "Todo de Free", "Verificación de datos", "CRM y agendamientos", "Soporte por email"] },
+      pro: { name: "Pro", tag: "Para equipos en crecimiento", feats: ["2.500 leads por mes", "Todo de Starter", "Enriquecimiento de emails", "Detección de tecnología", "Integración con CRMs"] },
+      business: { name: "Business", tag: "Para alto volumen", feats: ["6.000 leads por mes", "Todo de Pro", "Pitch de IA (contacto)", "Soporte prioritario"] },
     },
   },
 };
 
 // preços de exibição (o valor real vem do price id no Stripe)
 const PRICE: Record<PlanKey, { monthly: number; annual: number }> = {
-  starter: { monthly: 0, annual: 0 },
+  free: { monthly: 0, annual: 0 },
+  starter: { monthly: 49, annual: 39 },
   pro: { monthly: 99, annual: 79 },
   business: { monthly: 229, annual: 199 },
 };
@@ -63,7 +68,7 @@ export function SubScreen() {
   const { lang } = useLang();
   const { account } = useAuth();
   const D = DICT[lang];
-  const current = (account?.plan ?? "starter").toLowerCase() as PlanKey;
+  const current = (account?.plan ?? "free").toLowerCase() as PlanKey;
   const [annual, setAnnual] = useState(false);
   const [busy, setBusy] = useState<PlanKey | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -78,7 +83,7 @@ export function SubScreen() {
       const p = q.get("plan");
       const iv = q.get("interval") === "annual" ? "annual" : "monthly";
       if (iv === "annual") setAnnual(true);
-      if (p === "pro" || p === "business") {
+      if (p === "starter" || p === "pro" || p === "business") {
         window.history.replaceState({}, "", window.location.pathname);
         subscribe(p as PlanKey, iv);
       }
@@ -87,7 +92,7 @@ export function SubScreen() {
   }, []);
 
   async function subscribe(plan: PlanKey, intervalOverride?: "monthly" | "annual") {
-    if (plan === "starter" || busy) return;
+    if (plan === "free" || busy) return;
     setBusy(plan); setErr(null);
     try {
       const interval = intervalOverride ?? (annual ? "annual" : "monthly");
@@ -108,7 +113,7 @@ export function SubScreen() {
     }
   }
 
-  const order: PlanKey[] = ["starter", "pro", "business"];
+  const order: PlanKey[] = ["free", "starter", "pro", "business"];
 
   return (
     <div className="ml-fade" style={{ maxWidth: 1040, margin: "0 auto" }}>
@@ -160,7 +165,7 @@ export function SubScreen() {
                 <div style={{ marginTop: 16, height: 44, borderRadius: 12, border: "1px solid var(--ml-border)", background: "var(--ml-bg)", color: "var(--ml-muted)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13.5, fontWeight: 700, gap: 7 }}>
                   <Icon name="check" size={15} /> {D.current}
                 </div>
-              ) : key === "starter" ? (
+              ) : key === "free" ? (
                 <div style={{ marginTop: 16, height: 44 }} />
               ) : (
                 <button onClick={() => subscribe(key)} disabled={busy === key} style={{ marginTop: 16, width: "100%", height: 44, borderRadius: 12, border: isPro ? "none" : "1px solid var(--ml-primary)", background: isPro ? "var(--ml-primary)" : "transparent", color: isPro ? "#fff" : "var(--ml-primary)", fontSize: 14, fontWeight: 700, cursor: busy === key ? "default" : "pointer", opacity: busy === key ? 0.7 : 1 }}>

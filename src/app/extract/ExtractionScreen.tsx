@@ -6,6 +6,7 @@ import { Icon, type IconName } from "../icons";
 import { LeadDrawer } from "../leads/LeadDrawer";
 import { mapLead, type LeadRow, type DbLead } from "../leads/model";
 import { CityAutocomplete, type CitySelection } from "./CityAutocomplete";
+import { usePlan } from "../plan";
 
 const Panel = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
   <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 18, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)", ...style }}>{children}</div>
@@ -19,6 +20,8 @@ const DICT = {
     wTitle: "Buscar em Websites", wSub: "Rastreie websites por nicho e localização",
     niche: "Nicho de Atuação", nichePh: "Ex: Restaurantes, Academias...", location: "Localização", locPh: "Ex: São Paulo, SP",
     search: "Buscar", searching: "Buscando…", info: "A busca retorna nome, telefone, endereço e website públicos das empresas encontradas.",
+    quotaPre: (r: number, c: number) => `Você tem ${r.toLocaleString("pt-BR")} de ${c.toLocaleString("pt-BR")} leads disponíveis este mês`,
+    quotaOut: "Você atingiu o limite de leads deste mês",
     popular: "Nichos populares", recent: "Buscas recentes", noRecent: "Nenhuma busca ainda.",
     receive: "O que você recebe", receiveSub: "Cada resultado traz os dados públicos da empresa.",
     reqNiche: "Informe um nicho para buscar.",
@@ -33,6 +36,8 @@ const DICT = {
     wTitle: "Search Websites", wSub: "Crawl websites by niche and location",
     niche: "Niche", nichePh: "E.g.: Restaurants, Gyms...", location: "Location", locPh: "E.g.: New York, NY",
     search: "Search", searching: "Searching…", info: "The search returns public name, phone, address and website of the businesses found.",
+    quotaPre: (r: number, c: number) => `You have ${r.toLocaleString("en-US")} of ${c.toLocaleString("en-US")} leads available this month`,
+    quotaOut: "You've reached this month's lead limit",
     popular: "Popular niches", recent: "Recent searches", noRecent: "No searches yet.",
     receive: "What you get", receiveSub: "Each result brings the company's public data.",
     reqNiche: "Enter a niche to search.",
@@ -47,6 +52,8 @@ const DICT = {
     wTitle: "Buscar en Sitios Web", wSub: "Rastrea sitios web por nicho y ubicación",
     niche: "Nicho", nichePh: "Ej: Restaurantes, Gimnasios...", location: "Ubicación", locPh: "Ej: Madrid",
     search: "Buscar", searching: "Buscando…", info: "La búsqueda devuelve nombre, teléfono, dirección y web públicos de las empresas encontradas.",
+    quotaPre: (r: number, c: number) => `Tienes ${r.toLocaleString("es-ES")} de ${c.toLocaleString("es-ES")} leads disponibles este mes`,
+    quotaOut: "Alcanzaste el límite de leads de este mes",
     popular: "Nichos populares", recent: "Búsquedas recientes", noRecent: "Aún no hay búsquedas.",
     receive: "Lo que recibes", receiveSub: "Cada resultado trae los datos públicos de la empresa.",
     reqNiche: "Ingresa un nicho para buscar.",
@@ -69,6 +76,8 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
   const { refresh } = useAuth();
   const auth = useAuth();
   const D = DICT[lang];
+  // Cota do mês, sempre visível ANTES de buscar (não só depois do resultado).
+  const { used, cap, remaining, label: planName } = usePlan();
   const [niche, setNiche] = useState("");
   const [location, setLocation] = useState("");
   // Cidade selecionada no autocomplete (guarda o bbox pronto pro Overture).
@@ -97,10 +106,15 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
   const title = source === "google_maps" ? D.gTitle : D.wTitle;
   const sub = source === "google_maps" ? D.gSub : D.wSub;
 
+  // Fontes que alimentam ESTA tela. A busca do Google Places pode ser atendida pelo
+  // Overture (fonte primária), que grava em `searches` com source="overture" — sem isso
+  // o histórico ficava vazio mesmo com as linhas gravadas no banco.
+  const recentSources = source === "google_maps" ? ["google_maps", "overture"] : [source];
+
   async function loadRecent() {
     const acc = auth.account?.id;
     if (!acc) return;
-    const { data } = await supabase.from("searches").select("id, query, location, count, created_at").eq("account_id", acc).eq("source", source).order("created_at", { ascending: false }).limit(6);
+    const { data } = await supabase.from("searches").select("id, query, location, count, created_at").eq("account_id", acc).in("source", recentSources).order("created_at", { ascending: false }).limit(6);
     setRecent((data as SearchRow[]) ?? []);
   }
   useEffect(() => { loadRecent(); /* eslint-disable-next-line */ }, [auth.account?.id, source]);
@@ -110,7 +124,12 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
     const { data, error } = await supabase.functions.invoke(fn, { body: { niche: niche.trim(), location: location.trim() || null } });
     let code: string | null = data?.error ?? null;
     if (error) { code = "errGeneric"; try { const body = await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.(); code = body?.error ?? code; } catch { /* ignore */ } }
-    if (code) { setErr(code === "missing_api_key" ? D.errKey : code === "limit_reached" ? D.errLimit : code === "places_error" || code === "cse_error" ? D.errPlaces : D.errGeneric); return; }
+    if (code) {
+      setErr(code === "missing_api_key" ? D.errKey : code === "limit_reached" ? D.errLimit : code === "places_error" || code === "cse_error" ? D.errPlaces : D.errGeneric);
+      // Mesmo bloqueada (cota/erro), recarrega histórico e cota — o estado pode ter mudado.
+      await Promise.all([loadRecent(), refresh()]);
+      return;
+    }
     setResult({ inserted: data.inserted ?? 0, skipped: data.skipped ?? 0, found: data.found ?? 0, preview: data.preview ?? [] });
     await Promise.all([loadRecent(), refresh()]);
   }
@@ -141,7 +160,11 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
     if (error) { code = "errGeneric"; try { const body = await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.(); code = body?.error ?? code; } catch { /* ignore */ } }
 
     // Cota estourada: mostra o MESMO aviso do Google e NÃO cai pro Google (senão fura a cota).
-    if (code === "limit_reached") { setErr(D.errLimit); return "handled"; }
+    if (code === "limit_reached") {
+      setErr(D.errLimit);
+      await Promise.all([loadRecent(), refresh()]);
+      return "handled";
+    }
     // Qualquer outro erro (overture_failed, insert_failed, unexpected…): cai pro Google pra não travar o usuário.
     if (code) { console.warn("[maisLEAD] search-overture erro — fallback Google Places:", code); return "fallback"; }
 
@@ -209,7 +232,17 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
           {busy ? <Icon name="loader" size={17} className="ml-spin" /> : <Icon name="search" size={17} />}{busy ? D.searching : D.search}
         </button>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16, padding: "12px 14px", borderRadius: 11, background: "var(--ml-grid)", fontSize: 13, color: "var(--ml-muted)" }}>
+        {/* cota do mês — visível antes de buscar */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, fontSize: 12.5, color: remaining > 0 ? "var(--ml-muted)" : "var(--ml-red)" }}>
+          <Icon name="database" size={14} />
+          <span>{remaining > 0 ? D.quotaPre(remaining, cap) : D.quotaOut}</span>
+          <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(76,46,224,.1)", padding: "2px 9px", borderRadius: 20 }}>{planName}</span>
+        </div>
+        <div style={{ height: 5, borderRadius: 5, background: "var(--ml-grid)", overflow: "hidden", marginTop: 7 }}>
+          <div style={{ width: `${cap > 0 ? Math.min(100, (used / cap) * 100) : 0}%`, height: "100%", background: remaining > 0 ? "var(--ml-primary)" : "var(--ml-red)", transition: "width .3s ease" }} />
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, padding: "12px 14px", borderRadius: 11, background: "var(--ml-grid)", fontSize: 13, color: "var(--ml-muted)" }}>
           <Icon name="timer" size={16} />{D.info}
         </div>
         {err && <div style={{ marginTop: 14, fontSize: 13.5, color: "var(--ml-red)", background: "rgba(239,68,68,.1)", padding: "11px 13px", borderRadius: 10, lineHeight: 1.5 }}>{err}</div>}

@@ -2,6 +2,7 @@
 // Dedupe por telefone/website dentro da conta, score idêntico ao front (src/lib/score.ts),
 // grava histórico em `searches`, respeita o limite do plano (accounts.extraction_count_month).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { planCap } from "../_shared/plans.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -13,8 +14,6 @@ const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { sta
 const has = (v?: string | null) => !!(v && String(v).trim() !== "" && String(v).trim() !== "—");
 const scoreOf = (l: { phone?: string | null; address?: string | null; email?: string | null; website?: string | null; nicheQuality?: number | null }) =>
   Math.min(100, (has(l.phone) ? 30 : 0) + (has(l.address) ? 15 : 0) + (has(l.email) ? 25 : 0) + (has(l.website) ? 20 : 0) + Math.max(0, Math.min(10, l.nicheQuality ?? 0)));
-const PLAN_CAPS: Record<string, number> = { free: 50, starter: 50, pro: 2000, business: 5000 };
-const planCap = (p?: string | null) => PLAN_CAPS[(p ?? "starter").toLowerCase()] ?? 50;
 const normPhone = (p?: string | null) => (p ? String(p).replace(/\D/g, "").replace(/^0+/, "") : "");
 const normSite = (w?: string | null) => {
   if (!w) return "";

@@ -5,6 +5,7 @@ import { useAuth } from "../AuthContext";
 import { Icon } from "../icons";
 import type { ScreenKey } from "@/i18n/ml";
 import { StagingDetailModal, type StagingCompany, type Badge as BadgeT } from "./StagingDetailModal";
+import { usePlan } from "../plan";
 
 const Panel = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
   <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 20, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)", ...style }}>{children}</div>
@@ -20,6 +21,8 @@ const DICT = {
     reqCnpj: "Cole ao menos um CNPJ válido para buscar.", errGeneric: "Não foi possível concluir a consulta agora.",
     done: "Consulta concluída", newLeads: "novos", dups: "duplicados", notFound: "não encontrados",
     quotaLabel: "Plano", quotaMonth: "leads extraídos este mês", quotaOf: "de", unlimited: "ilimitado", willUse: "vão usar", ofQuota: "da sua cota",
+    quotaPre: (r: number, c: number) => `Você tem ${r.toLocaleString("pt-BR")} de ${c.toLocaleString("pt-BR")} leads disponíveis este mês`,
+    quotaOut: "Você atingiu o limite de leads deste mês",
     selNew: "Selecionar novos", goLeads: "Ver na lista de Leads", addN: "Adicionar à lista",
     limitHit: "Você atingiu o limite do plano", limitExceed: "Essa seleção passa do seu limite (cabem mais", upgrade: "Fazer upgrade",
     detail: "Ver detalhe", badgeNew: "novo", badgeExists: "já existe",
@@ -36,6 +39,8 @@ const DICT = {
     reqCnpj: "Paste at least one valid CNPJ to search.", errGeneric: "Couldn't complete the lookup right now.",
     done: "Lookup complete", newLeads: "new", dups: "duplicates", notFound: "not found",
     quotaLabel: "Plan", quotaMonth: "leads extracted this month", quotaOf: "of", unlimited: "unlimited", willUse: "will use", ofQuota: "of your quota",
+    quotaPre: (r: number, c: number) => `You have ${r.toLocaleString("en-US")} of ${c.toLocaleString("en-US")} leads available this month`,
+    quotaOut: "You've reached this month's lead limit",
     selNew: "Select new", goLeads: "View in Leads list", addN: "Add to list",
     limitHit: "You reached the limit of the plan", limitExceed: "This selection exceeds your limit (only", upgrade: "Upgrade",
     detail: "View detail", badgeNew: "new", badgeExists: "exists",
@@ -52,6 +57,8 @@ const DICT = {
     reqCnpj: "Pega al menos un CNPJ válido para buscar.", errGeneric: "No se pudo completar la consulta ahora.",
     done: "Consulta completa", newLeads: "nuevos", dups: "duplicados", notFound: "no encontrados",
     quotaLabel: "Plan", quotaMonth: "leads extraídos este mes", quotaOf: "de", unlimited: "ilimitado", willUse: "usarán", ofQuota: "de tu cuota",
+    quotaPre: (r: number, c: number) => `Tienes ${r.toLocaleString("es-ES")} de ${c.toLocaleString("es-ES")} leads disponibles este mes`,
+    quotaOut: "Alcanzaste el límite de leads de este mes",
     selNew: "Seleccionar nuevos", goLeads: "Ver en la lista de Leads", addN: "Añadir a la lista",
     limitHit: "Alcanzaste el límite del plan", limitExceed: "Esta selección supera tu límite (caben", upgrade: "Mejorar plan",
     detail: "Ver detalle", badgeNew: "nuevo", badgeExists: "ya existe",
@@ -110,6 +117,8 @@ type LookupData = { results: Row[]; notFound: number; invalid: number; quota: Qu
 export function CnpjScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => void }) {
   const { lang } = useLang();
   const { refresh } = useAuth();
+  // Cota do mês vinda da conta — mostrada ANTES da busca (depois, vale a `quota` do backend).
+  const plan = usePlan();
   const D = DICT[lang];
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -193,7 +202,21 @@ export function CnpjScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => void
           {busy ? <Icon name="loader" size={17} className="ml-spin" /> : <Icon name="search" size={17} />}{busy ? D.searching : D.search}
         </button>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16, padding: "12px 14px", borderRadius: 11, background: "var(--ml-hover)", fontSize: 13, color: "var(--ml-muted)" }}>
+        {/* cota do mês — antes de buscar (some quando o backend devolve a cota real) */}
+        {!quota && (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, fontSize: 12.5, color: plan.remaining > 0 ? "var(--ml-muted)" : "var(--ml-red)" }}>
+              <Icon name="database" size={14} />
+              <span>{plan.remaining > 0 ? D.quotaPre(plan.remaining, plan.cap) : D.quotaOut}</span>
+              <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(76,46,224,.1)", padding: "2px 9px", borderRadius: 20 }}>{plan.label}</span>
+            </div>
+            <div style={{ height: 5, borderRadius: 5, background: "var(--ml-grid)", overflow: "hidden", marginTop: 7 }}>
+              <div style={{ width: `${plan.cap > 0 ? Math.min(100, (plan.used / plan.cap) * 100) : 0}%`, height: "100%", background: plan.remaining > 0 ? "var(--ml-primary)" : "var(--ml-red)", transition: "width .3s ease" }} />
+            </div>
+          </>
+        )}
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, padding: "12px 14px", borderRadius: 11, background: "var(--ml-hover)", fontSize: 13, color: "var(--ml-muted)" }}>
           <Icon name="info" size={16} />{D.info}
         </div>
         {err && <div style={{ marginTop: 14, fontSize: 13.5, color: "var(--ml-red)", background: "rgba(239,68,68,.1)", padding: "11px 13px", borderRadius: 10, lineHeight: 1.5 }}>{err}</div>}
