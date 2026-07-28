@@ -9,7 +9,7 @@ import type { Lang, ScreenKey } from "@/i18n/ml";
 export function Topbar({ screen }: { screen: ScreenKey }) {
   const { t, lang, setLang } = useLang();
   const { dark, toggle } = useTheme();
-  const { profile, session, account, signOut } = useAuth();
+  const { profile, session, account, isPlatformAdmin, signOut } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
 
   const titleArr = t.titles[screen] ?? t.titles.dashboard;
@@ -60,7 +60,12 @@ export function Topbar({ screen }: { screen: ScreenKey }) {
           </span>
           <span style={{ textAlign: "left", lineHeight: 1.2 }}>
             <span style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--ml-text)", maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
-            <span style={{ display: "block", fontSize: 11, color: "var(--ml-muted)" }}>{subLabel}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--ml-muted)" }}>
+              {subLabel}
+              {isPlatformAdmin && (
+                <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: ".04em", color: "#4c2ee0", background: "rgba(76,46,224,.12)", padding: "1px 6px", borderRadius: 20, textTransform: "uppercase" }}>Superadmin</span>
+              )}
+            </span>
           </span>
         </button>
 

@@ -11,6 +11,7 @@ interface AuthCtx {
   session: Session | null;
   profile: Profile | null;
   account: Account | null;
+  isPlatformAdmin: boolean;
   refresh: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (name: string, email: string, password: string, company?: string) => Promise<{ error?: string; needsConfirm?: boolean }>;
@@ -25,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [account, setAccount] = useState<Account | null>(null);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   const loadProfile = useCallback(async (userId: string) => {
     const { data: prof } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
@@ -35,6 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setAccount(null);
     }
+    // Superadmin de plataforma (RLS: só devolve a própria linha via user_id = auth.uid()).
+    const db = supabase as unknown as { from: (t: string) => { select: (c: string) => { eq: (k: string, v: string) => { maybeSingle: () => Promise<{ data: unknown }> } } } };
+    const { data: pa } = await db.from("platform_admins").select("user_id").eq("user_id", userId).maybeSingle();
+    setIsPlatformAdmin(!!pa);
   }, []);
 
   const refresh = useCallback(async () => {
@@ -58,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Carrega perfil/conta fora do callback de auth (evita o deadlock do supabase-js).
   useEffect(() => {
     const uid = session?.user?.id;
-    if (!uid) { setProfile(null); setAccount(null); return; }
+    if (!uid) { setProfile(null); setAccount(null); setIsPlatformAdmin(false); return; }
     loadProfile(uid);
   }, [session?.user?.id, loadProfile]);
 
@@ -88,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ loading, session, profile, account, refresh, signIn, signUp, signOut, resetPassword }}>
+    <AuthContext.Provider value={{ loading, session, profile, account, isPlatformAdmin, refresh, signIn, signUp, signOut, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );
