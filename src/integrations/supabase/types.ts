@@ -425,6 +425,7 @@ export type Database = {
           email: string | null
           extracted_leads_count: number | null
           full_name: string | null
+          hide_reveal_confirm: boolean
           id: string
           industry: string | null
           location: string | null
@@ -447,6 +448,7 @@ export type Database = {
           email?: string | null
           extracted_leads_count?: number | null
           full_name?: string | null
+          hide_reveal_confirm?: boolean
           id: string
           industry?: string | null
           location?: string | null
@@ -469,6 +471,7 @@ export type Database = {
           email?: string | null
           extracted_leads_count?: number | null
           full_name?: string | null
+          hide_reveal_confirm?: boolean
           id?: string
           industry?: string | null
           location?: string | null

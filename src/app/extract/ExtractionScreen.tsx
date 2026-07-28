@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "../LangTheme";
 import { useAuth } from "../AuthContext";
@@ -7,6 +7,7 @@ import { LeadDrawer } from "../leads/LeadDrawer";
 import { mapLead, type LeadRow, type DbLead } from "../leads/model";
 import { CityAutocomplete, type CitySelection } from "./CityAutocomplete";
 import { usePlan } from "../plan";
+import { CenterModal } from "../CenterModal";
 
 const Panel = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
   <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 18, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)", ...style }}>{children}</div>
@@ -35,6 +36,7 @@ const DICT = {
     reveal: "Revelar selecionados", revealCost: (n: number) => `usa ${n} ${n === 1 ? "lead" : "leads"} da cota`,
     revealing: "Revelando…",
     confirmReveal: (n: number) => `Revelar ${n} ${n === 1 ? "lead vai usar 1 lead" : `leads vai usar ${n} leads`} do seu limite mensal. Continuar?`,
+    revealTitle: "Revelar contatos", confirm: "Confirmar", cancel: "Cancelar", dontAskAgain: "Não mostrar esta mensagem novamente",
     revealedMsg: (r: number) => `${r} ${r === 1 ? "lead revelado" : "leads revelados"} e adicionados à sua base`,
     ownedMsg: (n: number) => `${n} já estavam na sua base`,
     skipMsg: (n: number) => `${n} ignorados (duplicados)`,
@@ -71,6 +73,7 @@ const DICT = {
     reveal: "Reveal selected", revealCost: (n: number) => `uses ${n} ${n === 1 ? "lead" : "leads"} from quota`,
     revealing: "Revealing…",
     confirmReveal: (n: number) => `Revealing ${n} ${n === 1 ? "lead will use 1 lead" : `leads will use ${n} leads`} of your monthly limit. Continue?`,
+    revealTitle: "Reveal contacts", confirm: "Confirm", cancel: "Cancel", dontAskAgain: "Don't show this message again",
     revealedMsg: (r: number) => `${r} ${r === 1 ? "lead revealed" : "leads revealed"} and added to your base`,
     ownedMsg: (n: number) => `${n} were already in your base`,
     skipMsg: (n: number) => `${n} skipped (duplicates)`,
@@ -105,6 +108,7 @@ const DICT = {
     reveal: "Revelar seleccionados", revealCost: (n: number) => `usa ${n} ${n === 1 ? "lead" : "leads"} de la cuota`,
     revealing: "Revelando…",
     confirmReveal: (n: number) => `Revelar ${n} ${n === 1 ? "lead usará 1 lead" : `leads usará ${n} leads`} de tu límite mensual. ¿Continuar?`,
+    revealTitle: "Revelar contactos", confirm: "Confirmar", cancel: "Cancelar", dontAskAgain: "No mostrar este mensaje de nuevo",
     revealedMsg: (r: number) => `${r} ${r === 1 ? "lead revelado" : "leads revelados"} y agregados a tu base`,
     ownedMsg: (n: number) => `${n} ya estaban en tu base`,
     skipMsg: (n: number) => `${n} omitidos (duplicados)`,
@@ -170,7 +174,12 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
   const [revealBusy, setRevealBusy] = useState(false);
   const [revealMsg, setRevealMsg] = useState<string[] | null>(null);
   const [showGoogleOptIn, setShowGoogleOptIn] = useState(false);
-  const confirmedReveal = useRef(false); // aviso de reveal só na 1ª vez da sessão
+  // Modal de confirmação do reveal (substitui o window.confirm nativo).
+  // A preferência "não perguntar de novo" fica no perfil (profiles.hide_reveal_confirm),
+  // então vale em qualquer dispositivo — nada de localStorage.
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [dontAsk, setDontAsk] = useState(false);
+  const [savingPref, setSavingPref] = useState(false);
 
   // ---- resultado do import-all do Google (fluxo antigo, opt-in) ----
   const [googleResult, setGoogleResult] = useState<{ inserted: number; skipped: number; found: number; preview: Preview[] } | null>(null);
@@ -245,14 +254,34 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
     await loadRecent();
   }
 
-  // ---- REVELAR selecionados (action "reveal", consome cota) ----
-  async function doReveal() {
+  // ---- REVELAR selecionados ----
+  // Fluxo: requestReveal() decide se abre o modal ou revela direto (preferência do perfil);
+  // onConfirmReveal() grava a preferência se marcada e dispara performReveal();
+  // performReveal() faz a chamada que consome cota.
+  function requestReveal() {
+    if (!results || selected.size === 0 || revealBusy) return;
+    if (auth.profile?.hide_reveal_confirm) { performReveal(); return; }
+    setDontAsk(false);
+    setConfirmOpen(true);
+  }
+
+  async function onConfirmReveal() {
+    // Grava a preferência antes de fechar/revelar. Best-effort: se falhar, o reveal segue.
+    if (dontAsk && auth.profile?.id) {
+      setSavingPref(true);
+      try {
+        await supabase.from("profiles").update({ hide_reveal_confirm: true }).eq("id", auth.profile.id);
+        await refresh();
+      } catch { /* preferência é best-effort; não bloqueia o reveal */ }
+      finally { setSavingPref(false); }
+    }
+    setConfirmOpen(false);
+    await performReveal();
+  }
+
+  async function performReveal() {
     if (!results || selected.size === 0 || revealBusy) return;
     const ids = [...selected];
-    if (!confirmedReveal.current) {
-      if (!window.confirm(D.confirmReveal(ids.length))) return;
-      confirmedReveal.current = true;
-    }
     setRevealBusy(true); setErr(null);
     try {
       const city = citySelection ? deriveCityParts(citySelection).city : location.trim() || null;
@@ -441,7 +470,7 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
           {/* barra de ação */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 14, flexWrap: "wrap" }}>
             <button
-              onClick={doReveal}
+              onClick={requestReveal}
               disabled={selCount === 0 || revealBusy || remainingN <= 0}
               style={{ display: "flex", alignItems: "center", gap: 9, height: 44, padding: "0 20px", borderRadius: 12, border: "none", background: selCount > 0 && remainingN > 0 ? "var(--ml-primary)" : "var(--ml-border)", color: selCount > 0 && remainingN > 0 ? "#fff" : "var(--ml-muted)", fontWeight: 700, fontSize: 14, cursor: selCount === 0 || revealBusy || remainingN <= 0 ? "default" : "pointer" }}>
               {revealBusy ? <Icon name="loader" size={16} className="ml-spin" /> : <Icon name="check" size={16} />}
@@ -536,6 +565,40 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
       </div>
 
       <LeadDrawer lead={detailLead} onClose={() => setDetailLead(null)} onChanged={() => { /* preview não muda */ }} />
+
+      {/* ===== modal de confirmação do reveal ===== */}
+      {confirmOpen && (
+        <CenterModal onClose={() => setConfirmOpen(false)} width={440}>
+          <div style={{ padding: "26px 26px 22px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 13, background: "rgba(76,46,224,.12)", color: "var(--ml-primary)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                <Icon name="check" size={22} />
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 800 }}>{D.revealTitle}</div>
+            </div>
+
+            <div style={{ fontSize: 14, color: "var(--ml-text)", lineHeight: 1.55 }}>{D.confirmReveal(selCount)}</div>
+
+            <label style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 18, fontSize: 13, color: "var(--ml-muted)", cursor: "pointer", userSelect: "none" }}>
+              <input type="checkbox" checked={dontAsk} onChange={(e) => setDontAsk(e.target.checked)}
+                style={{ width: 16, height: 16, accentColor: "#4c2ee0", cursor: "pointer", flexShrink: 0 }} />
+              {D.dontAskAgain}
+            </label>
+
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 24 }}>
+              <button onClick={() => setConfirmOpen(false)} disabled={savingPref}
+                style={{ padding: "11px 20px", borderRadius: 11, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-navtext)", fontWeight: 600, fontSize: 14, cursor: savingPref ? "default" : "pointer" }}>
+                {D.cancel}
+              </button>
+              <button onClick={onConfirmReveal} disabled={savingPref}
+                style={{ display: "flex", alignItems: "center", gap: 7, padding: "11px 22px", borderRadius: 11, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 14, cursor: savingPref ? "default" : "pointer", opacity: savingPref ? 0.7 : 1 }}>
+                {savingPref ? <Icon name="loader" size={15} className="ml-spin" /> : <Icon name="check" size={15} />}
+                {D.confirm}
+              </button>
+            </div>
+          </div>
+        </CenterModal>
+      )}
     </div>
   );
 }
