@@ -1,8 +1,10 @@
-// supabase/functions/search-overture/index.ts  (v2)
+// supabase/functions/search-overture/index.ts  (v3 — Etapa 2: buscar grátis / revelar paga)
 //
-// Busca leads via Overture Maps (cache lazy em leads_base) E salva os
-// resultados na tabela `leads`, respeitando cota do plano, dedupe e score —
-// exatamente como a extract-google-maps faz, pra consistência total.
+// action="search"  → GRÁTIS e ilimitado. Popula o cache leads_base e devolve os
+//                    resultados com CONTATOS MASCARADOS (máscara feita no SERVIDOR — o
+//                    dado completo só sai no reveal / ou quando a conta já é dona do lead).
+// action="reveal"  → CONSOME COTA. Insere os leads selecionados em `leads` (dedupe/score)
+//                    e devolve os contatos completos. Cota zerada → 402.
 //
 // Segredos: OVERTURE_SERVICE_URL, OVERTURE_SERVICE_KEY,
 //           SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (auto).
@@ -30,6 +32,34 @@ const normSite = (w?: string | null) => {
   try { return new URL(w.startsWith("http") ? w : `https://${w}`).hostname.replace(/^www\./, "").toLowerCase(); }
   catch { return String(w).trim().toLowerCase(); }
 };
+
+// ---- máscara de contato (SERVIDOR) ----
+// telefone: mantém país + DDD e os 4 últimos dígitos ("+55 48 ****-6541")
+function maskPhone(raw?: string | null): string | null {
+  if (!has(raw)) return null;
+  const digits = String(raw).replace(/\D/g, "");
+  if (digits.length < 4) return "****";
+  const last4 = digits.slice(-4);
+  let prefix = "";
+  let rest = digits;
+  if (rest.startsWith("55") && rest.length >= 12) { prefix = "+55 "; rest = rest.slice(2); }
+  const ddd = rest.length >= 10 ? rest.slice(0, 2) + " " : "";
+  return `${prefix}${ddd}****-${last4}`.trim();
+}
+// site: mantém o TLD e mascara o domínio ("www.****.com.br")
+function maskSite(raw?: string | null): string | null {
+  if (!has(raw)) return null;
+  let host = "";
+  try { host = new URL(String(raw).startsWith("http") ? String(raw) : `https://${raw}`).hostname; }
+  catch { host = String(raw).replace(/^https?:\/\//, "").split("/")[0]; }
+  host = host.replace(/^www\./, "");
+  const parts = host.split(".").filter(Boolean);
+  if (parts.length < 2) return "www.****";
+  let tldCount = 1;
+  if (parts.length >= 3 && ["com", "net", "org", "gov", "edu"].includes(parts[parts.length - 2])) tldCount = 2;
+  const tld = parts.slice(-tldCount).join(".");
+  return `www.****.${tld}`;
+}
 
 // ---- mapa de nicho -> categorias Overture (fallback pra keyword) ----
 const NICHE_MAP: Record<string, string[]> = {
@@ -74,19 +104,44 @@ function resolveNiche(niche: string) {
   return { categories: NICHE_MAP[key] || [], keywords: [key] };
 }
 
-interface Body { niche?: string; bbox?: { min_lon: number; min_lat: number; max_lon: number; max_lat: number }; city?: string; region?: string; country?: string; limit?: number; }
+interface Bbox { min_lon: number; min_lat: number; max_lon: number; max_lat: number; }
+interface Body { action?: "search" | "reveal"; niche?: string; bbox?: Bbox; city?: string; region?: string; country?: string; base_lead_ids?: string[]; limit?: number; }
+
+// deno-lint-ignore no-explicit-any
+type Admin = any;
+
+// Cota da conta (reset mensal). Retorna { count, cap, remaining, isAdmin }.
+async function loadQuota(admin: Admin, accountId: string, userId: string) {
+  const { data: acc } = await admin.from("accounts").select("plan, extraction_count_month, extraction_reset_at").eq("id", accountId).single();
+  let count = acc?.extraction_count_month ?? 0;
+  const resetAt = acc?.extraction_reset_at ? new Date(acc.extraction_reset_at) : new Date();
+  const now = new Date();
+  if (resetAt.getUTCFullYear() !== now.getUTCFullYear() || resetAt.getUTCMonth() !== now.getUTCMonth()) {
+    count = 0;
+    await admin.from("accounts").update({ extraction_count_month: 0, extraction_reset_at: now.toISOString() }).eq("id", accountId);
+  }
+  const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", userId);
+  const isAdmin = (roles ?? []).some((r: { role: string }) => r.role === "admin");
+  const cap = isAdmin ? Infinity : planCap(acc?.plan);
+  const remaining = cap === Infinity ? Infinity : Math.max(0, cap - count);
+  return { count, cap, remaining, isAdmin };
+}
+const quotaOut = (count: number, cap: number, remaining: number) => ({
+  cap: cap === Infinity ? null : cap,
+  used: count,
+  remaining: remaining === Infinity ? null : remaining,
+});
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
-    const { niche, bbox, city, region, country, limit }: Body = await req.json().catch(() => ({}));
-    if (!niche?.trim()) return json({ error: "missing_niche" }, 400);
-    if (!bbox) return json({ error: "missing_bbox" }, 400);
+    const body: Body = await req.json().catch(() => ({}));
+    const action = body.action ?? "search";
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
+      { auth: { autoRefreshToken: false, persistSession: false } },
     );
 
     // ---- auth + conta ----
@@ -99,24 +154,111 @@ Deno.serve(async (req) => {
     const accountId = prof?.account_id;
     if (!accountId) return json({ error: "no_account" }, 400);
 
-    // ---- cota do plano (com reset mensal, igual ao Google) ----
-    const { data: acc } = await admin.from("accounts").select("plan, extraction_count_month, extraction_reset_at").eq("id", accountId).single();
-    let count = acc?.extraction_count_month ?? 0;
-    const resetAt = acc?.extraction_reset_at ? new Date(acc.extraction_reset_at) : new Date();
-    const now = new Date();
-    if (resetAt.getUTCFullYear() !== now.getUTCFullYear() || resetAt.getUTCMonth() !== now.getUTCMonth()) {
-      count = 0;
-      await admin.from("accounts").update({ extraction_count_month: 0, extraction_reset_at: now.toISOString() }).eq("id", accountId);
+    // ════════════════════ REVEAL (consome cota) ════════════════════
+    if (action === "reveal") {
+      const niche = (body.niche ?? "").trim();
+      const city = body.city ?? null;
+      const ids = [...new Set((body.base_lead_ids ?? []).filter(Boolean))];
+      if (!ids.length) return json({ error: "no_selection" }, 400);
+
+      const { count, cap, remaining, isAdmin } = await loadQuota(admin, accountId, userId);
+      if (remaining <= 0) return json({ error: "limit_reached", cap: cap === Infinity ? null : cap, used: count }, 402);
+
+      // O que a conta JÁ possui (por base_lead_id) — não cobra, mas devolve completo.
+      const { data: ownedRows } = await admin.from("leads")
+        .select("base_lead_id, company_name, phone, website, address, email, score")
+        .eq("account_id", accountId).in("base_lead_id", ids);
+      const ownedById = new Map<string, { base_lead_id: string; company_name: string; phone: string | null; website: string | null; address: string | null; email: string | null; score: number | null }>();
+      for (const r of (ownedRows ?? [])) if (r.base_lead_id) ownedById.set(r.base_lead_id, r);
+
+      const toConsiderIds = ids.filter((id) => !ownedById.has(id));
+
+      // linhas do cache pros ids ainda não possuídos
+      const { data: baseRows } = await admin.from("leads_base").select("*").in("id", toConsiderIds);
+      const baseById = new Map<string, Record<string, unknown>>();
+      for (const b of (baseRows ?? [])) baseById.set(b.id, b);
+
+      // dedupe por telefone/site já existentes NA CONTA
+      const { data: existing } = await admin.from("leads").select("phone, website").eq("account_id", accountId);
+      // deno-lint-ignore no-explicit-any
+      const seenPhones = new Set((existing ?? []).map((e: any) => normPhone(e.phone)).filter(Boolean));
+      // deno-lint-ignore no-explicit-any
+      const seenSites = new Set((existing ?? []).map((e: any) => normSite(e.website)).filter(Boolean));
+
+      let skippedDuplicate = 0;
+      const eligible: Record<string, unknown>[] = [];
+      for (const id of toConsiderIds) {
+        const b = baseById.get(id);
+        if (!b) continue;
+        const np = normPhone(b.phone as string), ns = normSite(b.website as string);
+        if ((np && seenPhones.has(np)) || (ns && seenSites.has(ns))) { skippedDuplicate++; continue; }
+        if (np) seenPhones.add(np);
+        if (ns) seenSites.add(ns);
+        eligible.push(b);
+      }
+
+      // insere só até a cota restante; o resto vira "not_revealed"
+      const capacity = remaining === Infinity ? eligible.length : Math.min(eligible.length, remaining);
+      const toInsert = eligible.slice(0, capacity);
+      const notRevealed = eligible.length - toInsert.length;
+
+      const rows = toInsert.map((b) => {
+        const phone = (b.phone as string) ?? null;
+        const website = (b.website as string) ?? null;
+        const address = (b.address as string) ?? null;
+        const nq = 5;
+        return {
+          company_name: b.company_name, address, location: city || null, industry: niche,
+          phone, website, email: null, rating: null, user_ratings_total: null,
+          type: "place", account_id: accountId, user_id: userId, source: "overture", status: "new",
+          niche_quality: nq, score: scoreOf({ phone, address, email: null, website, nicheQuality: nq }),
+          base_lead_id: b.id, extraction_date: new Date().toISOString(),
+        };
+      });
+
+      let insertedRows: { id: string; base_lead_id: string; company_name: string; phone: string | null; website: string | null; address: string | null; email: string | null; score: number | null }[] = [];
+      if (rows.length) {
+        const { data: ins, error } = await admin.from("leads").insert(rows).select("id, base_lead_id, company_name, phone, website, address, email, score");
+        if (error) return json({ error: "insert_failed", message: error.message }, 500);
+        insertedRows = ins ?? [];
+        if (insertedRows.length) {
+          await admin.from("lead_events").insert(insertedRows.map((l) => ({
+            lead_id: l.id, account_id: accountId, type: "created", payload: { source: "overture", niche, city, via: "reveal" },
+          })));
+          await admin.from("accounts").update({ extraction_count_month: count + insertedRows.length }).eq("id", accountId);
+        }
+      }
+
+      const newUsed = count + insertedRows.length;
+      const newRemaining = cap === Infinity ? Infinity : Math.max(0, cap - newUsed);
+
+      // devolve os revelados agora + os que já eram da conta (completos), pra UI atualizar
+      const leadsOut = [
+        ...insertedRows.map((l) => ({ base_lead_id: l.base_lead_id, company_name: l.company_name, phone: l.phone, website: l.website, address: l.address, email: l.email, score: l.score })),
+        ...[...ownedById.values()].map((l) => ({ base_lead_id: l.base_lead_id, company_name: l.company_name, phone: l.phone, website: l.website, address: l.address, email: l.email, score: l.score })),
+      ];
+
+      return json({
+        revealed: insertedRows.length,
+        already_owned: ownedById.size,
+        skipped_duplicate: skippedDuplicate,
+        not_revealed: notRevealed,
+        quota: quotaOut(newUsed, cap, newRemaining),
+        leads: leadsOut,
+      });
     }
-    const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", userId);
-    const isAdmin = (roles ?? []).some((r: { role: string }) => r.role === "admin");
-    const cap = isAdmin ? Infinity : planCap(acc?.plan);
-    const remaining = cap === Infinity ? Infinity : Math.max(0, cap - count);
-    if (remaining <= 0) return json({ error: "limit_reached", cap, used: count }, 402);
+
+    // ════════════════════ SEARCH (grátis, mascarado) ════════════════════
+    const niche = (body.niche ?? "").trim();
+    if (!niche) return json({ error: "missing_niche" }, 400);
+    if (!body.bbox) return json({ error: "missing_bbox" }, 400);
+    const { bbox, city = null, region = null, country = null } = body;
+
+    // cota só pra INFORMAR (buscar nunca é bloqueado)
+    const { count, cap, remaining } = await loadQuota(admin, accountId, userId);
 
     const { categories, keywords } = resolveNiche(niche);
 
-    // ---- 1) tenta cache no leads_base ----
     async function readCache() {
       let q = admin.from("leads_base").select("*").ilike("city", city ? `%${city}%` : "%");
       if (categories.length > 0) q = q.in("category", categories);
@@ -126,7 +268,7 @@ Deno.serve(async (req) => {
     }
     let baseLeads = await readCache();
 
-    // ---- 2) cache fraco -> busca no serviço Overture (Render) e popula leads_base ----
+    // cache fraco → chama o serviço Overture (Render) e popula leads_base
     let overtureSource = "cache";
     if (baseLeads.length < MIN_CACHE_RESULTS) {
       overtureSource = "overture";
@@ -141,6 +283,7 @@ Deno.serve(async (req) => {
         const ovData = await ovRes.json();
         const found = ovData.results ?? [];
         if (found.length > 0) {
+          // deno-lint-ignore no-explicit-any
           const baseRows = found.map((r: any) => ({
             source: "overture", external_id: r.external_id, company_name: r.company_name,
             category: r.category, address: r.address, city: r.city || city || null,
@@ -149,71 +292,54 @@ Deno.serve(async (req) => {
             raw: r, last_verified_at: new Date().toISOString(),
           }));
           await admin.from("leads_base").upsert(baseRows, { onConflict: "source,external_id", ignoreDuplicates: false });
-          baseLeads = await readCache(); // relê já deduplicado do banco
+          baseLeads = await readCache();
         }
-      } else {
-        // Overture falhou: se não temos cache nenhum, erro; senão segue com o que tem
-        if (baseLeads.length === 0) {
-          const txt = await ovRes.text();
-          return json({ error: "overture_failed", detail: txt }, 502);
-        }
+      } else if (baseLeads.length === 0) {
+        const txt = await ovRes.text();
+        return json({ error: "overture_failed", detail: txt }, 502);
       }
     }
 
-    if (baseLeads.length === 0) {
-      return json({ inserted: 0, skipped: 0, found: 0, source: overtureSource, cap: cap === Infinity ? null : cap, used: count, preview: [] });
+    // registra a busca (dedupe por nicho+cidade: upsert manual, sem constraint nova)
+    const found = baseLeads.length;
+    {
+      let sel = admin.from("searches").select("id").eq("account_id", accountId).eq("query", niche).eq("source", "overture");
+      sel = city ? sel.eq("location", city) : sel.is("location", null);
+      const { data: ex } = await sel.limit(1);
+      if (ex && ex[0]) await admin.from("searches").update({ count: found, created_at: new Date().toISOString() }).eq("id", ex[0].id);
+      else await admin.from("searches").insert({ account_id: accountId, query: niche, location: city || null, source: "overture", count: found });
     }
 
-    // ---- 3) dedupe contra os leads já existentes NA CONTA (igual ao Google) ----
-    const { data: existing } = await admin.from("leads").select("phone, website").eq("account_id", accountId);
-    const seenPhones = new Set((existing ?? []).map((e: any) => normPhone(e.phone)).filter(Boolean));
-    const seenSites = new Set((existing ?? []).map((e: any) => normSite(e.website)).filter(Boolean));
-
-    const wanted = Math.min(baseLeads.length, remaining === Infinity ? baseLeads.length : remaining, limit ?? 200);
-    const rows: any[] = [];
-    let skipped = 0;
-
-    for (const b of baseLeads) {
-      if (rows.length >= wanted) break;
-      const phone = b.phone ?? null;
-      const website = b.website ?? null;
-      const address = b.address ?? null;
-      const np = normPhone(phone), ns = normSite(website);
-      if ((np && seenPhones.has(np)) || (ns && seenSites.has(ns))) { skipped++; continue; }
-      if (np) seenPhones.add(np);
-      if (ns) seenSites.add(ns);
-
-      // qualidade de nicho: sem rating no Overture base, usa 5 (neutro) como o Google faz quando não tem
-      const nq = 5;
-      rows.push({
-        company_name: b.company_name, address, location: city || null, industry: niche.trim(),
-        phone, website, email: null, rating: null, user_ratings_total: null,
-        type: "place", account_id: accountId, user_id: userId, source: "overture", status: "new",
-        niche_quality: nq, score: scoreOf({ phone, address, email: null, website, nicheQuality: nq }),
-        base_lead_id: b.id, extraction_date: new Date().toISOString(),
-      });
+    if (found === 0) {
+      return json({ found: 0, source: overtureSource, quota: quotaOut(count, cap, remaining), results: [] });
     }
 
-    // ---- 4) insere em leads + lead_events + atualiza cota + searches ----
-    let inserted: { id: string }[] = [];
-    if (rows.length) {
-      const { data, error } = await admin.from("leads").insert(rows).select("id");
-      if (error) return json({ error: "insert_failed", message: error.message }, 500);
-      inserted = data ?? [];
-      if (inserted.length) {
-        await admin.from("lead_events").insert(inserted.map((l) => ({
-          lead_id: l.id, account_id: accountId, type: "created", payload: { source: "overture", niche: niche.trim(), city },
-        })));
-        await admin.from("accounts").update({ extraction_count_month: count + inserted.length }).eq("id", accountId);
-      }
-    }
-    await admin.from("searches").insert({ account_id: accountId, query: niche.trim(), location: city || null, source: "overture", count: inserted.length });
+    // quais desses a conta JÁ possui (por base_lead_id)
+    const { data: owned } = await admin.from("leads").select("base_lead_id").eq("account_id", accountId).not("base_lead_id", "is", null);
+    const ownedSet = new Set((owned ?? []).map((o: { base_lead_id: string }) => o.base_lead_id));
 
-    return json({
-      inserted: inserted.length, skipped, found: baseLeads.length, source: overtureSource,
-      cap: cap === Infinity ? null : cap, used: count + inserted.length,
-      preview: rows.map((r) => ({ company_name: r.company_name, phone: r.phone, website: r.website, address: r.address, email: r.email, score: r.score })),
+    // deno-lint-ignore no-explicit-any
+    const results = baseLeads.map((b: any) => {
+      const alreadyOwned = ownedSet.has(b.id);
+      const base = {
+        base_lead_id: b.id,
+        company_name: b.company_name,
+        category: b.category ?? null,
+        address: b.address ?? null,
+        city: b.city ?? null,
+        region: b.region ?? null,
+        has_phone: has(b.phone),
+        has_website: has(b.website),
+        phone_masked: maskPhone(b.phone),
+        website_masked: maskSite(b.website),
+        already_owned: alreadyOwned,
+      };
+      // dado COMPLETO só quando a conta já é dona (já pagou por ele)
+      if (alreadyOwned) return { ...base, phone: b.phone ?? null, website: b.website ?? null };
+      return base;
     });
+
+    return json({ found, source: overtureSource, quota: quotaOut(count, cap, remaining), results });
   } catch (e) {
     return json({ error: "unexpected", message: String((e as Error).message ?? e) }, 500);
   }
