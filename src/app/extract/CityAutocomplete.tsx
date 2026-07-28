@@ -57,6 +57,33 @@ function cleanLabel(r: NominatimResult): string {
   return parts.length > 0 ? parts.join(", ") : r.display_name;
 }
 
+type Bbox = { min_lon: number; min_lat: number; max_lon: number; max_lat: number };
+
+/**
+ * Expande o bbox com margem proporcional (~15% da dimensão por borda → ~30% por eixo),
+ * com teto de 0.5° por lado pra não puxar cidades distantes quando o bbox já é grande.
+ * Funciona com coordenadas negativas: usamos min/max explícitos, então min < max se mantém.
+ */
+const MARGIN_RATIO = 0.15;
+const MAX_MARGIN_DEG = 0.5;
+
+function expandBbox(b: Bbox): Bbox {
+  const minLon = Math.min(b.min_lon, b.max_lon);
+  const maxLon = Math.max(b.min_lon, b.max_lon);
+  const minLat = Math.min(b.min_lat, b.max_lat);
+  const maxLat = Math.max(b.min_lat, b.max_lat);
+
+  const marginLon = Math.min((maxLon - minLon) * MARGIN_RATIO, MAX_MARGIN_DEG);
+  const marginLat = Math.min((maxLat - minLat) * MARGIN_RATIO, MAX_MARGIN_DEG);
+
+  return {
+    min_lon: minLon - marginLon,
+    max_lon: maxLon + marginLon,
+    min_lat: minLat - marginLat,
+    max_lat: maxLat + marginLat,
+  };
+}
+
 type Props = {
   value: string;
   onTextChange: (text: string) => void;
@@ -175,12 +202,9 @@ export function CityAutocomplete({
       label,
       lat: Number(r.lat),
       lon: Number(r.lon),
-      bbox: {
-        min_lon: west,
-        min_lat: south,
-        max_lon: east,
-        max_lat: north,
-      },
+      // Nominatim às vezes devolve um bbox apertado demais (ex: São José/SC → 2 resultados).
+      // Expande cada borda em 15% da dimensão (30% no total por eixo), com teto de 0.5°/lado.
+      bbox: expandBbox({ min_lon: west, min_lat: south, max_lon: east, max_lat: north }),
     });
     setOpen(false);
     setSuggestions([]);
