@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:dev": "vite build --mode development",
+    "dev": "node scripts/sync-plans.mjs && vite",
+    "build": "node scripts/sync-plans.mjs && vite build",
+    "build:dev": "node scripts/sync-plans.mjs && vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
     "ingest:receita": "node --max-old-space-size=4096 scripts/ingest-receita.mjs"

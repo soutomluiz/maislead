@@ -2,6 +2,14 @@
   command = "npm run build"
   publish = "dist"
 
+# plans.json é a fonte única de planos/preços, consumida pela landing (maislead.com)
+# via fetch cross-origin. Libera CORS e cacheia por 5 min.
+[[headers]]
+  for = "/plans.json"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=300"
+
 # SPA fallback — React Router lida com o roteamento no cliente
 [[redirects]]
   from = "/*"
