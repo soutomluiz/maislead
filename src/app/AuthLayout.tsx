@@ -50,7 +50,7 @@ export function BrandPane({ variant = "login" }: { variant?: "login" | "welcome"
       <div className="sl" style={{ position: "relative", display: "flex", flexDirection: "column", flex: 1 }}>
         {/* 1 · logo (versão branca — fundo roxo) */}
         <div>
-          <Logo theme="white" height={40} />
+          <Logo theme="white" height={120} />
         </div>
 
         {variant === "welcome" ? (
@@ -215,7 +215,7 @@ export function AuthShell({ children, variant = "login" }: { children: ReactNode
 
 export function FormLogo() {
   return (
-    <div style={{ marginBottom: 22 }}>
+    <div style={{ marginBottom: 22, display: "flex", justifyContent: "center" }}>
       <Logo theme="color" height={100} />
     </div>
   );
