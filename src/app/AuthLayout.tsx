@@ -215,8 +215,8 @@ export function AuthShell({ children, variant = "login" }: { children: ReactNode
 
 export function FormLogo() {
   return (
-    <div style={{ marginBottom: 26 }}>
-      <Logo theme="color" height={34} />
+    <div style={{ marginBottom: 22 }}>
+      <Logo theme="color" height={100} />
     </div>
   );
 }
