@@ -12,14 +12,37 @@ interface AuthCtx {
   profile: Profile | null;
   account: Account | null;
   isPlatformAdmin: boolean;
+  /** true quando o usuário chegou por um link de recovery (definir/redefinir senha). */
+  recovery: boolean;
+  /** preenchido quando o link de recovery está expirado/inválido (ex.: "otp_expired"). */
+  recoveryError: string | null;
   refresh: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (name: string, email: string, password: string, company?: string) => Promise<{ error?: string; needsConfirm?: boolean }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error?: string }>;
+  /** define a nova senha (fluxo de recovery) e, em sucesso, libera o acesso ao painel. */
+  updatePassword: (password: string) => Promise<{ error?: string }>;
+  /** sai do fluxo de recovery (usado no botão "voltar ao login" quando o link expirou). */
+  clearRecovery: () => void;
 }
 
 const AuthContext = createContext<AuthCtx | null>(null);
+
+// Captura o hash UMA vez, sincronamente no load do módulo — antes do supabase-js
+// processar/limpar a URL. É assim que detectamos o retorno de um link de recovery
+// mesmo que o evento PASSWORD_RECOVERY não chegue a tempo do primeiro render.
+const INITIAL_HASH = typeof window !== "undefined" ? window.location.hash.replace(/^#/, "") : "";
+const HASH_PARAMS = new URLSearchParams(INITIAL_HASH);
+const HASH_IS_RECOVERY = HASH_PARAMS.get("type") === "recovery";
+const HASH_ERROR = HASH_PARAMS.get("error_code") || HASH_PARAMS.get("error") || null;
+
+// Remove os tokens/erro do hash pra que um refresh não re-dispare o fluxo de recovery.
+function stripHash() {
+  if (typeof window !== "undefined" && window.location.hash) {
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
@@ -27,6 +50,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [account, setAccount] = useState<Account | null>(null);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  // "Estamos num fluxo de recovery" = veio type=recovery OU o hash trouxe um erro
+  // de auth (link expirado costuma vir só como error_code=otp_expired, sem type).
+  // Erro só no HASH (não na query) — neste app, hash de auth só vem de link de e-mail.
+  const [recovery, setRecovery] = useState(HASH_IS_RECOVERY || !!HASH_ERROR);
+  const [recoveryError, setRecoveryError] = useState<string | null>(HASH_ERROR);
 
   const loadProfile = useCallback(async (userId: string) => {
     const { data: prof } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
@@ -55,7 +83,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
     // IMPORTANTE: não chamar funções supabase async aqui dentro — causa deadlock do auth lock.
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      // Backup da detecção por hash: o supabase-js emite este evento ao processar o link.
+      if (event === "PASSWORD_RECOVERY") setRecovery(true);
       setSession(s);
     });
     return () => { mounted = false; sub.subscription.unsubscribe(); };
@@ -93,8 +123,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return error ? { error: error.message } : {};
   };
 
+  const updatePassword: AuthCtx["updatePassword"] = async (password) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) return { error: error.message };
+    // senha definida com sucesso → sai do fluxo de recovery e libera o painel
+    stripHash();
+    setRecoveryError(null);
+    setRecovery(false);
+    return {};
+  };
+
+  const clearRecovery = useCallback(() => {
+    stripHash();
+    setRecovery(false);
+    setRecoveryError(null);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ loading, session, profile, account, isPlatformAdmin, refresh, signIn, signUp, signOut, resetPassword }}>
+    <AuthContext.Provider value={{ loading, session, profile, account, isPlatformAdmin, recovery, recoveryError, refresh, signIn, signUp, signOut, resetPassword, updatePassword, clearRecovery }}>
       {children}
     </AuthContext.Provider>
   );
