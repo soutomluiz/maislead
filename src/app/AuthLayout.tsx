@@ -26,9 +26,10 @@ export function GoogleIcon({ size = 17 }: { size?: number }) {
 
 /* ─────────────────────────── painel de marca (esquerda) ─────────────────────────── */
 
-export function BrandPane() {
+export function BrandPane({ variant = "login" }: { variant?: "login" | "welcome" }) {
   const { t } = useLang();
   const L = t.login;
+  const W = L.welcome;
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
@@ -62,48 +63,88 @@ export function BrandPane() {
           <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-.01em" }}>mais<span style={{ color: "#c2aeff" }}>LEAD</span></div>
         </div>
 
-        {/* 2 · badge + headline + sub (empurrado pra baixo) */}
-        <div style={{ marginTop: "auto", paddingTop: 48 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.16)", padding: "7px 14px 7px 11px", borderRadius: 30, fontSize: 12.5, fontWeight: 700, letterSpacing: ".01em" }}>
-            <span className="mla-livedot" style={{ width: 7, height: 7, borderRadius: "50%", background: "#34d399" }} />
-            {L.badge}
-          </div>
-          <div style={{ fontSize: 41, lineHeight: 1.14, fontWeight: 800, letterSpacing: "-.028em", marginTop: 22, maxWidth: "9.5em" }}>
-            {L.headA}<br />
-            <span style={{ background: "linear-gradient(96deg,#fff 20%,#c2aeff 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>{L.headB}</span>
-          </div>
-          <div style={{ fontSize: 15.5, lineHeight: 1.6, color: "rgba(255,255,255,.72)", marginTop: 16, maxWidth: "30em", fontWeight: 500 }}>{L.brandSub}</div>
-        </div>
-
-        {/* 3 · ticker */}
-        <div style={{ marginTop: 34, background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.13)", borderRadius: 17, padding: "16px 18px", backdropFilter: "blur(10px)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(255,255,255,.5)" }}>{L.tickerLabel}</div>
-            <span className="mla-livedot" style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399" }} />
-          </div>
-          <div style={{ height: 40, position: "relative", marginTop: 11, overflow: "hidden" }}>
-            <div key={`${tick}-${item[0]}`} className="mla-tickitem" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: "rgba(255,255,255,.13)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c2aeff" strokeWidth="2.2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+        {variant === "welcome" ? (
+          <>
+            {/* 2 · boas-vindas: badge + headline + sub (empurrado pra baixo) */}
+            <div style={{ marginTop: "auto", paddingTop: 48 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(52,211,153,.14)", border: "1px solid rgba(52,211,153,.34)", padding: "7px 14px 7px 11px", borderRadius: 30, fontSize: 12.5, fontWeight: 700, letterSpacing: ".01em", color: "#a7f3d0" }}>
+                <span className="mla-livedot" style={{ width: 7, height: 7, borderRadius: "50%", background: "#34d399" }} />
+                {W.badge}
               </div>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item[0]}</div>
-                <div style={{ fontSize: 11.5, color: "rgba(255,255,255,.58)", fontWeight: 600, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item[1]}</div>
+              <div style={{ fontSize: 41, lineHeight: 1.14, fontWeight: 800, letterSpacing: "-.028em", marginTop: 22, maxWidth: "9.5em" }}>
+                {W.headA}<br />
+                <span style={{ background: "linear-gradient(96deg,#fff 20%,#c2aeff 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>{W.headB}</span>
               </div>
-              <div style={{ fontSize: 11.5, fontWeight: 800, color: "#34d399", background: "rgba(16,185,129,.14)", padding: "5px 10px", borderRadius: 8, whiteSpace: "nowrap", flexShrink: 0 }}>{item[2]}</div>
+              <div style={{ fontSize: 15.5, lineHeight: 1.6, color: "rgba(255,255,255,.72)", marginTop: 16, maxWidth: "30em", fontWeight: 500 }}>{W.sub}</div>
             </div>
-          </div>
-        </div>
 
-        {/* 4 · provas */}
-        <div style={{ marginTop: 26, display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
-          {L.proofs.map(([num, label], i) => (
-            <div key={i} style={{ borderLeft: "2px solid rgba(194,174,255,.5)", paddingLeft: 13 }}>
-              <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: "-.02em" }}>{num}</div>
-              <div style={{ fontSize: 11.5, color: "rgba(255,255,255,.6)", fontWeight: 600, lineHeight: 1.35, marginTop: 2 }}>{label}</div>
+            {/* 3 · primeiros passos (card, no lugar do ticker) */}
+            <div style={{ marginTop: 34, background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.13)", borderRadius: 17, padding: "18px 18px 16px", backdropFilter: "blur(10px)" }}>
+              <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(255,255,255,.5)" }}>{W.stepsLabel}</div>
+              <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 13 }}>
+                {W.steps.map(([title, detail], i) => {
+                  const active = i === 0;
+                  return (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12.5, fontWeight: 800, background: active ? "rgba(52,211,153,.18)" : "rgba(255,255,255,.08)", border: `1px solid ${active ? "rgba(52,211,153,.5)" : "rgba(255,255,255,.14)"}`, color: active ? "#34d399" : "rgba(255,255,255,.65)" }}>
+                        {active ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg> : i + 1}
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#fff" }}>{title}</div>
+                        <div style={{ fontSize: 11.5, color: "rgba(255,255,255,.56)", fontWeight: 600, marginTop: 1 }}>{detail}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          ))}
-        </div>
+          </>
+        ) : (
+          <>
+            {/* 2 · badge + headline + sub (empurrado pra baixo) */}
+            <div style={{ marginTop: "auto", paddingTop: 48 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.16)", padding: "7px 14px 7px 11px", borderRadius: 30, fontSize: 12.5, fontWeight: 700, letterSpacing: ".01em" }}>
+                <span className="mla-livedot" style={{ width: 7, height: 7, borderRadius: "50%", background: "#34d399" }} />
+                {L.badge}
+              </div>
+              <div style={{ fontSize: 41, lineHeight: 1.14, fontWeight: 800, letterSpacing: "-.028em", marginTop: 22, maxWidth: "9.5em" }}>
+                {L.headA}<br />
+                <span style={{ background: "linear-gradient(96deg,#fff 20%,#c2aeff 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>{L.headB}</span>
+              </div>
+              <div style={{ fontSize: 15.5, lineHeight: 1.6, color: "rgba(255,255,255,.72)", marginTop: 16, maxWidth: "30em", fontWeight: 500 }}>{L.brandSub}</div>
+            </div>
+
+            {/* 3 · ticker */}
+            <div style={{ marginTop: 34, background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.13)", borderRadius: 17, padding: "16px 18px", backdropFilter: "blur(10px)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(255,255,255,.5)" }}>{L.tickerLabel}</div>
+                <span className="mla-livedot" style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399" }} />
+              </div>
+              <div style={{ height: 40, position: "relative", marginTop: 11, overflow: "hidden" }}>
+                <div key={`${tick}-${item[0]}`} className="mla-tickitem" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 10, background: "rgba(255,255,255,.13)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c2aeff" strokeWidth="2.2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item[0]}</div>
+                    <div style={{ fontSize: 11.5, color: "rgba(255,255,255,.58)", fontWeight: 600, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item[1]}</div>
+                  </div>
+                  <div style={{ fontSize: 11.5, fontWeight: 800, color: "#34d399", background: "rgba(16,185,129,.14)", padding: "5px 10px", borderRadius: 8, whiteSpace: "nowrap", flexShrink: 0 }}>{item[2]}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4 · provas */}
+            <div style={{ marginTop: 26, display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+              {L.proofs.map(([num, label], i) => (
+                <div key={i} style={{ borderLeft: "2px solid rgba(194,174,255,.5)", paddingLeft: 13 }}>
+                  <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: "-.02em" }}>{num}</div>
+                  <div style={{ fontSize: 11.5, color: "rgba(255,255,255,.6)", fontWeight: 600, lineHeight: 1.35, marginTop: 2 }}>{label}</div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* 5 · rodapé de confiança */}
         <div style={{ marginTop: 28, display: "flex", alignItems: "center", gap: 13, fontSize: 12.5, color: "rgba(255,255,255,.52)", fontWeight: 600 }}>
@@ -153,12 +194,12 @@ export function LangSwitch() {
 
 /* ─────────────────────────── shell de duas colunas ─────────────────────────── */
 
-export function AuthShell({ children }: { children: ReactNode }) {
+export function AuthShell({ children, variant = "login" }: { children: ReactNode; variant?: "login" | "welcome" }) {
   const { t } = useLang();
   const L = t.login;
   return (
     <div className="ml-auth">
-      <BrandPane />
+      <BrandPane variant={variant} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "26px 32px 32px", background: "#fdfcff", minWidth: 0 }}>
         <div className="mla-fadein" style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
           <LangSwitch />

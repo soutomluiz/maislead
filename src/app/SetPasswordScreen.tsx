@@ -67,7 +67,7 @@ export function SetPasswordScreen() {
   );
 
   return (
-    <AuthShell>
+    <AuthShell variant="welcome">
       <FormLogo />
 
       {expired ? (
