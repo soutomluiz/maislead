@@ -28,6 +28,7 @@ const PROVIDERS: Provider[] = [
 const DICT = {
   pt: {
     header: "Integrações", headerSub: "Conecte o maisLEAD ao seu CRM e envie leads automaticamente.", connectedCount: "conectados",
+    inDev: "Módulo em desenvolvimento", comingSoon: "Em breve", notify: "Avisar quando disponível", notified: "Avisaremos quando estiver pronto!",
     grpPop: "CRMs Populares", grpBr: "CRMs Brasileiros", grpAuto: "Automação & Webhooks",
     connected: "Conectado", connect: "Conectar", manage: "Gerenciar",
     modalTitle: "Conectar", urlLabel: "URL do Webhook", urlHint: "Cada novo lead será enviado via POST (JSON) para esta URL.",
@@ -38,6 +39,7 @@ const DICT = {
   },
   en: {
     header: "Integrations", headerSub: "Connect maisLEAD to your CRM and send leads automatically.", connectedCount: "connected",
+    inDev: "Module in development", comingSoon: "Coming soon", notify: "Notify me when available", notified: "We'll let you know when it's ready!",
     grpPop: "Popular CRMs", grpBr: "Brazilian CRMs", grpAuto: "Automation & Webhooks",
     connected: "Connected", connect: "Connect", manage: "Manage",
     modalTitle: "Connect", urlLabel: "Webhook URL", urlHint: "Each new lead will be POSTed (JSON) to this URL.",
@@ -48,6 +50,7 @@ const DICT = {
   },
   es: {
     header: "Integraciones", headerSub: "Conecta maisLEAD a tu CRM y envía leads automáticamente.", connectedCount: "conectados",
+    inDev: "Módulo en desarrollo", comingSoon: "Próximamente", notify: "Avisarme cuando esté disponible", notified: "¡Te avisaremos cuando esté listo!",
     grpPop: "CRMs Populares", grpBr: "CRMs Brasileños", grpAuto: "Automatización & Webhooks",
     connected: "Conectado", connect: "Conectar", manage: "Gestionar",
     modalTitle: "Conectar", urlLabel: "URL del Webhook", urlHint: "Cada nuevo lead se enviará vía POST (JSON) a esta URL.",
@@ -61,22 +64,53 @@ const DICT = {
 interface Row { id: string; provider: string; webhook_url: string | null; status: string; }
 const SAMPLE = { event: "lead.created", source: "maisLEAD", lead: { company: "Empresa Exemplo", email: "contato@exemplo.com", phone: "+55 11 90000-0000", score: 85 } };
 
+// Os 10 CRMs (grupos crmPop/crmBr) ainda NÃO conectam de verdade — nenhum tem OAuth
+// nem envio real. Ficam como "Em breve" com botão "Avisar quando disponível".
+// Só o grupo "auto" (Zapier/Make/n8n/Webhook) conecta de fato (trigger notify_lead_webhooks).
+const isComingSoon = (p: Provider) => p.group !== "auto";
+
+// A tabela integration_interest ainda não está nos tipos gerados — acesso tipado à parte.
+const iiClient = supabase as unknown as {
+  from: (t: string) => {
+    select: (c: string) => { eq: (k: string, v: string) => Promise<{ data: { integration_name: string }[] | null }> };
+    upsert: (v: Record<string, unknown>, o: { onConflict: string; ignoreDuplicates: boolean }) => Promise<{ error: unknown }>;
+  };
+};
+
 export function IntegrationsScreen() {
   const { lang } = useLang();
-  const { account } = useAuth();
+  const { account, session } = useAuth();
   const D = DICT[lang];
+  const userId = session?.user?.id;
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState<Provider | null>(null);
+  const [interest, setInterest] = useState<Set<string>>(new Set());
+  const [notifyBusy, setNotifyBusy] = useState<string | null>(null);
 
   async function load() {
     if (!account?.id) return;
     const { data } = await supabase.from("integrations").select("id, provider, webhook_url, status").eq("account_id", account.id);
     setRows((data as Row[]) ?? []);
+    if (userId) {
+      const { data: ii } = await iiClient.from("integration_interest").select("integration_name").eq("user_id", userId);
+      setInterest(new Set((ii ?? []).map((r) => r.integration_name)));
+    }
   }
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [account?.id]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [account?.id, userId]);
+
+  async function notify(p: Provider) {
+    if (!account?.id || !userId || interest.has(p.id)) return;
+    setNotifyBusy(p.id);
+    try {
+      await iiClient.from("integration_interest").upsert(
+        { user_id: userId, account_id: account.id, integration_name: p.id },
+        { onConflict: "user_id,integration_name", ignoreDuplicates: true },
+      );
+      setInterest((prev) => new Set(prev).add(p.id));
+    } finally { setNotifyBusy(null); }
+  }
 
   const byProvider = useMemo(() => Object.fromEntries(rows.map((r) => [r.provider, r])), [rows]);
-  const connectedCount = rows.filter((r) => r.status === "connected").length;
 
   const groups: { key: Group; title: string }[] = [
     { key: "crmPop", title: D.grpPop },
@@ -93,7 +127,7 @@ export function IntegrationsScreen() {
           <div style={{ fontSize: 13.5, opacity: 0.92, marginTop: 4, maxWidth: 520 }}>{D.headerSub}</div>
         </div>
         <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 700, background: "rgba(255,255,255,.2)", padding: "9px 16px", borderRadius: 12, whiteSpace: "nowrap" }}>
-          <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 0 4px rgba(74,222,128,.3)" }} />{connectedCount} {D.connectedCount}
+          <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#fbbf24", boxShadow: "0 0 0 4px rgba(251,191,36,.3)" }} />{D.inDev}
         </span>
       </div>
 
@@ -103,20 +137,37 @@ export function IntegrationsScreen() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 16 }}>
             {PROVIDERS.filter((p) => p.group === g.key).map((p) => {
               const row = byProvider[p.id];
-              const on = row?.status === "connected";
+              const soon = isComingSoon(p);
+              const on = !soon && row?.status === "connected";
+              const asked = interest.has(p.id);
               return (
-                <div key={p.id} style={{ background: "var(--ml-card)", border: `1px solid ${on ? "var(--ml-green)" : "var(--ml-border)"}`, borderRadius: 18, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)" }}>
+                <div key={p.id} style={{ background: "var(--ml-card)", border: `1px solid ${on ? "var(--ml-green)" : "var(--ml-border)"}`, borderRadius: 18, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)", opacity: soon ? 0.92 : 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                     <div style={{ width: 46, height: 46, borderRadius: 13, background: p.color, color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: 16, flexShrink: 0 }}>{p.initials}</div>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 700, fontSize: 15 }}>{p.name}</div>
                       <div style={{ fontSize: 12.5, color: "var(--ml-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.sub}</div>
                     </div>
-                    {on && <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "var(--ml-green)", background: "rgba(16,185,129,.12)", padding: "3px 8px", borderRadius: 20 }}><Icon name="check" size={11} />{D.connected}</span>}
+                    {soon
+                      ? <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#b45309", background: "rgba(251,191,36,.16)", padding: "3px 9px", borderRadius: 20, whiteSpace: "nowrap" }}>{D.comingSoon}</span>
+                      : on && <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "var(--ml-green)", background: "rgba(16,185,129,.12)", padding: "3px 8px", borderRadius: 20 }}><Icon name="check" size={11} />{D.connected}</span>}
                   </div>
-                  <button onClick={() => setOpen(p)} style={{ width: "100%", height: 40, marginTop: 0, borderRadius: 11, border: on ? "1px solid var(--ml-border)" : "none", background: on ? "var(--ml-card)" : "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: on ? "var(--ml-green)" : "#fff", fontWeight: 700, fontSize: 13.5, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
-                    {on ? D.manage : D.connect}
-                  </button>
+
+                  {soon ? (
+                    asked ? (
+                      <div style={{ width: "100%", height: 40, borderRadius: 11, border: "1px solid var(--ml-border)", background: "rgba(16,185,129,.08)", color: "var(--ml-green)", fontWeight: 700, fontSize: 12.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, textAlign: "center", padding: "0 8px" }}>
+                        <Icon name="check" size={14} />{D.notified}
+                      </div>
+                    ) : (
+                      <button onClick={() => notify(p)} disabled={notifyBusy === p.id} style={{ width: "100%", height: 40, borderRadius: 11, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-navtext)", fontWeight: 700, fontSize: 13, cursor: notifyBusy === p.id ? "default" : "pointer", opacity: notifyBusy === p.id ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+                        {notifyBusy === p.id ? <Icon name="loader" size={15} className="ml-spin" /> : <Icon name="bell" size={14} />}{D.notify}
+                      </button>
+                    )
+                  ) : (
+                    <button onClick={() => setOpen(p)} style={{ width: "100%", height: 40, marginTop: 0, borderRadius: 11, border: on ? "1px solid var(--ml-border)" : "none", background: on ? "var(--ml-card)" : "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: on ? "var(--ml-green)" : "#fff", fontWeight: 700, fontSize: 13.5, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+                      {on ? D.manage : D.connect}
+                    </button>
+                  )}
                 </div>
               );
             })}

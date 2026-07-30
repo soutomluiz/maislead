@@ -45,3 +45,31 @@ Lista curta de coisas pra fazer depois do lançamento. Foco atual: **lançar**.
   3. Voltar `massEmail` em `plan.ts` (`Feature` + `FEATURE_MIN: { massEmail: 1 }`).
   4. Voltar a feat "E-mail em massa + templates" nas feats do Pro em `SubScreen.tsx` (pt/en/es).
   5. Testar disparo logado numa conta Pro/Business antes de anunciar.
+
+### [ ] Módulo de Integrações — os 10 CRMs estão "Em breve" (implementação real é pós-beta)
+- **Status:** marcados como **"Em breve"** em 2026-07-30, pra **não enganar os testers**.
+  Os 10 CRMs (HubSpot, Salesforce, Pipedrive, Zoho, ActiveCampaign, Freshsales, RD Station,
+  Ploomes, Agendor, PipeRun) **nunca conectaram de verdade**: não têm OAuth, credencial nem
+  chamada à API do provedor. O card era só visual — "Conectar" só salvava uma URL de webhook
+  genérica e pintava de verde ("falso Conectado").
+- **O que existe DE FATO hoje (mantido ligado):** o grupo **Automação & Webhooks**
+  (Zapier / Make / n8n / Webhook custom) funciona — há um trigger `AFTER INSERT` na tabela
+  `leads` (`notify_lead_webhooks()`, via `pg_net`) que faz POST do lead pra cada `integrations.webhook_url`
+  `status='connected'` da conta. É o caminho real pra alimentar qualquer CRM via automação.
+- **O que foi mexido (2026-07-30):**
+  - `src/app/IntegrationsScreen.tsx` — os 10 CRMs (grupos `crmPop`/`crmBr`) viraram estado
+    **"Em breve"**: etiqueta no card + botão **"Avisar quando disponível"** (não abre mais o modal
+    de conexão). O grupo `auto` continua conectável normalmente. Removido o "falso Conectado"
+    (card coming-soon nunca lê `status` de `integrations`). Contador do topo trocado por
+    **"Módulo em desenvolvimento"** (não mostra mais "N conectados").
+  - Nova tabela **`integration_interest`** (migration `20250730000000_integration_interest.sql`):
+    registra cliques em "Avisar quando disponível" (`user_id`, `account_id`, `integration_name`),
+    RLS por usuário, dedupe por `(user_id, integration_name)` via upsert `ignoreDuplicates`.
+    Índice em `integration_name` pra depois priorizar quais CRMs construir primeiro.
+  - `src/app/icons.tsx` — ícone `bell`.
+- **Limitações do webhook atual (a resolver quando for fazer a integração real):** só dispara em
+  INSERT (lead novo; enriquecimento posterior não re-envia); `pg_net` é fire-and-forget (sem retry,
+  sem HMAC/assinatura, sem header de auth, falha em silêncio); sem mapeamento de campos por CRM.
+- **Trabalho real pós-beta (por CRM):** OAuth/token do provedor + criar contato/lead via API do CRM
+  + mapear campos (`company`, `email`, `phone`, `score`…). Consultar `integration_interest` pra
+  decidir a ordem (mais pedidos primeiro). Só então trocar "Em breve" por "Conectar" de verdade.
