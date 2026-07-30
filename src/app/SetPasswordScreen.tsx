@@ -1,14 +1,36 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { useAuth } from "./AuthContext";
 import { useLang } from "./LangTheme";
-import { Icon } from "./icons";
+import { AuthShell, FormLogo, authLabel, fieldBorder, fieldBg, iconColor } from "./AuthLayout";
 
 /**
- * Tela de "Criar sua senha" — exibida quando o usuário chega por um link de
- * recovery (e-mail de convite / redefinição). Intercepta ANTES do painel: só
- * libera o acesso depois que a senha é definida com sucesso.
- * Se o link estiver expirado/inválido, mostra a mensagem e um caminho de volta.
+ * "Criar sua senha" — exibida quando o usuário chega por um link de recovery
+ * (convite / redefinição). Intercepta ANTES do painel: só libera o acesso
+ * depois que a senha é definida. Se o link expirou, mostra o caminho de volta.
+ * Mesma linguagem visual do login (painel de marca à esquerda).
  */
+
+const LockIcon = (c: string) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2.5" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+);
+const EyeSvg = (open: boolean) =>
+  open ? (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8f8ba8" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-8-10-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19" /><path d="m1 1 22 22" /></svg>
+  ) : (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8f8ba8" strokeWidth="2"><path d="M2 12s3-8 10-8 10 8 10 8-3 8-10 8-10-8-10-8z" /><circle cx="12" cy="12" r="3" /></svg>
+  );
+
+const inputBase = (focused: boolean, filled: boolean, hasRight: boolean): CSSProperties => ({
+  width: "100%", height: 50, border: `1.5px solid ${fieldBorder(focused, filled)}`, background: fieldBg(focused),
+  borderRadius: 13, padding: hasRight ? "0 46px 0 42px" : "0 14px 0 42px", fontSize: 14.5, color: "#211d3b", outline: "none",
+});
+
+const submitBtn: CSSProperties = {
+  width: "100%", height: 52, marginTop: 20, border: "none", borderRadius: 14,
+  background: "linear-gradient(140deg,#5b3ae8,#4c2ee0 55%,#3f24c4)", color: "#fff", fontSize: 15, fontWeight: 800,
+  cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 9, boxShadow: "0 8px 22px rgba(76,46,224,.3)",
+};
+
 export function SetPasswordScreen() {
   const { t } = useLang();
   const { recoveryError, updatePassword, clearRecovery } = useAuth();
@@ -17,6 +39,7 @@ export function SetPasswordScreen() {
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [focus, setFocus] = useState<"pw" | "pw2" | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
@@ -32,77 +55,86 @@ export function SetPasswordScreen() {
     try {
       const r = await updatePassword(pw);
       if (r.error) { setErr(r.error); return; }
-      // Sucesso: updatePassword baixa o flag de recovery → o app troca pro painel.
-      setOk(a.pwUpdated);
+      setOk(a.pwUpdated); // updatePassword baixa o flag de recovery → app troca pro painel
     } finally { setBusy(false); }
   }
 
-  const label: CSSProperties = { fontSize: 12.5, fontWeight: 600, color: "var(--ml-navtext)", marginBottom: 6, display: "block" };
-  const field: CSSProperties = {
-    width: "100%", padding: "11px 12px 11px 40px", borderRadius: 11,
-    border: "1px solid var(--ml-border)", background: "var(--ml-input)", color: "var(--ml-text)",
-    fontSize: 14, outline: "none",
-  };
-  const iconWrap: CSSProperties = { position: "absolute", left: 12, top: 34, color: "var(--ml-muted)" };
+  const eyeBtn = (
+    <button type="button" onClick={() => setShowPw((v) => !v)} className="mla-eye"
+      style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", width: 36, height: 36, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", background: "transparent", border: "none" }}>
+      {EyeSvg(showPw)}
+    </button>
+  );
 
   return (
-    <div className="ml-root ml-fade" style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 20 }}>
-      <div style={{ width: "100%", maxWidth: 400 }}>
-        {/* brand */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 22 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 15, background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", display: "grid", placeItems: "center", color: "#fff", boxShadow: "0 10px 24px rgba(76,46,224,.35)" }}>
-            <Icon name="spark" size={26} />
+    <AuthShell>
+      <FormLogo />
+
+      {expired ? (
+        /* ── link expirado / inválido ── */
+        <div>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(244,63,94,.09)", display: "flex", alignItems: "center", justifyContent: "center", color: "#c81e42", marginBottom: 16 }}>
+            {LockIcon("#c81e42")}
           </div>
-          <div style={{ fontSize: 22, fontWeight: 800, marginTop: 12, letterSpacing: -0.4 }}>{a.brand}</div>
-          <div style={{ fontSize: 13, color: "var(--ml-muted)" }}>{a.tagline}</div>
+          <div style={{ fontSize: 29, fontWeight: 800, letterSpacing: "-.028em", lineHeight: 1.2 }}>{a.resetTitle}</div>
+          <div style={{ fontSize: 14.5, color: "#6f6a8c", marginTop: 9, fontWeight: 500, lineHeight: 1.55 }}>{a.linkExpired}</div>
+          <button type="button" onClick={clearRecovery} className="mla-submit" style={submitBtn}>{a.backToLogin}</button>
         </div>
+      ) : (
+        /* ── definir nova senha ── */
+        <>
+          <div>
+            <div style={{ fontSize: 29, fontWeight: 800, letterSpacing: "-.028em", lineHeight: 1.2 }}>{a.setPwTitle}</div>
+            <div style={{ fontSize: 14.5, color: "#6f6a8c", marginTop: 9, fontWeight: 500, lineHeight: 1.55 }}>{a.setPwSub}</div>
+          </div>
 
-        <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 18, padding: 26, boxShadow: "0 12px 40px rgba(30,25,70,.08)" }}>
-          {expired ? (
-            // ---- Link expirado / inválido ----
-            <div style={{ textAlign: "center" }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, margin: "2px auto 14px", background: "rgba(239,68,68,.1)", display: "grid", placeItems: "center", color: "var(--ml-red)" }}>
-                <Icon name="lock" size={24} />
+          <form onSubmit={submit} style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 24 }}>
+              <div>
+                <label htmlFor="ml-pw" style={authLabel}>{a.newPassword}</label>
+                <div style={{ position: "relative" }}>
+                  <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", display: "flex" }}>{LockIcon(iconColor(focus === "pw"))}</span>
+                  <input id="ml-pw" type={showPw ? "text" : "password"} value={pw} autoFocus autoComplete="new-password" placeholder="••••••••"
+                    onChange={(e) => { setPw(e.target.value); setErr(null); }} onFocus={() => setFocus("pw")} onBlur={() => setFocus(null)}
+                    style={inputBase(focus === "pw", !!pw, true)} />
+                  {eyeBtn}
+                </div>
               </div>
-              <div style={{ fontSize: 18, fontWeight: 800 }}>{a.resetTitle}</div>
-              <div style={{ fontSize: 13.5, color: "var(--ml-muted)", marginTop: 8, lineHeight: 1.5 }}>{a.linkExpired}</div>
-              <button onClick={clearRecovery} style={{ marginTop: 18, width: "100%", padding: "12px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", fontWeight: 700, fontSize: 14.5, cursor: "pointer", boxShadow: "0 8px 18px rgba(76,46,224,.28)" }}>
-                {a.backToLogin}
-              </button>
+              <div>
+                <label htmlFor="ml-pw2" style={authLabel}>{a.confirmPassword}</label>
+                <div style={{ position: "relative" }}>
+                  <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", display: "flex" }}>{LockIcon(iconColor(focus === "pw2"))}</span>
+                  <input id="ml-pw2" type={showPw ? "text" : "password"} value={pw2} autoComplete="new-password" placeholder="••••••••"
+                    onChange={(e) => { setPw2(e.target.value); setErr(null); }} onFocus={() => setFocus("pw2")} onBlur={() => setFocus(null)}
+                    style={inputBase(focus === "pw2", !!pw2, false)} />
+                </div>
+              </div>
             </div>
-          ) : (
-            // ---- Definir nova senha ----
-            <>
-              <div style={{ fontSize: 18, fontWeight: 800 }}>{a.setPwTitle}</div>
-              <div style={{ fontSize: 13, color: "var(--ml-muted)", marginTop: 2, marginBottom: 18 }}>{a.setPwSub}</div>
 
-              <form onSubmit={submit}>
-                <div style={{ position: "relative", marginBottom: 14 }}>
-                  <label style={label}>{a.newPassword}</label>
-                  <span style={iconWrap}><Icon name="lock" size={16} /></span>
-                  <input style={{ ...field, paddingRight: 40 }} type={showPw ? "text" : "password"} required value={pw} onChange={(e) => setPw(e.target.value)} placeholder="••••••••" autoComplete="new-password" autoFocus />
-                  <button type="button" onClick={() => setShowPw((v) => !v)} style={{ position: "absolute", right: 10, top: 32, background: "none", border: "none", color: "var(--ml-muted)", cursor: "pointer", padding: 4 }}>
-                    <Icon name={showPw ? "eyeOff" : "eye"} size={16} />
-                  </button>
-                </div>
-                <div style={{ position: "relative", marginBottom: 14 }}>
-                  <label style={label}>{a.confirmPassword}</label>
-                  <span style={iconWrap}><Icon name="lock" size={16} /></span>
-                  <input style={field} type={showPw ? "text" : "password"} required value={pw2} onChange={(e) => setPw2(e.target.value)} placeholder="••••••••" autoComplete="new-password" />
-                </div>
+            {err && (
+              <div className="mla-erroir" style={{ marginTop: 16, background: "rgba(244,63,94,.07)", border: "1px solid #f6d3d9", borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, fontWeight: 600, color: "#c81e42" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2.2" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>
+                <span>{err}</span>
+              </div>
+            )}
+            {ok && (
+              <div className="mla-erroir" style={{ marginTop: 16, background: "rgba(16,185,129,.08)", border: "1px solid #bfe9d6", borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 600, color: "#0f9d6b" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f9d6b" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                <span>{ok}</span>
+              </div>
+            )}
 
-                {err && <div style={{ fontSize: 13, color: "var(--ml-red)", background: "rgba(239,68,68,.1)", padding: "9px 12px", borderRadius: 10, marginBottom: 12 }}>{err}</div>}
-                {ok && <div style={{ fontSize: 13, color: "var(--ml-green)", background: "rgba(16,185,129,.12)", padding: "9px 12px", borderRadius: 10, marginBottom: 12, display: "flex", alignItems: "center", gap: 7 }}><Icon name="check" size={15} />{ok}</div>}
-
-                <button type="submit" disabled={busy} style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,var(--ml-primary),var(--ml-primary-2))", color: "#fff", fontWeight: 700, fontSize: 14.5, cursor: busy ? "not-allowed" : "pointer", opacity: busy ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 18px rgba(76,46,224,.28)" }}>
-                  {busy && <Icon name="loader" size={16} className="ml-spin" />}
-                  {a.setPwBtn}
-                </button>
-              </form>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+            <button type="submit" disabled={busy} className="mla-submit" style={submitBtn}>
+              {busy ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                  <span className="mla-spinner" style={{ width: 16, height: 16, borderRadius: "50%", border: "2.2px solid rgba(255,255,255,.35)", borderTopColor: "#fff", display: "inline-block" }} />
+                  {a.pwUpdated}
+                </span>
+              ) : a.setPwBtn}
+            </button>
+          </form>
+        </>
+      )}
+    </AuthShell>
   );
 }

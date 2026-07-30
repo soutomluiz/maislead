@@ -18,6 +18,8 @@ interface AuthCtx {
   recoveryError: string | null;
   refresh: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  /** SSO Google (OAuth) — redireciona pro provedor e volta pra origin. */
+  signInWithGoogle: () => Promise<{ error?: string }>;
   signUp: (name: string, email: string, password: string, company?: string) => Promise<{ error?: string; needsConfirm?: boolean }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error?: string }>;
@@ -103,6 +105,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return error ? { error: error.message } : {};
   };
 
+  const signInWithGoogle: AuthCtx["signInWithGoogle"] = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}` },
+    });
+    return error ? { error: error.message } : {};
+  };
+
   const signUp: AuthCtx["signUp"] = async (name, email, password, company) => {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
@@ -140,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ loading, session, profile, account, isPlatformAdmin, recovery, recoveryError, refresh, signIn, signUp, signOut, resetPassword, updatePassword, clearRecovery }}>
+    <AuthContext.Provider value={{ loading, session, profile, account, isPlatformAdmin, recovery, recoveryError, refresh, signIn, signInWithGoogle, signUp, signOut, resetPassword, updatePassword, clearRecovery }}>
       {children}
     </AuthContext.Provider>
   );

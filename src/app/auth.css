@@ -1,0 +1,72 @@
+/* maisLEAD — Login / recuperar / definir senha (SPEC-login, fiel ao .dc.html).
+   Design de cores FIXO (claro), independente do tema do app: as telas de auth
+   são pré-login e trazem sua própria paleta. Classes/keyframes prefixados `mla`
+   e escopados em `.ml-auth` para não colidir com o resto do app. */
+
+.ml-auth, .ml-auth * { box-sizing: border-box; }
+.ml-auth {
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  background: #fdfcff;
+  color: #211d3b;
+}
+.ml-auth a { text-decoration: none; color: #4c2ee0; }
+.ml-auth a:hover { color: #3f24c4; }
+.ml-auth input { font-family: inherit; }
+.ml-auth input::placeholder { color: #a6a3c0; }
+/* Neutraliza o focus-glow global (.ml-root input:focus) — aqui o foco é controlado pela borda inline */
+.ml-auth input:focus { box-shadow: none !important; }
+
+@keyframes mlaFadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mlaFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mlaSlideL { from { opacity: 0; transform: translateX(-22px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes mlaDrift  { 0% { transform: translate(0,0) scale(1); } 50% { transform: translate(26px,-22px) scale(1.06); } 100% { transform: translate(0,0) scale(1); } }
+@keyframes mlaLivedot { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,.55); } 70% { box-shadow: 0 0 0 9px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
+@keyframes mlaTick { 0% { opacity: 0; transform: translateY(9px); } 12% { opacity: 1; transform: translateY(0); } 88% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-9px); } }
+@keyframes mlaSpin { to { transform: rotate(360deg); } }
+
+/* cascata do formulário (direita) */
+.ml-auth .st > * { animation: mlaFadeUp .58s cubic-bezier(.22,.61,.36,1) both; }
+.ml-auth .st > *:nth-child(1) { animation-delay: .05s; }
+.ml-auth .st > *:nth-child(2) { animation-delay: .12s; }
+.ml-auth .st > *:nth-child(3) { animation-delay: .19s; }
+.ml-auth .st > *:nth-child(4) { animation-delay: .26s; }
+.ml-auth .st > *:nth-child(5) { animation-delay: .33s; }
+.ml-auth .st > *:nth-child(6) { animation-delay: .40s; }
+.ml-auth .st > *:nth-child(7) { animation-delay: .47s; }
+.ml-auth .st > *:nth-child(8) { animation-delay: .54s; }
+
+/* cascata do painel de marca (esquerda) */
+.ml-auth .sl > * { animation: mlaSlideL .6s cubic-bezier(.22,.61,.36,1) both; }
+.ml-auth .sl > *:nth-child(1) { animation-delay: .08s; }
+.ml-auth .sl > *:nth-child(2) { animation-delay: .18s; }
+.ml-auth .sl > *:nth-child(3) { animation-delay: .28s; }
+.ml-auth .sl > *:nth-child(4) { animation-delay: .38s; }
+.ml-auth .sl > *:nth-child(5) { animation-delay: .48s; }
+
+.ml-auth .mla-drift { animation: mlaDrift 16s ease-in-out infinite; }
+.ml-auth .mla-drift-rev { animation: mlaDrift 21s ease-in-out infinite reverse; }
+.ml-auth .mla-livedot { animation: mlaLivedot 2.4s ease-out infinite; }
+.ml-auth .mla-tickitem { animation: mlaTick 3.6s ease both; }
+.ml-auth .mla-fadein { animation: mlaFadeIn .5s ease both; }
+.ml-auth .mla-fadein-late { animation: mlaFadeIn .6s ease .5s both; }
+.ml-auth .mla-erroir { animation: mlaFadeUp .3s ease both; }
+.ml-auth .mla-spinner { animation: mlaSpin .7s linear infinite; }
+
+/* hovers (inline style não cobre :hover) */
+.ml-auth .mla-ggl { transition: all .18s ease; }
+.ml-auth .mla-ggl:hover { border-color: #c9c2e8; box-shadow: 0 3px 12px rgba(40,25,90,.07); transform: translateY(-1px); }
+.ml-auth .mla-submit { transition: transform .16s ease, box-shadow .2s ease; }
+.ml-auth .mla-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(76,46,224,.4); }
+.ml-auth .mla-submit:active:not(:disabled) { transform: translateY(0); }
+.ml-auth .mla-submit:disabled { cursor: not-allowed; opacity: .82; }
+.ml-auth .mla-eye { transition: background .16s ease; }
+.ml-auth .mla-eye:hover { background: #f2f0fa; }
+.ml-auth .mla-lang { transition: all .18s ease; }
+.ml-auth .mla-field { transition: all .18s ease; }
+
+/* painel de marca some no mobile — form ocupa a tela toda */
+@media (max-width: 980px) { .ml-auth .mla-brandpane { display: none !important; } }
+
+@media (prefers-reduced-motion: reduce) { .ml-auth * { animation: none !important; } }
