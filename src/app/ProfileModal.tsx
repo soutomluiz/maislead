@@ -3,12 +3,13 @@ import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "./LangTheme";
 import { useAuth } from "./AuthContext";
+import { planLabel } from "./plan";
 import { Icon } from "./icons";
 
 const DICT = {
-  pt: { name: "Nome completo", company: "Empresa", required: "obrigatório", companyPh: "Nome da sua empresa", email: "E-mail", phone: "Telefone", location: "Localização", bio: "Biografia", bioPh: "Conte um pouco sobre você...", save: "Salvar Alterações", saved: "Perfil atualizado!", err: "Erro ao salvar", cancel: "Cancelar", leads: "Leads", withPhone: "Com telefone", plan: "Plano", lifetime: "Vitalício", adminBadge: "Plano Admin" },
-  en: { name: "Full name", company: "Company", required: "required", companyPh: "Your company name", email: "Email", phone: "Phone", location: "Location", bio: "Bio", bioPh: "Tell us a bit about you...", save: "Save Changes", saved: "Profile updated!", err: "Error saving", cancel: "Cancel", leads: "Leads", withPhone: "With phone", plan: "Plan", lifetime: "Lifetime", adminBadge: "Admin Plan" },
-  es: { name: "Nombre completo", company: "Empresa", required: "obligatorio", companyPh: "Nombre de tu empresa", email: "Email", phone: "Teléfono", location: "Ubicación", bio: "Biografía", bioPh: "Cuéntanos un poco sobre ti...", save: "Guardar Cambios", saved: "¡Perfil actualizado!", err: "Error al guardar", cancel: "Cancelar", leads: "Leads", withPhone: "Con teléfono", plan: "Plan", lifetime: "Vitalicio", adminBadge: "Plan Admin" },
+  pt: { name: "Nome completo", company: "Empresa", required: "obrigatório", companyPh: "Nome da sua empresa", email: "E-mail", phone: "Telefone", location: "Localização", bio: "Biografia", bioPh: "Conte um pouco sobre você...", save: "Salvar Alterações", saved: "Perfil atualizado!", err: "Erro ao salvar", cancel: "Cancelar", leads: "Leads", withPhone: "Com telefone", plan: "Plano" },
+  en: { name: "Full name", company: "Company", required: "required", companyPh: "Your company name", email: "Email", phone: "Phone", location: "Location", bio: "Bio", bioPh: "Tell us a bit about you...", save: "Save Changes", saved: "Profile updated!", err: "Error saving", cancel: "Cancel", leads: "Leads", withPhone: "With phone", plan: "Plan" },
+  es: { name: "Nombre completo", company: "Empresa", required: "obligatorio", companyPh: "Nombre de tu empresa", email: "Email", phone: "Teléfono", location: "Ubicación", bio: "Biografía", bioPh: "Cuéntanos un poco sobre ti...", save: "Guardar Cambios", saved: "¡Perfil actualizado!", err: "Error al guardar", cancel: "Cancelar", leads: "Leads", withPhone: "Con teléfono", plan: "Plan" },
 };
 
 export function ProfileModal({ onClose }: { onClose: () => void }) {
@@ -24,8 +25,9 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const root = document.querySelector(".ml-root") as HTMLElement | null;
 
-  const isAdmin = (profile?.account_role ?? "admin") === "admin";
-  const planLabel = isAdmin ? D.lifetime : (account?.plan ?? "starter");
+  // Plano REAL da conta (accounts.plan) formatado: "Free" | "Starter" | "Pro" | "Business".
+  // NÃO usar account_role (é "admin" pra todo dono) nem valores fixos.
+  const planName = planLabel(account?.plan);
   const name = profile?.full_name || session?.user?.email?.split("@")[0] || "—";
   const initials = name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 
@@ -104,7 +106,7 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 12 }}>
             <div style={{ fontSize: 20, fontWeight: 800 }}>{name}</div>
-            {isAdmin && <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(76,46,224,.12)", padding: "4px 10px", borderRadius: 20 }}><Icon name="crown" size={13} />{D.adminBadge}</span>}
+            <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, fontWeight: 700, color: "var(--ml-primary)", background: "rgba(76,46,224,.12)", padding: "4px 10px", borderRadius: 20 }}><Icon name="crown" size={13} />{D.plan} {planName}</span>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 20 }}>
@@ -135,7 +137,7 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginTop: 22, paddingTop: 18, borderTop: "1px solid var(--ml-border)", textAlign: "center" }}>
             <Stat value={String(stats.total)} label={D.leads} />
             <Stat value={`${stats.phonePct}%`} label={D.withPhone} />
-            <Stat value={planLabel} label={D.plan} color="var(--ml-green)" />
+            <Stat value={planName} label={D.plan} color="var(--ml-green)" />
           </div>
 
           {msg && <div style={{ marginTop: 14, fontSize: 13, color: msg.ok ? "var(--ml-green)" : "var(--ml-red)", background: msg.ok ? "rgba(16,185,129,.12)" : "rgba(239,68,68,.1)", padding: "10px 12px", borderRadius: 10 }}>{msg.text}</div>}
