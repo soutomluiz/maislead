@@ -1,6 +1,7 @@
 import { CSSProperties } from "react";
-import { useLang } from "./LangTheme";
+import { useLang, useTheme } from "./LangTheme";
 import { Icon, IconName } from "./icons";
+import { Logo } from "./Brand";
 import type { ScreenKey } from "@/i18n/ml";
 
 type Level = "top" | "sub";
@@ -9,6 +10,7 @@ interface NavSection { label?: string; items: NavItem[]; }
 
 export function Sidebar({ active, onNavigate }: { active: ScreenKey; onNavigate: (s: ScreenKey) => void }) {
   const { t } = useLang();
+  const { dark } = useTheme();
   const nav = t.nav;
 
   const sections: NavSection[] = [
@@ -34,15 +36,9 @@ export function Sidebar({ active, onNavigate }: { active: ScreenKey; onNavigate:
 
   return (
     <aside className="ml-scroll" style={{ width: 264, flexShrink: 0, height: "100%", display: "flex", flexDirection: "column", background: "var(--ml-sidebar)", borderRight: "1px solid var(--ml-border)", padding: "22px 16px 18px", overflowY: "auto" }}>
-      {/* Logo */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 8px 22px" }}>
-        <div style={{ width: 38, height: 38, borderRadius: 11, background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", boxShadow: "0 6px 16px rgba(76,46,224,.35)" }}>
-          <Icon name="plus" size={20} strokeWidth={2.4} />
-        </div>
-        <div style={{ lineHeight: 1 }}>
-          <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-.02em" }}>mais<span style={{ color: "#4c2ee0" }}>LEAD</span></div>
-          <div style={{ fontSize: 10, fontWeight: 600, color: "var(--ml-muted)", letterSpacing: ".14em", marginTop: 3 }}>PROSPECÇÃO</div>
-        </div>
+      {/* Logo (oficial — versão branca no tema escuro, colorida no claro) */}
+      <div style={{ padding: "4px 8px 22px" }}>
+        <Logo theme={dark ? "white" : "color"} height={38} />
       </div>
 
       {/* Nav */}

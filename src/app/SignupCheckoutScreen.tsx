@@ -1,5 +1,6 @@
 import { useState, useEffect, type CSSProperties, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Logo } from "./Brand";
 
 // Tela de criação de conta + checkout (aparece ao clicar em assinar um plano na landing).
 // Visual fiel ao protótipo maisLEAD Cadastro.dc.html. Plano/preço/features REAIS via get-plans.
@@ -110,12 +111,9 @@ export function SignupCheckoutScreen() {
           <div style={{ position: "absolute", top: -120, right: -120, width: 360, height: 360, borderRadius: "50%", background: "rgba(255,255,255,.06)" }} />
           <div style={{ position: "absolute", bottom: -90, left: -70, width: 260, height: 260, borderRadius: "50%", background: "rgba(255,255,255,.05)" }} />
 
-          {/* logo */}
-          <div style={{ display: "flex", alignItems: "center", gap: 11, position: "relative" }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(255,255,255,.16)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 16px rgba(0,0,0,.18)" }}>
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l2.2 5.4L20 9.3l-4 4 1 5.7-5-3-5 3 1-5.7-4-4 5.8-.9z" /></svg>
-            </div>
-            <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-.01em" }}>mais<span style={{ color: "#c9b8ff" }}>LEAD</span></div>
+          {/* logo (versão branca — fundo roxo) */}
+          <div style={{ position: "relative" }}>
+            <Logo theme="white" height={40} />
           </div>
 
           {/* resumo */}

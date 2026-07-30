@@ -1,17 +1,10 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useLang } from "./LangTheme";
+import { Logo } from "./Brand";
 import type { Lang } from "@/i18n/ml";
 import "./auth.css";
 
 /* ─────────────────────────── ícones (fiéis ao .dc.html) ─────────────────────────── */
-
-export function StarLogo({ size = 20, stroke = "#fff", sw = 2.2 }: { size?: number; stroke?: string; sw?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3l2.2 5.4L20 9.3l-4 4 1 5.7-5-3-5 3 1-5.7-4-4 5.8-.9z" />
-    </svg>
-  );
-}
 
 export function GoogleIcon({ size = 17 }: { size?: number }) {
   return (
@@ -55,12 +48,9 @@ export function BrandPane({ variant = "login" }: { variant?: "login" | "welcome"
       <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px)", backgroundSize: "58px 58px", WebkitMaskImage: "radial-gradient(90% 70% at 40% 30%,#000 20%,transparent 78%)", maskImage: "radial-gradient(90% 70% at 40% 30%,#000 20%,transparent 78%)" }} />
 
       <div className="sl" style={{ position: "relative", display: "flex", flexDirection: "column", flex: 1 }}>
-        {/* 1 · logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-          <div style={{ width: 38, height: 38, borderRadius: 11, background: "rgba(255,255,255,.15)", border: "1px solid rgba(255,255,255,.18)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <StarLogo size={20} />
-          </div>
-          <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-.01em" }}>mais<span style={{ color: "#c2aeff" }}>LEAD</span></div>
+        {/* 1 · logo (versão branca — fundo roxo) */}
+        <div>
+          <Logo theme="white" height={40} />
         </div>
 
         {variant === "welcome" ? (
@@ -225,11 +215,8 @@ export function AuthShell({ children, variant = "login" }: { children: ReactNode
 
 export function FormLogo() {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 26 }}>
-      <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(150deg,#5b3ae8,#3f24c4)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 5px 15px rgba(76,46,224,.28)" }}>
-        <StarLogo size={18} sw={2.3} />
-      </div>
-      <div style={{ fontSize: 17, fontWeight: 800, color: "#211d3b", letterSpacing: "-.01em" }}>mais<span style={{ color: "#4c2ee0" }}>LEAD</span></div>
+    <div style={{ marginBottom: 26 }}>
+      <Logo theme="color" height={34} />
     </div>
   );
 }
