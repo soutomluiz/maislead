@@ -6,6 +6,7 @@ import { Icon } from "../icons";
 import type { ScreenKey } from "@/i18n/ml";
 import { StagingDetailModal, type StagingCompany, type Badge as BadgeT } from "./StagingDetailModal";
 import { usePlan } from "../plan";
+import { useRevealConfirm, maskedContact, revealBtnStyle, revealStrings } from "./revealConfirm";
 
 const Panel = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
   <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 20, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)", ...style }}>{children}</div>
@@ -107,9 +108,12 @@ function parseCnpjs(raw: string): { valid: string[]; invalid: number } {
 
 type Row = {
   cnpj: string; cnpjFmt: string; company: string; razao_social: string; nome_fantasia: string;
-  phone: string | null; email: string | null; address: string | null; location: string | null;
+  address: string | null; location: string | null;
   cnae: string | null; porte: string | null; abertura: string | null; capital: string | null;
   situacao: string; situacaoKey: string; score: number; duplicate: boolean;
+  // contato: mascarado por padrão; phone/email completos só vêm quando duplicate=true.
+  phone_masked: string | null; email_masked: string | null; has_phone: boolean; has_email: boolean;
+  phone?: string | null; email?: string | null;
 };
 type Quota = { used: number; limit: number | null; plan: string; isAdmin: boolean };
 type LookupData = { results: Row[]; notFound: number; invalid: number; quota: Quota };
@@ -120,6 +124,8 @@ export function CnpjScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => void
   // Cota do mês vinda da conta — mostrada ANTES da busca (depois, vale a `quota` do backend).
   const plan = usePlan();
   const D = DICT[lang];
+  const R = revealStrings(lang);
+  const { request: requestReveal, modal: revealModal } = useRevealConfirm();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [data, setData] = useState<LookupData | null>(null);
@@ -155,7 +161,10 @@ export function CnpjScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => void
       setAdded((prev) => { const n = new Set(prev); cnpjs.forEach((c) => n.add(c)); return n; });
       setSelected(new Set());
       if (res.quota) setData((d) => (d ? { ...d, quota: res.quota } : d));
+      setDrawer(null);
       await refresh();
+      // refresca o preview: os revelados voltam como "já existe" com o contato completo
+      if (parsed.valid.length) await runLookup();
     } finally { setImporting(false); }
   }
 
@@ -271,9 +280,11 @@ export function CnpjScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => void
                       </div>
                       <div style={{ fontSize: 12, color: "var(--ml-muted)", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{[r.razao_social, r.cnae].filter(Boolean).join(" · ")}</div>
                     </button>
-                    {/* telefone + ver detalhe */}
+                    {/* telefone (mascarado até revelar) + ver detalhe */}
                     <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
-                      <span style={{ fontSize: 12.5, color: "var(--ml-muted)", whiteSpace: "nowrap" }}>{r.phone || "—"}</span>
+                      {(() => { const c = maskedContact(r.phone_masked, r.has_phone, r.phone, dupe); return (
+                        <span style={{ fontSize: 12.5, color: c.owned ? "var(--ml-text)" : "var(--ml-muted)", fontWeight: c.owned ? 600 : 400, whiteSpace: "nowrap", letterSpacing: c.owned ? undefined : ".02em" }}>{c.text || "—"}</span>
+                      ); })()}
                       <button onClick={() => setDrawer(r)} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "var(--ml-primary)", fontWeight: 600, fontSize: 12.5, cursor: "pointer", whiteSpace: "nowrap" }}>{D.detail} <span style={{ fontSize: 14 }}>→</span></button>
                     </div>
                   </div>
@@ -296,9 +307,10 @@ export function CnpjScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => void
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
               <button onClick={selectNew} disabled={newCount === 0} style={{ ...ghostBtn, opacity: newCount === 0 ? 0.5 : 1, cursor: newCount === 0 ? "default" : "pointer" }}>{D.selNew}</button>
               <button onClick={() => onNavigate?.("leadslist")} style={ghostBtn}><Icon name="users" size={15} />{D.goLeads}</button>
-              <button onClick={() => importCnpjs([...selected])} disabled={selCount === 0 || exceeds || importing}
-                style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, height: 44, padding: "0 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 14, cursor: selCount === 0 || exceeds || importing ? "default" : "pointer", opacity: selCount === 0 || exceeds || importing ? 0.55 : 1, boxShadow: "0 8px 18px rgba(76,46,224,.28)" }}>
-                {importing ? <Icon name="loader" size={16} className="ml-spin" /> : <Icon name="plus" size={16} strokeWidth={2.4} />}{D.addN} ({selCount})
+              {selCount > 0 && !exceeds && <span style={{ fontSize: 12.5, color: "var(--ml-muted)", marginLeft: "auto" }}>{R.revealCost(selCount)}</span>}
+              <button onClick={() => requestReveal(selCount, () => importCnpjs([...selected]))} disabled={selCount === 0 || exceeds || importing}
+                style={{ ...revealBtnStyle(!(selCount === 0 || exceeds || importing)), marginLeft: selCount > 0 && !exceeds ? 0 : "auto" }}>
+                {importing ? <Icon name="loader" size={16} className="ml-spin" /> : <Icon name="check" size={16} strokeWidth={2.4} />}{R.reveal} ({selCount})
               </button>
             </div>
           )}
@@ -315,10 +327,14 @@ export function CnpjScreen({ onNavigate }: { onNavigate?: (s: ScreenKey) => void
           cnpj: drawer.cnpj, cnpjFmt: drawer.cnpjFmt, company: drawer.company,
           razao_social: drawer.razao_social, nome_fantasia: drawer.nome_fantasia,
           cnae: drawer.cnae, porte: drawer.porte, abertura: drawer.abertura, capital: drawer.capital,
-          municipio: drawer.location, email: drawer.email, phone: drawer.phone, address: drawer.address,
+          municipio: drawer.location, address: drawer.address,
+          phone: drawer.phone, email: drawer.email,
+          phone_masked: drawer.phone_masked, email_masked: drawer.email_masked, has_phone: drawer.has_phone, has_email: drawer.has_email,
         };
-        return <StagingDetailModal data={data} badges={badges} added={isDupe(drawer)} importing={importing} onAdd={() => importCnpjs([drawer.cnpj])} onClose={() => setDrawer(null)} lang={lang} />;
+        return <StagingDetailModal data={data} badges={badges} added={isDupe(drawer)} owned={isDupe(drawer)} importing={importing} onAdd={() => importCnpjs([drawer.cnpj])} onClose={() => setDrawer(null)} lang={lang} />;
       })()}
+
+      {revealModal}
     </div>
   );
 }

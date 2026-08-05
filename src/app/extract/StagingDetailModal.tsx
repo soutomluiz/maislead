@@ -2,25 +2,31 @@ import { useState, type CSSProperties, type ReactNode } from "react";
 import { CenterModal } from "../CenterModal";
 import { Icon, type IconName } from "../icons";
 import { PitchPanel } from "../leads/PitchPanel";
+import { revealStrings } from "./revealConfirm";
 
-// Detalhe de uma empresa AINDA NÃO importada (staging) — popup central com dados da Receita
-// + botão "Adicionar à lista". Compartilhado por CNPJ e Recém-abertas.
+// Detalhe de uma empresa (staging) — popup central com dados da Receita.
+// ANTES de revelar (owned=false): mostra só o perfil público + botão "Revelar contato";
+// telefone/e-mail e os dados completos (sócios) ficam ocultos. DEPOIS (owned=true): tudo visível.
 export interface StagingCompany {
   cnpj: string; cnpjFmt: string; company: string;
   razao_social?: string | null; nome_fantasia?: string | null;
   cnae?: string | null; porte?: string | null; abertura?: string | null; capital?: string | null;
   uf?: string | null; municipio?: string | null; mei?: boolean;
   email?: string | null; phone?: string | null; address?: string | null;
+  phone_masked?: string | null; email_masked?: string | null; has_phone?: boolean; has_email?: boolean;
 }
 export interface Badge { label: string; color: string; bg: string }
 
 const DICT = {
   pt: { receita: "Dados da Receita", razao: "Razão social", fantasia: "Nome fantasia", porte: "Porte", cnae: "Atividade (CNAE)", abertura: "Abertura", capital: "Capital social", local: "Localização", add: "Adicionar à lista", added: "Já na lista", adding: "Adicionando…",
-    deep: "Ver dados completos", deepLoad: "Buscando na Receita…", deepErr: "Não foi possível buscar os dados completos agora.", socios: "Quadro societário", noSocios: "Sem sócios (empresa individual/MEI)", natureza: "Natureza jurídica", cnaesSec: "Atividades secundárias", enteredIn: "desde" },
+    deep: "Ver dados completos", deepLoad: "Buscando na Receita…", deepErr: "Não foi possível buscar os dados completos agora.", socios: "Quadro societário", noSocios: "Sem sócios (empresa individual/MEI)", natureza: "Natureza jurídica", cnaesSec: "Atividades secundárias", enteredIn: "desde",
+    revealHint: "Revele o contato para ver telefone, e-mail e o quadro societário.", locked: "Oculto até revelar" },
   en: { receita: "Registry data", razao: "Legal name", fantasia: "Trade name", porte: "Size", cnae: "Activity (CNAE)", abertura: "Opened", capital: "Share capital", local: "Location", add: "Add to list", added: "In list", adding: "Adding…",
-    deep: "View full data", deepLoad: "Fetching from registry…", deepErr: "Couldn't fetch full data right now.", socios: "Partners", noSocios: "No partners (sole proprietor/MEI)", natureza: "Legal nature", cnaesSec: "Secondary activities", enteredIn: "since" },
+    deep: "View full data", deepLoad: "Fetching from registry…", deepErr: "Couldn't fetch full data right now.", socios: "Partners", noSocios: "No partners (sole proprietor/MEI)", natureza: "Legal nature", cnaesSec: "Secondary activities", enteredIn: "since",
+    revealHint: "Reveal the contact to see phone, email and the ownership.", locked: "Hidden until revealed" },
   es: { receita: "Datos del registro", razao: "Razón social", fantasia: "Nombre comercial", porte: "Tamaño", cnae: "Actividad (CNAE)", abertura: "Apertura", capital: "Capital social", local: "Ubicación", add: "Añadir a la lista", added: "En la lista", adding: "Añadiendo…",
-    deep: "Ver datos completos", deepLoad: "Buscando en el registro…", deepErr: "No se pudieron obtener los datos completos ahora.", socios: "Socios", noSocios: "Sin socios (individual/MEI)", natureza: "Naturaleza jurídica", cnaesSec: "Actividades secundarias", enteredIn: "desde" },
+    deep: "Ver datos completos", deepLoad: "Buscando en el registro…", deepErr: "No se pudieron obtener los datos completos ahora.", socios: "Socios", noSocios: "Sin socios (individual/MEI)", natureza: "Naturaleza jurídica", cnaesSec: "Actividades secundarias", enteredIn: "desde",
+    revealHint: "Revela el contacto para ver teléfono, email y los socios.", locked: "Oculto hasta revelar" },
 };
 
 // dados completos via BrasilAPI (grátis, sob demanda)
@@ -29,10 +35,13 @@ interface DeepData { natureza_juridica?: string; qsa?: Socio[]; cnaes_secundario
 const toTitle = (s?: string | null) => (s ? String(s).toLowerCase().replace(/(^|[\s\-/(])(\p{L})/gu, (_m, a, b) => a + b.toUpperCase()) : "");
 const LOCALE: Record<string, string> = { pt: "pt-BR", en: "en-US", es: "es-ES" };
 
-export function StagingDetailModal({ data, badges, added, importing, onAdd, onClose, lang }: {
-  data: StagingCompany; badges: Badge[]; added: boolean; importing: boolean; onAdd: () => void; onClose: () => void; lang: "pt" | "en" | "es";
+export function StagingDetailModal({ data, badges, added, owned, importing, onAdd, onClose, lang }: {
+  data: StagingCompany; badges: Badge[]; added: boolean; owned?: boolean; importing: boolean; onAdd: () => void; onClose: () => void; lang: "pt" | "en" | "es";
 }) {
   const D = DICT[lang];
+  const R = revealStrings(lang);
+  // Conta já é dona do lead (duplicate ou acabou de revelar) → mostra contato + dados completos.
+  const isOwned = owned ?? added;
   const abertura = data.abertura ? (() => { try { return new Date(data.abertura + "T00:00:00").toLocaleDateString(LOCALE[lang]); } catch { return data.abertura; } })() : "—";
   const local = [data.municipio, data.uf].filter(Boolean).join(" / ") || "—";
 
@@ -77,12 +86,28 @@ export function StagingDetailModal({ data, badges, added, importing, onAdd, onCl
         </div>
 
         <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 16, padding: "6px 16px", marginBottom: 18 }}>
-          <Contact icon="phone" value={data.phone} />
-          <Contact icon="mail" value={data.email} />
+          {isOwned ? (
+            <>
+              <Contact icon="phone" value={data.phone} />
+              <Contact icon="mail" value={data.email} />
+            </>
+          ) : (
+            <>
+              <Contact icon="phone" value={data.phone_masked || (data.has_phone ? "•••" : null)} masked />
+              <Contact icon="mail" value={data.email_masked || (data.has_email ? "•••" : null)} masked />
+            </>
+          )}
           <Contact icon="mapPin" value={data.address ?? local} />
         </div>
 
-        {/* dados completos via BrasilAPI (grátis, sob demanda) */}
+        {!isOwned && (
+          <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 18, padding: "10px 13px", borderRadius: 11, background: "var(--ml-hover)", fontSize: 12.5, color: "var(--ml-muted)", lineHeight: 1.5 }}>
+            <Icon name="timer" size={15} />{D.revealHint}
+          </div>
+        )}
+
+        {/* dados completos via BrasilAPI (grátis, sob demanda) — só depois de revelar */}
+        {isOwned && (
         <div style={{ marginBottom: 18 }}>
           {!deep && (
             <button onClick={loadDeep} disabled={loadingDeep} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%", padding: "11px 14px", borderRadius: 12, border: "1px solid var(--ml-primary)", background: "rgba(76,46,224,.08)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 13.5, cursor: loadingDeep ? "default" : "pointer" }}>
@@ -129,8 +154,10 @@ export function StagingDetailModal({ data, badges, added, importing, onAdd, onCl
             </div>
           )}
         </div>
+        )}
 
-        {/* IA de abordagem — usa os sinais da Receita (recém-aberta, CNAE, porte) */}
+        {/* IA de abordagem — usa os sinais da Receita; só depois de revelar (usa contato) */}
+        {isOwned && (
         <PitchPanel lang={lang} signals={{
           company: data.company,
           razao_social: data.razao_social,
@@ -143,9 +170,10 @@ export function StagingDetailModal({ data, badges, added, importing, onAdd, onCl
           email: data.email,
           phone: data.phone,
         }} />
+        )}
 
         <button onClick={onAdd} disabled={added || importing} style={{ width: "100%", height: 48, borderRadius: 13, border: "none", background: added ? "var(--ml-grid)" : "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: added ? "var(--ml-muted)" : "#fff", fontWeight: 700, fontSize: 15, cursor: added || importing ? "default" : "pointer", opacity: importing && !added ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: added ? "none" : "0 8px 18px rgba(76,46,224,.28)" }}>
-          {added ? <><Icon name="check" size={16} />{D.added}</> : importing ? <><Icon name="loader" size={16} className="ml-spin" />{D.adding}</> : <><Icon name="plus" size={16} strokeWidth={2.4} />{D.add}</>}
+          {added ? <><Icon name="check" size={16} />{D.added}</> : importing ? <><Icon name="loader" size={16} className="ml-spin" />{D.adding}</> : isOwned ? <><Icon name="plus" size={16} strokeWidth={2.4} />{D.add}</> : <><Icon name="check" size={16} strokeWidth={2.4} />{R.reveal} · {R.revealCost(1)}</>}
         </button>
       </div>
     </CenterModal>
@@ -160,12 +188,12 @@ function Field({ label, value, span }: { label: string; value: string; span?: bo
     </div>
   );
 }
-function Contact({ icon, value }: { icon: IconName; value: string | null | undefined }) {
+function Contact({ icon, value, masked }: { icon: IconName; value: string | null | undefined; masked?: boolean }) {
   const present = !!(value && value.trim() && value.trim() !== "—");
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 2px", fontSize: 13.5 }}>
-      <span style={{ color: present ? "var(--ml-primary)" : "var(--ml-muted)", flexShrink: 0 }}><Icon name={icon} size={16} /></span>
-      <span style={{ color: present ? "var(--ml-text)" : "var(--ml-muted)", overflow: "hidden", textOverflow: "ellipsis" }}>{present ? value : "—"}</span>
+      <span style={{ color: present && !masked ? "var(--ml-primary)" : "var(--ml-muted)", flexShrink: 0 }}><Icon name={masked && present ? "lock" : icon} size={16} /></span>
+      <span style={{ color: present && !masked ? "var(--ml-text)" : "var(--ml-muted)", overflow: "hidden", textOverflow: "ellipsis", letterSpacing: masked ? ".02em" : undefined }}>{present ? value : "—"}</span>
     </div>
   );
 }

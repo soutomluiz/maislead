@@ -18,6 +18,27 @@ const scoreOf = (l: { phone?: string | null; address?: string | null; email?: st
   Math.min(100, (has(l.phone) ? 30 : 0) + (has(l.address) ? 15 : 0) + (has(l.email) ? 25 : 0) + (has(l.website) ? 20 : 0) + Math.max(0, Math.min(10, l.nicheQuality ?? 0)));
 
 const onlyDigits = (s: string) => String(s).replace(/\D/g, "");
+
+// ---- máscara de contato (SERVIDOR) — telefone e e-mail nunca saem completos no preview ----
+// telefone: mantém DDD + os 4 últimos ("(48) ****-6541"); e-mail: 1ª letra + TLD ("f****@****.com").
+function maskPhone(raw?: string | null): string | null {
+  if (!has(raw)) return null;
+  const d = onlyDigits(raw!);
+  if (d.length < 4) return "****";
+  const last4 = d.slice(-4);
+  const ddd = d.length >= 10 ? `(${d.slice(0, 2)}) ` : "";
+  return `${ddd}****-${last4}`;
+}
+function maskEmail(raw?: string | null): string | null {
+  if (!has(raw)) return null;
+  const [user, domain] = String(raw).split("@");
+  if (!domain) return "****";
+  const parts = domain.split(".").filter(Boolean);
+  const tld = parts.length >= 2 ? parts.slice(-(parts.length >= 3 && ["com", "net", "org", "gov", "edu"].includes(parts[parts.length - 2]) ? 2 : 1)).join(".") : (parts[0] ?? "");
+  const u = (user ?? "").trim();
+  return `${u ? u[0] : "*"}****@****.${tld}`;
+}
+
 function isValidCnpj(c: string): boolean {
   if (c.length !== 14 || /^(\d)\1{13}$/.test(c)) return false;
   const calc = (base: string) => {
@@ -166,16 +187,25 @@ Deno.serve(async (req) => {
     const { data: existing } = await admin.from("leads").select("cnpj").eq("account_id", accountId).not("cnpj", "is", null);
     const seenCnpj = new Set((existing ?? []).map((e: { cnpj: string | null }) => onlyDigits(e.cnpj ?? "")).filter(Boolean));
 
-    // ───── MODO LOOKUP (preview, não grava) ─────
+    // ───── MODO LOOKUP (preview MASCARADO, não grava) ─────
+    // Telefone/e-mail completos só saem quando a conta JÁ é dona do CNPJ (duplicate);
+    // senão devolvemos apenas as versões mascaradas + flags de presença. Revelar = mode "import".
     if (mode === "lookup") {
       const capped = clean.slice(0, MAX);
       const fetched = await fetchMany(capped);
       let notFound = 0;
-      const results: (Mapped & { duplicate: boolean })[] = [];
+      const results: Record<string, unknown>[] = [];
       for (const { cnpj, data } of fetched) {
         const m = data ? mapCompany(cnpj, data) : null;
         if (!m) { notFound++; continue; }
-        results.push({ ...m, duplicate: seenCnpj.has(cnpj) });
+        const owned = seenCnpj.has(cnpj);
+        const { phone: _p, email: _e, ...rest } = m; // nunca vaza os campos crus no preview
+        results.push({
+          ...rest, duplicate: owned,
+          has_phone: has(m.phone), has_email: has(m.email),
+          phone_masked: maskPhone(m.phone), email_masked: maskEmail(m.email),
+          ...(owned ? { phone: m.phone, email: m.email } : {}),
+        });
       }
       return json({ results, invalid, notFound, found: results.length, quota: quota(count) });
     }

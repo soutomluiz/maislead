@@ -6,6 +6,7 @@ import { Icon } from "../icons";
 import type { ScreenKey } from "@/i18n/ml";
 import { StagingDetailModal, type StagingCompany, type Badge as BadgeT } from "./StagingDetailModal";
 import { CnaeSelect } from "./CnaeSelect";
+import { useRevealConfirm, maskedContact, revealBtnStyle, revealStrings } from "./revealConfirm";
 
 const Panel = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => (
   <div style={{ background: "var(--ml-card)", border: "1px solid var(--ml-border)", borderRadius: 20, padding: 20, boxShadow: "0 1px 3px rgba(30,25,60,.04)", ...style }}>{children}</div>
@@ -55,7 +56,9 @@ const UFS = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "
 type Row = {
   cnpj: string; cnpjFmt: string; company: string; razao_social: string; nome_fantasia: string;
   cnae: string | null; porte: string | null; mei: boolean; abertura: string | null; capital: string | null;
-  uf: string | null; municipio: string | null; email: string | null; phone: string | null; situacao: string | null; duplicate: boolean;
+  uf: string | null; municipio: string | null; situacao: string | null; duplicate: boolean;
+  phone_masked: string | null; email_masked: string | null; has_phone: boolean; has_email: boolean;
+  phone?: string | null; email?: string | null;
 };
 type Quota = { used: number; limit: number | null; plan: string; isAdmin: boolean };
 type MeiFilter = "all" | "only" | "no";
@@ -64,6 +67,8 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
   const { lang } = useLang();
   const { refresh } = useAuth();
   const D = DICT[lang];
+  const R = revealStrings(lang);
+  const { request: requestReveal, modal: revealModal } = useRevealConfirm();
 
   const [uf, setUf] = useState("");
   const [cnaes, setCnaes] = useState<string[]>([]);
@@ -113,7 +118,9 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
       setAdded((prev) => { const n = new Set(prev); cnpjs.forEach((c) => n.add(c)); return n; });
       setSelected(new Set());
       if (res.quota) setQuota(res.quota);
+      setDrawer(null);
       await refresh();
+      await runSearch(page); // refresca: revelados voltam como "já existe" com contato completo
     } finally { setImporting(false); }
   }
 
@@ -231,8 +238,10 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
                       </div>
                     </button>
                     <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
-                      {r.email && <span style={{ color: "var(--ml-green)", flexShrink: 0 }} title={r.email}><Icon name="mail" size={15} /></span>}
-                      <span style={{ fontSize: 12.5, color: "var(--ml-muted)", whiteSpace: "nowrap" }}>{r.phone || "—"}</span>
+                      {r.has_email && <span style={{ color: dupe ? "var(--ml-green)" : "var(--ml-muted)", flexShrink: 0 }} title={dupe ? (r.email ?? undefined) : undefined}><Icon name={dupe ? "mail" : "lock"} size={15} /></span>}
+                      {(() => { const c = maskedContact(r.phone_masked, r.has_phone, r.phone, dupe); return (
+                        <span style={{ fontSize: 12.5, color: c.owned ? "var(--ml-text)" : "var(--ml-muted)", fontWeight: c.owned ? 600 : 400, whiteSpace: "nowrap", letterSpacing: c.owned ? undefined : ".02em" }}>{c.text || "—"}</span>
+                      ); })()}
                       <button onClick={() => setDrawer(r)} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "var(--ml-primary)", fontWeight: 600, fontSize: 12.5, cursor: "pointer", whiteSpace: "nowrap" }}>{D.detail} <span style={{ fontSize: 14 }}>→</span></button>
                     </div>
                   </div>
@@ -264,9 +273,10 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
               <button onClick={selectNew} style={ghostBtn}>{D.selNew}</button>
               <button onClick={() => onNavigate?.("leadslist")} style={ghostBtn}><Icon name="users" size={15} />{D.goLeads}</button>
-              <button onClick={() => importCnpjs([...selected])} disabled={selCount === 0 || exceeds || importing}
-                style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, height: 44, padding: "0 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4c2ee0,#6d4bff)", color: "#fff", fontWeight: 700, fontSize: 14, cursor: selCount === 0 || exceeds || importing ? "default" : "pointer", opacity: selCount === 0 || exceeds || importing ? 0.55 : 1, boxShadow: "0 8px 18px rgba(76,46,224,.28)" }}>
-                {importing ? <Icon name="loader" size={16} className="ml-spin" /> : <Icon name="plus" size={16} strokeWidth={2.4} />}{D.addN} ({selCount})
+              {selCount > 0 && !exceeds && <span style={{ fontSize: 12.5, color: "var(--ml-muted)", marginLeft: "auto" }}>{R.revealCost(selCount)}</span>}
+              <button onClick={() => requestReveal(selCount, () => importCnpjs([...selected]))} disabled={selCount === 0 || exceeds || importing}
+                style={{ ...revealBtnStyle(!(selCount === 0 || exceeds || importing)), marginLeft: selCount > 0 && !exceeds ? 0 : "auto" }}>
+                {importing ? <Icon name="loader" size={16} className="ml-spin" /> : <Icon name="check" size={16} strokeWidth={2.4} />}{R.reveal} ({selCount})
               </button>
             </div>
           )}
@@ -285,10 +295,13 @@ export function RecemAbertasScreen({ onNavigate }: { onNavigate?: (s: ScreenKey)
           razao_social: drawer.razao_social, nome_fantasia: drawer.nome_fantasia,
           cnae: drawer.cnae, porte: drawer.porte, abertura: drawer.abertura, capital: drawer.capital,
           uf: drawer.uf, municipio: drawer.municipio, mei: drawer.mei,
-          email: drawer.email, phone: drawer.phone,
+          phone: drawer.phone, email: drawer.email,
+          phone_masked: drawer.phone_masked, email_masked: drawer.email_masked, has_phone: drawer.has_phone, has_email: drawer.has_email,
         };
-        return <StagingDetailModal data={data} badges={badges} added={dupe} importing={importing} onAdd={() => importCnpjs([drawer.cnpj])} onClose={() => setDrawer(null)} lang={lang} />;
+        return <StagingDetailModal data={data} badges={badges} added={dupe} owned={dupe} importing={importing} onAdd={() => importCnpjs([drawer.cnpj])} onClose={() => setDrawer(null)} lang={lang} />;
       })()}
+
+      {revealModal}
     </div>
   );
 }

@@ -17,6 +17,26 @@ const scoreOf = (l: { phone?: string | null; address?: string | null; email?: st
   Math.min(100, (has(l.phone) ? 30 : 0) + (has(l.address) ? 15 : 0) + (has(l.email) ? 25 : 0) + Math.max(0, Math.min(10, l.nicheQuality ?? 0)));
 
 const onlyDigits = (s: string) => String(s).replace(/\D/g, "");
+
+// ---- máscara de contato (SERVIDOR) — telefone/e-mail nunca saem completos no preview ----
+function maskPhone(raw?: string | null): string | null {
+  if (!has(raw)) return null;
+  const d = onlyDigits(raw!);
+  if (d.length < 4) return "****";
+  const last4 = d.slice(-4);
+  const ddd = d.length >= 10 ? `(${d.slice(0, 2)}) ` : "";
+  return `${ddd}****-${last4}`;
+}
+function maskEmail(raw?: string | null): string | null {
+  if (!has(raw)) return null;
+  const [user, domain] = String(raw).split("@");
+  if (!domain) return "****";
+  const parts = domain.split(".").filter(Boolean);
+  const tld = parts.length >= 2 ? parts.slice(-(parts.length >= 3 && ["com", "net", "org", "gov", "edu"].includes(parts[parts.length - 2]) ? 2 : 1)).join(".") : (parts[0] ?? "");
+  const u = (user ?? "").trim();
+  return `${u ? u[0] : "*"}****@****.${tld}`;
+}
+
 const fmtCnpj = (c: string) => c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 // Remove o prefixo de CNPJ que a Receita coloca na razão social de MEI (ex.: "67.305.103 FULANO").
 const stripDoc = (s?: string | null) => (s ? String(s).replace(/^\d{2}\.?\d{3}\.?\d{3}(\/?\d{4}-?\d{2})?\s+/, "").trim() : s ?? "");
@@ -68,17 +88,24 @@ function baseQuery(admin: ReturnType<typeof createClient>, f: Filters, forCount 
   return q;
 }
 
+// Preview MASCARADO: telefone/e-mail completos só quando a conta já é dona (duplicate);
+// senão, só as versões mascaradas + flags de presença. Revelar = mode "import".
 function mapPreview(r: Row, cnaeDesc: Map<string, string>, duplicate: boolean) {
   const company = titleCase(r.nome_fantasia) || titleCase(r.razao_social);
+  const phone = fmtPhone(r.ddd1, r.telefone1);
+  const email = r.email;
   return {
     cnpj: r.cnpj, cnpjFmt: fmtCnpj(r.cnpj), company,
     razao_social: titleCase(r.razao_social), nome_fantasia: titleCase(r.nome_fantasia),
     cnae: r.cnae_principal ? (cnaeDesc.get(r.cnae_principal) ?? r.cnae_principal) : null,
     porte: r.porte != null ? (PORTE[r.porte] ?? String(r.porte)) : null,
     mei: !!r.opcao_mei, abertura: fmtDate(r.data_abertura), capital: fmtBRL(r.capital_social),
-    uf: r.uf, municipio: r.municipio_nome, email: r.email, phone: fmtPhone(r.ddd1, r.telefone1),
+    uf: r.uf, municipio: r.municipio_nome,
+    has_phone: has(phone), has_email: has(email),
+    phone_masked: maskPhone(phone), email_masked: maskEmail(email),
     situacao: r.situacao != null ? (SITU[r.situacao] ?? String(r.situacao)) : null,
     duplicate,
+    ...(duplicate ? { phone, email } : {}),
   };
 }
 
