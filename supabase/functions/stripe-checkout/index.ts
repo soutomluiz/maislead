@@ -50,6 +50,7 @@ Deno.serve(async (req) => {
     params.set("mode", "subscription");
     params.set("line_items[0][price]", priceId);
     params.set("line_items[0][quantity]", "1");
+    params.set("allow_promotion_codes", "true"); // cupons de desconto (lançamento / testes)
     params.set("success_url", `${base}/?checkout=success`);
     params.set("cancel_url", `${base}/?checkout=cancel`);
     params.set("client_reference_id", accountId);
