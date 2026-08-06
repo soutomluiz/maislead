@@ -32,7 +32,7 @@ export function AppShell() {
           {screen === "dashboard" ? <DashboardScreen />
             : screen === "leadslist" ? <LeadsScreen />
             : screen === "manual" ? <ManualScreen />
-            : screen === "gplaces" ? <ExtractionScreen source="google_maps" fn="extract-google-maps" onGoLeads={() => setScreen("leadslist")} />
+            : screen === "gplaces" ? <ExtractionScreen source="google_maps" onGoLeads={() => setScreen("leadslist")} />
             : screen === "cnpj" ? <EmpresasScreen onNavigate={setScreen} />
             : screen === "crm" ? <CrmScreen onNavigate={setScreen} />
             : screen === "agenda" ? <AgendaScreen />

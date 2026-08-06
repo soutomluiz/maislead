@@ -43,15 +43,10 @@ const DICT = {
     notRevealedMsg: (n: number) => `${n} não couberam na cota — faça upgrade para revelar o resto`,
     quotaZeroReveal: "Cota do mês esgotada. Faça upgrade para revelar mais leads.",
     goLeads: "Ver na lista de Leads",
-    // google opt-in
-    googleTitle: "Nada encontrado nesta região pelo Overture",
-    googleSub: "Podemos buscar no Google Places — mas o Google importa tudo de uma vez e consome sua cota (sem seleção).",
-    googleBtn: "Buscar no Google (consome cota)",
-    // google import result (fluxo antigo)
-    okTitle: "Extração concluída", inserted: "novos leads", skipped: "duplicados ignorados", found: "encontrados", clickDetail: "clique para ver detalhes",
-    errKey: "A chave de API desta extração ainda não foi configurada no servidor. Assim que você enviar a chave, esta tela passa a extrair de verdade.",
-    errLimit: "Limite de leads do seu plano foi atingido este mês. Faça upgrade para continuar.",
-    errPlaces: "O provedor de busca recusou a requisição (verifique a chave/faturamento).", errGeneric: "Não foi possível concluir a busca agora.",
+    // empty-state (Overture sem resultados)
+    emptyTitle: "Nenhum resultado para essa busca", emptySub: "Tente outra cidade ou outro termo.",
+    found: "encontrados",
+    errGeneric: "Não foi possível concluir a busca agora.",
     f_company: "Nome da empresa", f_phone: "Telefone", f_email: "E-mail", f_site: "Website", f_addr: "Endereço", f_rating: "Avaliações",
   },
   en: {
@@ -80,13 +75,9 @@ const DICT = {
     notRevealedMsg: (n: number) => `${n} didn't fit your quota — upgrade to reveal the rest`,
     quotaZeroReveal: "Monthly quota exhausted. Upgrade to reveal more leads.",
     goLeads: "View in Leads list",
-    googleTitle: "Nothing found in this area via Overture",
-    googleSub: "We can search Google Places — but Google imports everything at once and consumes your quota (no selection).",
-    googleBtn: "Search Google (uses quota)",
-    okTitle: "Extraction complete", inserted: "new leads", skipped: "duplicates skipped", found: "found", clickDetail: "click to view details",
-    errKey: "This extraction's API key isn't configured on the server yet. As soon as you send the key, this screen extracts for real.",
-    errLimit: "Your plan's monthly lead limit was reached. Upgrade to keep going.",
-    errPlaces: "The search provider rejected the request (check key/billing).", errGeneric: "Couldn't complete the search right now.",
+    emptyTitle: "No results for this search", emptySub: "Try another city or another term.",
+    found: "found",
+    errGeneric: "Couldn't complete the search right now.",
     f_company: "Company name", f_phone: "Phone", f_email: "Email", f_site: "Website", f_addr: "Address", f_rating: "Ratings",
   },
   es: {
@@ -115,13 +106,9 @@ const DICT = {
     notRevealedMsg: (n: number) => `${n} no cupieron en tu cuota — mejora tu plan para revelar el resto`,
     quotaZeroReveal: "Cuota mensual agotada. Mejora tu plan para revelar más leads.",
     goLeads: "Ver en la lista de Leads",
-    googleTitle: "Nada encontrado en esta zona por Overture",
-    googleSub: "Podemos buscar en Google Places — pero Google importa todo de una vez y consume tu cuota (sin selección).",
-    googleBtn: "Buscar en Google (usa cuota)",
-    okTitle: "Extracción completa", inserted: "nuevos leads", skipped: "duplicados omitidos", found: "encontrados", clickDetail: "haz clic para ver detalles",
-    errKey: "La clave de API de esta extracción aún no está configurada en el servidor. En cuanto envíes la clave, esta pantalla extrae de verdad.",
-    errLimit: "Se alcanzó el límite mensual de leads de tu plan. Mejora tu plan para seguir.",
-    errPlaces: "El proveedor de búsqueda rechazó la solicitud (revisa clave/facturación).", errGeneric: "No se pudo completar la búsqueda ahora.",
+    emptyTitle: "Sin resultados para esta búsqueda", emptySub: "Prueba con otra ciudad u otro término.",
+    found: "encontrados",
+    errGeneric: "No se pudo completar la búsqueda ahora.",
     f_company: "Nombre de empresa", f_phone: "Teléfono", f_email: "Email", f_site: "Sitio web", f_addr: "Dirección", f_rating: "Reseñas",
   },
 };
@@ -130,7 +117,6 @@ const POPULAR = ["Restaurantes", "Academias", "Clínicas", "Madeireiras", "Refor
 const POPULAR_ICONS: Record<string, IconName> = { Restaurantes: "database", Academias: "award", Clínicas: "plus", Madeireiras: "database", Reformas: "settings", Pisos: "dashboard", Advocacia: "award", Estética: "spark" };
 
 interface SearchRow { id: string; query: string; location: string | null; count: number; created_at: string; }
-interface Preview { company_name: string; phone?: string | null; website?: string | null; email?: string | null; score: number; }
 
 // Resultado mascarado da action "search" (Overture). Campos completos (phone/website)
 // só vêm quando already_owned=true; senão, só as versões mascaradas.
@@ -154,7 +140,7 @@ interface SearchResult {
 }
 interface Quota { cap: number | null; used: number; remaining: number | null }
 
-export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn: string; onGoLeads?: () => void }) {
+export function ExtractionScreen({ source, onGoLeads }: { source: Source; onGoLeads?: () => void }) {
   const { lang } = useLang();
   const { refresh } = useAuth();
   const auth = useAuth();
@@ -173,16 +159,12 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
   const [quota, setQuota] = useState<Quota | null>(null);
   const [revealBusy, setRevealBusy] = useState(false);
   const [revealMsg, setRevealMsg] = useState<string[] | null>(null);
-  const [showGoogleOptIn, setShowGoogleOptIn] = useState(false);
   // Modal de confirmação do reveal (substitui o window.confirm nativo).
   // A preferência "não perguntar de novo" fica no perfil (profiles.hide_reveal_confirm),
   // então vale em qualquer dispositivo — nada de localStorage.
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [dontAsk, setDontAsk] = useState(false);
   const [savingPref, setSavingPref] = useState(false);
-
-  // ---- resultado do import-all do Google (fluxo antigo, opt-in) ----
-  const [googleResult, setGoogleResult] = useState<{ inserted: number; skipped: number; found: number; preview: Preview[] } | null>(null);
 
   const [detailLead, setDetailLead] = useState<LeadRow | null>(null);
   const [detailBusy, setDetailBusy] = useState<string | null>(null);
@@ -238,19 +220,17 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
     const { city, region, country } = deriveCityParts(sel);
     const { data, error } = await supabase.functions.invoke("search-overture", { body: { action: "search", niche: niche.trim(), bbox: sel.bbox, city, region, country } });
     if (error || data?.error) {
-      // buscar não deveria falhar; se falhar, oferece o Google como saída
       console.warn("[maisLEAD] search falhou:", data?.error ?? error);
-      setShowGoogleOptIn(true);
-      setResults([]);
+      setErr(D.errGeneric);
+      setResults(null);
       return;
     }
     const found: number = data?.found ?? 0;
     console.log(`[maisLEAD] search source=${data?.source ?? "?"} found=${found}`);
     setQuota(data?.quota ?? null);
-    setResults(data?.results ?? []);
+    setResults(data?.results ?? []); // [] → empty-state (sem fallback Google)
     setSelected(new Set());
     setRevealMsg(null);
-    setShowGoogleOptIn(found === 0); // sem cobertura → oferece Google opt-in
     await loadRecent();
   }
 
@@ -313,42 +293,15 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
     finally { setRevealBusy(false); }
   }
 
-  // ---- import-all do Google (fluxo antigo) — websites e opt-in explícito ----
-  async function runGooglePlaces() {
-    const { data, error } = await supabase.functions.invoke(fn, { body: { niche: niche.trim(), location: location.trim() || null } });
-    let code: string | null = data?.error ?? null;
-    if (error) { code = "errGeneric"; try { const body = await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.(); code = body?.error ?? code; } catch { /* ignore */ } }
-    if (code) {
-      setErr(code === "missing_api_key" ? D.errKey : code === "limit_reached" ? D.errLimit : code === "places_error" || code === "cse_error" ? D.errPlaces : D.errGeneric);
-      await Promise.all([loadRecent(), refresh()]);
-      return;
-    }
-    setGoogleResult({ inserted: data.inserted ?? 0, skipped: data.skipped ?? 0, found: data.found ?? 0, preview: data.preview ?? [] });
-    setShowGoogleOptIn(false);
-    await Promise.all([loadRecent(), refresh()]);
-  }
-
-  // botão "Buscar"
+  // botão "Buscar" — Overture é o único caminho: busca grátis mascarada por cidade.
   async function run() {
-    setErr(null); setResults(null); setGoogleResult(null); setShowGoogleOptIn(false); setRevealMsg(null); setQuota(null);
+    setErr(null); setResults(null); setRevealMsg(null); setQuota(null);
     if (!niche.trim()) { setErr(D.reqNiche); return; }
+    if (!citySelection?.bbox) { setErr(D.selectCity); return; } // sem cidade não há bbox pro Overture
     setBusy(true);
     try {
-      if (source === "website") {
-        await runGooglePlaces(); // websites continua importando tudo (inalterado)
-      } else if (citySelection?.bbox) {
-        await doSearch(citySelection); // Google Places = busca grátis mascarada
-      } else {
-        setErr(D.selectCity); // sem cidade selecionada não há bbox pro Overture
-      }
+      await doSearch(citySelection);
     } catch { setErr(D.errGeneric); }
-    finally { setBusy(false); }
-  }
-
-  // botão opt-in do Google (importa tudo e consome cota)
-  async function runGoogleOptIn() {
-    setBusy(true); setErr(null);
-    try { await runGooglePlaces(); } catch { setErr(D.errGeneric); }
     finally { setBusy(false); }
   }
 
@@ -483,50 +436,14 @@ export function ExtractionScreen({ source, fn, onGoLeads }: { source: Source; fn
         </Panel>
       )}
 
-      {/* ===== nada no Overture → opt-in do Google ===== */}
-      {showGoogleOptIn && source === "google_maps" && (
-        <Panel style={{ border: "1px solid var(--ml-amber)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 9, background: "rgba(245,158,11,.14)", display: "grid", placeItems: "center", color: "var(--ml-amber)" }}><Icon name="timer" size={17} /></div>
-            <div style={{ fontWeight: 700 }}>{D.googleTitle}</div>
-          </div>
-          <div style={{ fontSize: 13, color: "var(--ml-muted)", marginBottom: 14, lineHeight: 1.5 }}>{D.googleSub}</div>
-          <button onClick={runGoogleOptIn} disabled={busy} style={{ display: "flex", alignItems: "center", gap: 8, height: 44, padding: "0 18px", borderRadius: 12, border: "1px solid var(--ml-amber)", background: "rgba(245,158,11,.1)", color: "var(--ml-amber)", fontWeight: 700, fontSize: 13.5, cursor: busy ? "default" : "pointer" }}>
-            <Icon name="search" size={15} />{D.googleBtn}
-          </button>
-        </Panel>
-      )}
-
-      {/* ===== resultado do import-all Google (fluxo antigo) ===== */}
-      {googleResult && (
+      {/* ===== nada no Overture → empty-state (sem fallback Google) ===== */}
+      {results && results.length === 0 && (
         <Panel>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 9, background: "rgba(16,185,129,.14)", display: "grid", placeItems: "center", color: "var(--ml-green)" }}><Icon name="check" size={17} /></div>
-            <div style={{ fontWeight: 700 }}>{D.okTitle}</div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "18px 10px", gap: 7 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 14, background: "var(--ml-grid)", display: "grid", placeItems: "center", color: "var(--ml-muted)" }}><Icon name="search" size={20} /></div>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>{D.emptyTitle}</div>
+            <div style={{ fontSize: 13, color: "var(--ml-muted)" }}>{D.emptySub}</div>
           </div>
-          <div style={{ display: "flex", gap: 18, fontSize: 13.5, marginBottom: googleResult.preview.length ? 14 : 0 }}>
-            <span><b style={{ color: "var(--ml-green)", fontSize: 18 }}>{googleResult.inserted}</b> {D.inserted}</span>
-            <span style={{ color: "var(--ml-muted)" }}><b>{googleResult.skipped}</b> {D.skipped}</span>
-            <span style={{ color: "var(--ml-muted)" }}><b>{googleResult.found}</b> {D.found}</span>
-          </div>
-          {googleResult.preview.length > 0 && (
-            <>
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ml-muted)", marginBottom: 8 }}>{googleResult.preview.length} {D.found} · {D.clickDetail}</div>
-              <div className="ml-scroll" style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 420, overflowY: "auto" }}>
-                {googleResult.preview.map((p, i) => (
-                  <button key={i} onClick={() => openDetail(p.company_name, p.phone)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 11px", borderRadius: 9, background: "var(--ml-grid)", fontSize: 13, border: "1px solid transparent", cursor: "pointer", textAlign: "left", width: "100%" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--ml-primary)")} onMouseLeave={(e) => (e.currentTarget.style.borderColor = "transparent")}>
-                    <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--ml-text)" }}>{p.company_name}</span>
-                    <span style={{ color: "var(--ml-muted)", flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                      <span>{p.phone || p.email || p.website || "—"} · <b style={{ color: "var(--ml-primary)" }}>{p.score}</b></span>
-                      {detailBusy === p.company_name ? <Icon name="loader" size={13} className="ml-spin" /> : <span style={{ color: "var(--ml-primary)", fontWeight: 700 }}>→</span>}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              {onGoLeads && <button onClick={onGoLeads} style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 10, border: "1px solid var(--ml-border)", background: "var(--ml-card)", color: "var(--ml-primary)", fontWeight: 600, fontSize: 13.5, cursor: "pointer" }}><Icon name="users" size={15} />{D.goLeads}</button>}
-            </>
-          )}
         </Panel>
       )}
 
